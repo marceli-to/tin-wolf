@@ -112,6 +112,7 @@ export class InputManager {
     const look = shapeStick(p.axis(i, 2), p.axis(i, 3), 0.15, 2);
     intent.lookYaw = look.x * PAD_YAW_RATE * s.padSens * dt;
     intent.lookPitch = -look.y * PAD_PITCH_RATE * s.padSens * dt * (s.invertY ? -1 : 1);
+    intent.aimAssist = s.aimAssist;
     intent.fire = p.down(i, PAD.RT) || p.down(i, PAD.RB);
     intent.reload = p.down(i, PAD.X);
     intent.interact = p.down(i, PAD.A);

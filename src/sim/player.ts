@@ -1,6 +1,7 @@
 import { PLAYER, WORLD } from '../config';
 import { clamp } from '../core/math';
 import type { PlayerIntent } from '../core/intent';
+import { applyAimAssist } from './aimAssist';
 import { hasHeadroom, moveBody, updateVertical } from './collision';
 import { emit, type Player, type World } from './world';
 
@@ -12,6 +13,7 @@ export function playerEyeHeight(p: Player): number {
 }
 
 export function updatePlayerMovement(world: World, p: Player, intent: PlayerIntent, dt: number): void {
+  applyAimAssist(world, p, intent, dt);
   p.yaw += intent.lookYaw;
   p.pitch = clamp(p.pitch + intent.lookPitch, -WORLD.maxPitch, WORLD.maxPitch);
 

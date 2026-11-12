@@ -9,9 +9,11 @@ export interface Settings {
   volume: number;
   /** Retro internal render height; 0 = smooth native rendering. */
   resolution: number;
+  /** Gamepad aim assist. */
+  aimAssist: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { mouseSens: 1, padSens: 1, invertY: false, split: 'vertical', volume: 0.7, resolution: 0 };
+export const DEFAULT_SETTINGS: Settings = { mouseSens: 1, padSens: 1, invertY: false, split: 'vertical', volume: 0.7, resolution: 0, aimAssist: true };
 
 /** 0 = smooth native rendering; the others are retro pixel heights. */
 export const RESOLUTIONS = [0, 480, 360, 240, 180];
@@ -30,6 +32,7 @@ export function loadSettings(): Settings {
       split: v.split === 'horizontal' ? 'horizontal' : 'vertical',
       volume: clampNum(v.volume, 0, 1, DEFAULT_SETTINGS.volume),
       resolution: RESOLUTIONS.includes(v.resolution as number) ? (v.resolution as number) : DEFAULT_SETTINGS.resolution,
+      aimAssist: typeof v.aimAssist === 'boolean' ? v.aimAssist : DEFAULT_SETTINGS.aimAssist,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

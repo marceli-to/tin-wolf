@@ -24,6 +24,19 @@ export const WORLD = {
   maxPitch: 85 * (Math.PI / 180),
 };
 
+/** Gamepad aim assist (see sim/aimAssist.ts). */
+export const AIM_ASSIST = {
+  /** Assist cone around the crosshair, plus the target's own angular width. */
+  coneDeg: 6,
+  range: 35,
+  /** Look speed multiplier with the crosshair right on a target. */
+  slowdown: 0.45,
+  /** Fastest drift toward the target, radians per second. */
+  pullRate: 0.9,
+  /** Aim point as a fraction of the target's height. */
+  aimHeight: 0.6,
+};
+
 export const AI = {
   thinkRate: 10,
 };

@@ -16,6 +16,8 @@ export interface PlayerIntent {
   weaponPrev: boolean;
   /** Select owned weapon by number, 1-based; 0 = no request. */
   weaponSlot: number;
+  /** Gamepad aim assist for this player's look (stick input). */
+  aimAssist?: boolean;
 }
 
 export function emptyIntent(): PlayerIntent {

@@ -87,6 +87,7 @@ export class Game {
       mouseSens: DEFAULT_INPUT_SETTINGS.mouseSens * s.mouseSens,
       padSens: s.padSens,
       invertY: s.invertY,
+      aimAssist: s.aimAssist,
     };
     this.sfx.setVolume(s.volume);
     this.renderer.split = s.split;
@@ -116,6 +117,7 @@ export class Game {
         { label: row('Mouse sensitivity', s.mouseSens.toFixed(1)), action: () => undefined, adjust: (d) => change(() => (s.mouseSens = step(s.mouseSens, d * 0.1, 0.2, 4))) },
         { label: row('Gamepad sensitivity', s.padSens.toFixed(1)), action: () => undefined, adjust: (d) => change(() => (s.padSens = step(s.padSens, d * 0.1, 0.2, 4))) },
         { label: row('Invert look', s.invertY ? 'On' : 'Off'), action: () => change(() => (s.invertY = !s.invertY)), adjust: () => change(() => (s.invertY = !s.invertY)) },
+        { label: row('Gamepad aim assist', s.aimAssist ? 'On' : 'Off'), action: () => change(() => (s.aimAssist = !s.aimAssist)), adjust: () => change(() => (s.aimAssist = !s.aimAssist)) },
         {
           label: row('Split screen', s.split === 'vertical' ? 'Side by side' : 'Top and bottom'),
           action: () => change(() => (s.split = s.split === 'vertical' ? 'horizontal' : 'vertical')),

@@ -52,7 +52,9 @@ Kestrel 9 pistol, Kestrel 9 SD (silenced: guards only hear it within 4 m), Vireo
 
 Nintendo controllers (Switch Pro) follow their printed labels: A uses, B crouches, X/Y as in the table, like in Switch games.
 
-Settings (menu or pause): mouse / gamepad sensitivity, invert look, split direction, volume, graphics (Smooth, or Retro 480–180p pixels). Saved in `localStorage`.
+Gamepads get aim assist: turning slows down over a visible enemy, and while you move or turn the aim drifts gently toward it (it never aims for you when you stand still). Mouse aiming is untouched.
+
+Settings (menu or pause): mouse / gamepad sensitivity, invert look, gamepad aim assist, split direction, volume, graphics (Smooth, or Retro 480–180p pixels). Saved in `localStorage`.
 
 Third-party models are CC0 (Kenney by default, Quaternius with `?art=quaternius`); see `CREDITS.md`. To trim a new glTF to the animations you need: `python3 tools/trim_gltf.py in.gltf out.glb Idle Walk Run`.
 
