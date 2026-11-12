@@ -37,6 +37,24 @@ export function shapeStick(x: number, y: number, deadZone: number, exponent: num
   return { x: (x / mag) * shaped, y: (y / mag) * shaped };
 }
 
+/** Nintendo pads (Switch Pro, Joy-Con) by browser id; Nintendo's USB vendor id is 057e. */
+export function isNintendoPad(id: string): boolean {
+  return /nintendo|pro controller|joy-con|057e/i.test(id);
+}
+
+/**
+ * Browsers report face buttons by position (bottom = 0, right = 1, left = 2, top = 3), so on a
+ * Nintendo pad the button labelled A arrives as B. Swapping A/B and X/Y makes the game's A the
+ * button labelled A, as in Switch games.
+ */
+export function labelOrder(buttons: boolean[], nintendo: boolean): boolean[] {
+  if (!nintendo) return buttons;
+  const b = buttons.slice();
+  [b[PAD.A], b[PAD.B]] = [buttons[PAD.B] ?? false, buttons[PAD.A] ?? false];
+  [b[PAD.X], b[PAD.Y]] = [buttons[PAD.Y] ?? false, buttons[PAD.X] ?? false];
+  return b;
+}
+
 /** Snapshot of all connected pads with edge detection, polled once per frame. */
 export class Gamepads {
   private prev = new Map<number, boolean[]>();
@@ -53,7 +71,10 @@ export class Gamepads {
       this.pads.set(gp.index, gp);
       this.cur.set(
         gp.index,
-        gp.buttons.map((b) => b.pressed || b.value > 0.5),
+        labelOrder(
+          gp.buttons.map((b) => b.pressed || b.value > 0.5),
+          isNintendoPad(gp.id),
+        ),
       );
     }
   }
