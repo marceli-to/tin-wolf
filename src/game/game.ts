@@ -2,7 +2,7 @@ import { Sfx } from '../audio/sfx';
 import { DT } from '../config';
 import { EventBus } from '../core/events';
 import { emptyIntent, type PlayerIntent } from '../core/intent';
-import { loadGameData, loadLevel, type GameData } from '../data';
+import { levelIds, loadGameData, loadLevel, type GameData } from '../data';
 import { DataError } from '../data/load';
 import type { LevelDef } from '../data/schema';
 import { deviceLabel, InputManager, type DeviceId } from '../input/manager';
@@ -57,6 +57,8 @@ export class Game {
   private debugOverlay: DebugOverlay | null = null;
   private loop: RunningLoop | null = null;
   private uiLayer: HTMLElement;
+  /** Esc / B on a sub-menu of the main menu (e.g. the map picker). */
+  private menuBack: (() => void) | null = null;
   /** Siren: repeats while the clock is before sirenUntil. */
   private sirenUntil = 0;
   private nextSiren = 0;
@@ -182,6 +184,7 @@ export class Game {
 
   enterMenu(): void {
     this.state = 'menu';
+    this.menuBack = null;
     this.world = null;
     this.clearHuds();
     this.renderer.clear();
@@ -203,10 +206,7 @@ export class Game {
         {
           label: 'Versus',
           hint: 'Two players, split-screen',
-          action: () => {
-            this.levelId = VERSUS_LEVEL;
-            this.enterLobby(2);
-          },
+          action: () => this.showMapPicker(),
         },
         { label: 'Settings', action: () => this.screen.show(this.settingsSpec(() => this.enterMenu())) },
         { label: 'Controls', action: () => this.showControls() },
@@ -230,6 +230,35 @@ export class Game {
         <span>Pause</span><span>Esc · Start</span>
       </div>`,
       items: [{ label: 'Back', action: () => this.enterMenu() }],
+    });
+  }
+
+  /** Versus maps: every level with mode 'versus', Pumphouse first. */
+  private versusMaps(): { id: string; name: string }[] {
+    const maps: { id: string; name: string }[] = [];
+    for (const id of levelIds()) {
+      const level = this.tryLoad(id);
+      if (level?.mode === 'versus') maps.push({ id, name: level.name });
+    }
+    return maps.sort((a, b) => (a.id === VERSUS_LEVEL ? -1 : b.id === VERSUS_LEVEL ? 1 : a.name.localeCompare(b.name)));
+  }
+
+  private showMapPicker(): void {
+    this.menuBack = () => this.enterMenu();
+    this.screen.show({
+      title: 'VERSUS',
+      subtitle: 'Choose a map',
+      items: [
+        ...this.versusMaps().map((m) => ({
+          label: esc(m.name),
+          action: () => {
+            this.levelId = m.id;
+            this.enterLobby(2);
+          },
+        })),
+        { label: 'Back', action: () => this.enterMenu() },
+      ],
+      footer: 'Arrows / D-pad to choose · Enter / A to select · Esc / B: back',
     });
   }
 
@@ -501,7 +530,8 @@ export class Game {
           this.sfx.play('ui_select', 0.5);
           this.screen.activate();
         } else if (m.back || (this.state === 'paused' && m.pause)) {
-          if (this.state === 'paused') this.resume();
+          if (this.state === 'menu' && this.menuBack) this.menuBack();
+          else if (this.state === 'paused') this.resume();
           else if (this.state === 'results' || this.state === 'debrief') this.enterMenu();
         }
         break;

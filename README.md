@@ -13,7 +13,7 @@ npm run typecheck
 npm run build
 ```
 
-Levels: `depot` (mission, Halvard Depot), `arena_pumphouse` (versus), `test_room` (sandbox with two guards).
+Levels: `depot` (mission, Halvard Depot), versus arenas `arena_pumphouse`, `arena_warehouse` (raised corner platforms, pillar blocks) and `arena_snowfort` (outdoors, a hut in the middle), `test_room` (sandbox with two guards). Versus in the menu lets you pick the map. The two new arenas are point-symmetric so neither start is better; they were generated with a small script and are plain level JSON.
 
 URL parameters:
 

@@ -1,0 +1,355 @@
+{
+ "id": "arena_snowfort",
+ "name": "Snowfort",
+ "mode": "versus",
+ "cellSize": 2,
+ "fog": {
+  "color": "#a9b8c6",
+  "near": 16,
+  "far": 60
+ },
+ "match": {
+  "killLimit": 10,
+  "timeLimit": 300
+ },
+ "legend": {
+  "R": {
+   "solid": true,
+   "wall": "rock"
+  },
+  "B": {
+   "solid": true,
+   "wall": "brick"
+  },
+  "s": {
+   "floor": 0,
+   "ceil": 7,
+   "sky": true,
+   "floorMat": "snow",
+   "wall": "rock",
+   "light": 1.0
+  },
+  "w": {
+   "floor": 0,
+   "ceil": 3.2,
+   "floorMat": "wood",
+   "wall": "wood",
+   "ceilMat": "ceiling",
+   "light": 0.8
+  }
+ },
+ "map": [
+  "RRRRRRRRRRRRRRRRRRRRRR",
+  "RssssssssssssssssssssR",
+  "RssBBBssssssssssBBBssR",
+  "RssBssssssssssssssBssR",
+  "RssssssssssssssssssssR",
+  "RssssssBBssssBBssssssR",
+  "RssssssssssssssssssssR",
+  "RssssssssssssssssssssR",
+  "RsssssssBBBBBBsssssssR",
+  "RsssssssBwwwwBsssssssR",
+  "RssssssswwwwwBsssssssR",
+  "RsssssssBwwwwwsssssssR",
+  "RsssssssBwwwwBsssssssR",
+  "RsssssssBBBBBBsssssssR",
+  "RssssssssssssssssssssR",
+  "RssssssssssssssssssssR",
+  "RssssssBBssssBBssssssR",
+  "RssssssssssssssssssssR",
+  "RssBssssssssssssssBssR",
+  "RssBBBssssssssssBBBssR",
+  "RssssssssssssssssssssR",
+  "RRRRRRRRRRRRRRRRRRRRRR"
+ ],
+ "entities": [
+  {
+   "type": "playerStart",
+   "slot": 0,
+   "cell": [
+    9,
+    1
+   ],
+   "yaw": 180
+  },
+  {
+   "type": "playerStart",
+   "slot": 1,
+   "cell": [
+    12,
+    20
+   ],
+   "yaw": 0
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    9,
+    1
+   ],
+   "yaw": 180
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    12,
+    20
+   ],
+   "yaw": 0
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    1,
+    1
+   ],
+   "yaw": 135
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    20,
+    20
+   ],
+   "yaw": 315
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    10,
+    2
+   ],
+   "yaw": 180
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    11,
+    19
+   ],
+   "yaw": 0
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    19,
+    6
+   ],
+   "yaw": 225
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    2,
+    15
+   ],
+   "yaw": 45
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    16,
+    10
+   ],
+   "yaw": 270
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    5,
+    11
+   ],
+   "yaw": 90
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_smg",
+   "cell": [
+    10,
+    10
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_smg",
+   "cell": [
+    11,
+    11
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "grenades",
+   "cell": [
+    2,
+    10
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "grenades",
+   "cell": [
+    19,
+    11
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "medkit",
+   "cell": [
+    20,
+    2
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "medkit",
+   "cell": [
+    1,
+    19
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "armor",
+   "cell": [
+    11,
+    6
+   ],
+   "respawn": 45
+  },
+  {
+   "type": "pickup",
+   "item": "armor",
+   "cell": [
+    10,
+    15
+   ],
+   "respawn": 45
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    6,
+    4
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    15,
+    17
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_smg",
+   "cell": [
+    16,
+    8
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_smg",
+   "cell": [
+    5,
+    13
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    6,
+    7
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    15,
+    14
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_tall",
+   "cell": [
+    14,
+    4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_tall",
+   "cell": [
+    7,
+    17
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    3.4,
+    8.6
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    18.6,
+    13.4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    4.1,
+    8.9
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    17.9,
+    13.1
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "cargo",
+   "cell": [
+    18,
+    12
+   ],
+   "yaw": 90
+  },
+  {
+   "type": "prop",
+   "kind": "cargo",
+   "cell": [
+    3,
+    9
+   ],
+   "yaw": 270
+  }
+ ]
+}

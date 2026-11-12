@@ -1,0 +1,420 @@
+{
+ "id": "arena_warehouse",
+ "name": "Warehouse",
+ "mode": "versus",
+ "cellSize": 2,
+ "fog": {
+  "color": "#2a2f36",
+  "near": 14,
+  "far": 52
+ },
+ "match": {
+  "killLimit": 10,
+  "timeLimit": 300
+ },
+ "legend": {
+  "#": {
+   "solid": true,
+   "wall": "brick"
+  },
+  ".": {
+   "floor": 0,
+   "ceil": 6,
+   "floorMat": "concrete",
+   "wall": "brick",
+   "ceilMat": "ceiling",
+   "light": 0.9
+  },
+  "p": {
+   "floor": 1.2,
+   "ceil": 6,
+   "floorMat": "metal",
+   "wall": "brick",
+   "ceilMat": "ceiling",
+   "light": 1.0,
+   "step": "hazard"
+  },
+  "<": {
+   "ramp": "w",
+   "floor": 0,
+   "floorTo": 1.2,
+   "ceil": 6,
+   "floorMat": "metal",
+   "wall": "brick",
+   "light": 0.95,
+   "step": "hazard"
+  },
+  ">": {
+   "ramp": "e",
+   "floor": 0,
+   "floorTo": 1.2,
+   "ceil": 6,
+   "floorMat": "metal",
+   "wall": "brick",
+   "light": 0.95,
+   "step": "hazard"
+  }
+ },
+ "map": [
+  "######################",
+  "#pppppp<.............#",
+  "#pppppp<.............#",
+  "#pppppp.....##.......#",
+  "#pppppp.....##.......#",
+  "#....................#",
+  "#...##..........##...#",
+  "#...##..........##...#",
+  "#.........##.........#",
+  "#.........##.........#",
+  "#...##..........##...#",
+  "#...##..........##...#",
+  "#....................#",
+  "#.......##.....pppppp#",
+  "#.......##.....pppppp#",
+  "#.............>pppppp#",
+  "#.............>pppppp#",
+  "######################"
+ ],
+ "entities": [
+  {
+   "type": "playerStart",
+   "slot": 0,
+   "cell": [
+    3,
+    2
+   ],
+   "yaw": 135
+  },
+  {
+   "type": "playerStart",
+   "slot": 1,
+   "cell": [
+    18,
+    15
+   ],
+   "yaw": 315
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    3,
+    2
+   ],
+   "yaw": 135
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    18,
+    15
+   ],
+   "yaw": 315
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    14,
+    2
+   ],
+   "yaw": 225
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    7,
+    15
+   ],
+   "yaw": 45
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    2,
+    9
+   ],
+   "yaw": 90
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    19,
+    8
+   ],
+   "yaw": 270
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    8,
+    6
+   ],
+   "yaw": 180
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    13,
+    11
+   ],
+   "yaw": 0
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_smg",
+   "cell": [
+    10,
+    5
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_smg",
+   "cell": [
+    11,
+    12
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "medkit",
+   "cell": [
+    2,
+    4
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "medkit",
+   "cell": [
+    19,
+    13
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "armor",
+   "cell": [
+    20,
+    1
+   ],
+   "respawn": 45
+  },
+  {
+   "type": "pickup",
+   "item": "armor",
+   "cell": [
+    1,
+    16
+   ],
+   "respawn": 45
+  },
+  {
+   "type": "pickup",
+   "item": "grenades",
+   "cell": [
+    16,
+    8
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "grenades",
+   "cell": [
+    5,
+    9
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    6,
+    12
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    15,
+    5
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_smg",
+   "cell": [
+    1,
+    8
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_smg",
+   "cell": [
+    20,
+    9
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "prop",
+   "kind": "shelf_wide",
+   "cell": [
+    17.5,
+    2.3
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "shelf_wide",
+   "cell": [
+    4.5,
+    15.7
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "shelf_wide",
+   "cell": [
+    19.5,
+    2.3
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "shelf_wide",
+   "cell": [
+    2.5,
+    15.7
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    9,
+    3
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    12,
+    14
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_tall",
+   "cell": [
+    7.6,
+    9.4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_tall",
+   "cell": [
+    14.4,
+    8.6
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    3.6,
+    5.6
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    18.4,
+    12.4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "cargo",
+   "cell": [
+    14,
+    6
+   ],
+   "yaw": 90
+  },
+  {
+   "type": "prop",
+   "kind": "cargo",
+   "cell": [
+    7,
+    11
+   ],
+   "yaw": 270
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    19,
+    8
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    2,
+    9
+   ]
+  },
+  {
+   "type": "light",
+   "cell": [
+    4,
+    2
+   ],
+   "level": 0.25,
+   "radius": 4
+  },
+  {
+   "type": "light",
+   "cell": [
+    17,
+    15
+   ],
+   "level": 0.25,
+   "radius": 4
+  },
+  {
+   "type": "light",
+   "cell": [
+    10,
+    7
+   ],
+   "level": 0.2,
+   "radius": 5
+  },
+  {
+   "type": "light",
+   "cell": [
+    11,
+    10
+   ],
+   "level": 0.2,
+   "radius": 5
+  }
+ ]
+}
