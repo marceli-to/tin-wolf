@@ -6,17 +6,17 @@ Planning document for the executing model. Work through it top to bottom. Check 
 
 ## Status (2026-11-12)
 
-M0–M6 are done. M7 is done except 4-player split-screen: more weapons, gamepad aim assist, difficulty levels, guard cover and alarm panels, two more arenas with a map picker, and synthesised music (all asked for by Marcel). Everything is on `master` and pushed (last commit `fe6ef28`). 97 unit tests, typecheck and build pass. `npm run build` updates `dist/`, which Herd serves at https://tin-wolf.test (linked and secured; see README).
+M0–M6 are done. M7 is done except 4-player split-screen. M8 (Marcel's list, see below) has sprint, jump, the Heron LR sniper rifle and the training ground done; more levels and online versus are open. Since M7 the game was also renamed Tin Fox, menus and HUD restyled to the Kenney toy look (Fredoka font), the Quaternius models removed (build 18 MB → 3.6 MB), and the site got `.htaccess`, favicon and an OpenGraph image. Everything is on `master` and pushed. 119 unit tests, typecheck and build pass. `npm run build` updates `dist/`, which Herd serves at https://tin-wolf.test (linked and secured; see README).
 
-Verified by script in the browser (headless Chrome via a throwaway playwright-core script outside the repo; the in-app preview cannot capture the WebGL canvas): movement and collision, split-screen, weapons and damage, full versus match → results → rematch, every guard state transition in the test room, the depot's stealth route and loud route end to end (debug autopilot), mission fail → debrief → retry, settings surviving a reload, draw calls.
+Verified by script in the browser (headless Chrome via a throwaway playwright-core script outside the repo; the in-app preview cannot capture the WebGL canvas): movement and collision, split-screen, weapons and damage, full versus match → results → rematch, every guard state transition in the test room, the depot's stealth route and loud route end to end (debug autopilot), mission fail → debrief → retry, settings surviving a reload, draw calls; since M8 also sprint FOV, jumping onto a crate, the rifle in first and third person, scoping in arenas and the depot yard, and a full training course run (17/17 targets incl. the grenade pit).
 
 Art direction changed after M6 (see deviation log, "Art" rows): the default look is Kenney CC0 (Mini Characters, Blaster Kit, furniture and prop kits) with flat level textures. The earlier Quaternius set has been removed. Smooth rendering by default.
 
-Repository: https://github.com/marceli-to/tin-wolf (`master`). Live: https://tinfox.kimiyu.ch (upload the contents of `dist/` to the subdomain root).
+Repository: https://github.com/marceli-to/tin-wolf (`master`). Live: https://tinfox.kimiyu.ch (Hostpoint, same account as Marcel's other kimiyu sites). Deploy with `./deploy.sh` (needs a clean, committed tree; tests, builds, rsyncs `dist/` into `www/tinfox.kimiyu.ch/public`). The live site still runs the hand-uploaded build from before `deploy.sh`: everything since (site files, sprint, jump, rifle, training) goes live with the first `./deploy.sh` run.
 
 Audience: Marcel plays this with his kids, so the look is deliberately toy-like (Kenney) and Easy difficulty exists for them.
 
-Next (ask first): 4-player split-screen is the only open M7 item. Other ideas not yet raised: difficulty adding objectives (the M7 item only tunes guard values so far), a second mission, a proper roof on the Snowfort hut (its walls rise to the 7 m sky ceiling), first-person SMG held two-handed (third-person figures already use the two-handed pose).
+Next (ask first): from Marcel's M8 list, more levels (versus arenas are quick, a second mission is a day or more) and online versus over PeerJS (several days; the deterministic sim suits lockstep). Still open from M7: 4-player split-screen. Other ideas not yet raised: training in split-screen as a race (both players' times), distance markers on the range, difficulty adding objectives (the M7 item only tunes guard values so far), a second mission, a proper roof on the Snowfort hut (its walls rise to the 7 m sky ceiling), first-person SMG held two-handed (third-person figures already use the two-handed pose).
 
 Still needs a human:
 
@@ -25,7 +25,9 @@ Still needs a human:
 - The sound mix and the music (all synthesised; the executor cannot hear them). Music levels are per voice in `src/audio/music.ts`
 - 60 fps on a laptop with integrated graphics, and Firefox / Safari
 - Playing the depot by hand: is the corridor timing on the stealth route fair, are guards too sharp or too dull per difficulty (`src/data/difficulty.json`), is the alarm runner too punishing, does cover feel natural
-- Weapon feel: SMG recoil and spread, grenade arc, bounce and blast radius (all in `src/data/weapons.json`)
+- Weapon feel: SMG recoil and spread, grenade arc, bounce and blast radius, the Heron LR's damage, hip spread and 4× zoom (all in `src/data/weapons.json`); grenades roll far, so the training pit needs a throw from right at the crates
+- Movement feel: sprint speed (7.5 m/s) and jump height (0.85 m) in `src/config.ts`; whether hopping onto depot crates spoils anything
+- The training course: target sizes and distances, whether 17 targets is a good length for the kids
 
 ## 0. Decisions and assumptions
 
