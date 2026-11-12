@@ -5,7 +5,7 @@ import { playerEyeHeight } from '../sim/player';
 import { doorBox, type World } from '../sim/world';
 import { buildHumanoid, lightHumanoid, poseHumanoid, type Humanoid } from './humanoid';
 import { buildLightField, lampsFromLevel, type LightField } from './lighting';
-import { texturedMaterial } from './textures';
+import { setTextureSmoothing, texturedMaterial } from './textures';
 import { Snow } from './snow';
 import { tintModel, type ModelLibrary } from './models';
 import { ModelCharacter, PROFILES } from './modelCharacter';
@@ -52,7 +52,7 @@ export class GameRenderer {
   private propMeshes: THREE.Object3D[] = [];
   /** Set to use glTF models for props and guards (art trial). */
   models: ModelLibrary | null = null;
-  /** Which character set to use with models ('kenney' | 'quaternius'). */
+  /** Which character set to use with models (a key of PROFILES, e.g. 'quaternius'). */
   art = '';
   private modelLights = new THREE.Group();
   private doorMeshes: THREE.Mesh[] = [];
@@ -76,7 +76,7 @@ export class GameRenderer {
   private flashMat = new THREE.MeshBasicMaterial({ color: '#ffd27a', blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false });
 
   constructor(private container: HTMLElement) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(1);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(this.renderer.domElement);
@@ -128,6 +128,12 @@ export class GameRenderer {
         o.position.set((b.minX + b.maxX) / 2, b.minY, (b.minZ + b.maxZ) / 2);
         // Kenney furniture faces +z; prop yaw follows the level convention (0 = north / -z).
         o.rotation.y = Math.PI - p.yaw;
+        // Kenney's palette is bright and toy-like; pull it a third of the way toward grey.
+        for (const m of model.materials) {
+          const c = m.userData.base as THREE.Color;
+          const l = c.r * 0.3 + c.g * 0.59 + c.b * 0.11;
+          c.lerp(new THREE.Color(l, l, l), 0.35);
+        }
         tintModel(model.materials, Math.min(1.1, this.light(o.position.x, o.position.z) + 0.15));
         this.dynamic.add(o);
         this.propMeshes.push(o);
@@ -174,8 +180,19 @@ export class GameRenderer {
       configureCameraLayers(cam, p.slot);
       return cam;
     });
+    const set = PROFILES[this.art];
     this.players = world.players.map((p) => {
       const color = PLAYER_COLORS[p.slot] ?? '#888';
+      const prof = set?.player;
+      const inst = prof && this.models ? this.models.instance(prof.model) : null;
+      if (prof && inst) {
+        const gun = prof.gun ? this.models!.instance(prof.gun.model) : null;
+        for (const m of inst.materials) if (m.name === prof.tintMaterial) (m.userData.base as THREE.Color).multiply(new THREE.Color(color)).multiplyScalar(2.2);
+        const model = new ModelCharacter(inst, prof, p.height, this.flashMat, gun);
+        setLayerDeep(model.root, LAYER.BODY + p.slot);
+        this.dynamic.add(model.root);
+        return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
+      }
       const h = buildHumanoid({ body: color, legs: '#2a2a2e', skin: '#c99a7a' });
       const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), this.flashMat);
       flash.position.set(0, 0, -0.2);
@@ -194,8 +211,6 @@ export class GameRenderer {
         const gun = profile.gun ? this.models!.instance(profile.gun.model) : null;
         const model = new ModelCharacter(inst, profile, g.height, this.flashMat, gun);
         this.dynamic.add(model.root);
-        // Same model for both archetypes: darken the officer's uniform so they still read differently.
-        if (this.art === 'kenney' && g.archetype === 'guard_officer') for (const m of inst.materials) (m.userData.base as THREE.Color).multiplyScalar(0.7);
         return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
       }
       const h = buildHumanoid({ body: def?.color ?? '#556', legs: def?.legs ?? '#333', skin: '#c99a7a' });
@@ -206,8 +221,14 @@ export class GameRenderer {
       this.dynamic.add(h.root);
       return { h, phase: Math.random() * 6, flash };
     });
+    this.vmScene.add(new THREE.HemisphereLight('#e8eef4', '#4a443c', 1.6));
+    const vmSun = new THREE.DirectionalLight('#fff4e0', 1.2);
+    vmSun.position.set(0.5, 1, 0.8);
+    this.vmScene.add(vmSun);
     this.viewModels = world.players.map((p) => {
-      const vm = buildPistolViewModel(PLAYER_COLORS[p.slot] ?? '#555');
+      const vg = set?.viewGun;
+      const vgModel = vg && this.models ? this.models.instance(vg.model) : null;
+      const vm = buildPistolViewModel(PLAYER_COLORS[p.slot] ?? '#555', vgModel, vg);
       setLayerDeep(vm.root, LAYER.VIEWMODEL + p.slot);
       const holder = new THREE.Group();
       holder.add(vm.root);
@@ -262,21 +283,30 @@ export class GameRenderer {
   }
 
   /**
-   * The canvas renders at a low internal resolution and is upscaled by CSS with nearest-neighbour
-   * filtering. Rects stay in CSS pixels (for the HUD); GL viewports are scaled by glScale.
+   * Two modes. Smooth (internalHeight 0): native resolution at the device pixel ratio, filtered textures.
+   * Retro: the canvas renders at a low internal height and CSS upscales it with nearest-neighbour.
+   * Rects stay in CSS pixels (for the HUD); GL viewports are in the renderer's logical units (rect × glScale).
    */
   resize(): void {
     const w = this.container.clientWidth || window.innerWidth;
     const h = this.container.clientHeight || window.innerHeight;
     const views = Math.max(1, this.cameras.length);
+    const retro = this.internalHeight > 0;
     // Stacked views each get the full internal height.
-    const target = this.internalHeight > 0 ? this.internalHeight * (views === 2 && this.split === 'horizontal' ? 2 : 1) : h;
+    const target = retro ? this.internalHeight * (views === 2 && this.split === 'horizontal' ? 2 : 1) : h;
     this.glScale = Math.min(1, target / h);
-    this.renderer.setSize(Math.max(1, Math.round(w * this.glScale)), Math.max(1, Math.round(h * this.glScale)), false);
-    this.renderer.domElement.style.width = `${w}px`;
-    this.renderer.domElement.style.height = `${h}px`;
+    this.renderer.setPixelRatio(retro ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+    this.logicalH = Math.max(1, Math.round(h * this.glScale));
+    this.renderer.setSize(Math.max(1, Math.round(w * this.glScale)), this.logicalH, false);
+    const style = this.renderer.domElement.style;
+    style.width = `${w}px`;
+    style.height = `${h}px`;
+    style.imageRendering = retro ? 'pixelated' : 'auto';
+    setTextureSmoothing(!retro);
     this.rects = computeViewRects(views, w, h, this.split);
   }
+
+  private logicalH = 1;
 
   drawCalls = 0;
 
@@ -420,7 +450,20 @@ export class GameRenderer {
       const crouch = lerp(p.prev.crouch, p.crouch, alpha);
       const speed = Math.hypot(p.vx, p.vz);
       v.phase += speed * frameTime * 3.2;
-      v.h.root.visible = p.alive;
+      if (v.model) {
+        const m = v.model;
+        m.root.position.set(x, y - crouch * 0.45, z);
+        m.root.rotation.y = -p.yaw;
+        if (!p.alive) m.play('die');
+        else if (p.sinceShot < 0.3 && speed < 0.5) m.play('shoot');
+        else if (speed > 3) m.play('run');
+        else if (speed > 0.2) m.play('walk');
+        else m.play('idle');
+        m.update(Math.min(frameTime, 0.05), speed > 3 ? speed / 5 : speed / 1.6);
+        m.light(Math.min(1.1, this.light(x, z) + 0.15));
+        v.flash.visible = p.alive && p.sinceShot < 0.06;
+      }
+      v.h.root.visible = p.alive && !v.model;
       v.h.root.position.set(x, y, z);
       lightHumanoid(v.h, Math.min(1.15, this.light(x, z) + 0.1));
       v.h.root.rotation.y = -p.yaw;
@@ -464,7 +507,7 @@ export class GameRenderer {
     });
 
     const r = this.renderer;
-    const fullH = r.domElement.height;
+    const fullH = this.logicalH;
     const k = this.glScale;
     r.setScissorTest(true);
     r.info.autoReset = false;

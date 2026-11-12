@@ -1,8 +1,6 @@
 # Credits
 
-Art trials (branch `trial/kenney`, enabled with `?art=kenney` or `?art=quaternius`):
+- Characters (Swat, Suit) from Ultimate Modular Men, and the pistol from the Toon Shooter Game Kit, by Quaternius (quaternius.com), CC0 1.0. Licence in `public/assets/quaternius/`. Trimmed to the animations the game uses with `tools/trim_gltf.py`.
+- Office furniture from the Furniture Kit 2.0 by Kenney (www.kenney.nl), CC0 1.0. Licence in `public/assets/kenney/furniture/`.
 
-- Mini Characters 2.0 and Furniture Kit 2.0 by Kenney (www.kenney.nl), CC0 1.0. Licence files are next to the models in `public/assets/kenney/`.
-- Ultimate Modular Men (Swat, Suit) and the Toon Shooter Game Kit pistol by Quaternius (quaternius.com), CC0 1.0. Licence file in `public/assets/quaternius/`. Enabled with `?art=quaternius`.
-
-Everything else (geometry, textures, sounds) is generated in code.
+Level geometry, textures and all sounds are generated in code.

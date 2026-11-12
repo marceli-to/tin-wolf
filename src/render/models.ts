@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { manageTexture } from './textures';
 
 export interface ModelInstance {
   object: THREE.Object3D;
@@ -42,11 +43,8 @@ export class ModelLibrary {
       const cloned = mats.map((m) => {
         const c = (m as THREE.MeshStandardMaterial).clone();
         c.userData.base = c.color.clone();
-        // Keep the pixel look: nearest filtering on any texture the model brings.
-        if (c.map) {
-          c.map.magFilter = THREE.NearestFilter;
-          c.map.minFilter = THREE.NearestMipmapNearestFilter;
-        }
+        // Model textures follow the global smooth/retro filter mode.
+        if (c.map) manageTexture(c.map);
         materials.push(c);
         return c;
       });

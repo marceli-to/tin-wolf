@@ -17,41 +17,47 @@ export interface CharacterProfile {
   boxGun?: { position: [number, number, number] };
 }
 
-export const PROFILES: Record<string, { guard: CharacterProfile; officer: CharacterProfile }> = {
-  kenney: {
-    guard: {
-      model: 'kenney/characters/character-soldier.glb',
-      clips: { idle: 'idle', alert: 'holding-right', walk: 'walk', run: 'sprint', aim: 'holding-right', shoot: 'holding-right-shoot', die: 'die' },
-      hand: 'arm-right',
-      boxGun: { position: [-0.05, -0.42, 0.12] },
-    },
-    officer: {
-      model: 'kenney/characters/character-soldier.glb',
-      clips: { idle: 'idle', alert: 'holding-right', walk: 'walk', run: 'sprint', aim: 'holding-right', shoot: 'holding-right-shoot', die: 'die' },
-      hand: 'arm-right',
-      boxGun: { position: [-0.05, -0.42, 0.12] },
-    },
-  },
+export interface ArtSet {
+  guard: CharacterProfile;
+  officer: CharacterProfile;
+  /** Player bodies (seen by the other player in split-screen); the named material takes the player colour. */
+  player?: CharacterProfile & { tintMaterial: string };
+  /** First-person gun model and its placement in view-model space. */
+  viewGun?: { model: string; scale: number; position: [number, number, number]; rotation: [number, number, number] };
+}
+
+const Q_PISTOL = { model: 'quaternius/Pistol.glb', scale: 0.3, position: [0, 0.1, 0.02] as [number, number, number], rotation: [0, Math.PI / 2, -Math.PI / 2] as [number, number, number] };
+
+export const PROFILES: Record<string, ArtSet> = {
   quaternius: {
     guard: {
-      model: 'quaternius/Swat.gltf',
+      model: 'quaternius/Swat.glb',
       clips: { idle: 'Idle_Gun', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
       hand: 'Wrist.R',
-      gun: { model: 'quaternius/Pistol.gltf', scale: 0.3, position: [0, 0.1, 0.02], rotation: [0, Math.PI / 2, -Math.PI / 2] },
+      gun: Q_PISTOL,
     },
     officer: {
-      model: 'quaternius/Suit.gltf',
+      model: 'quaternius/Suit.glb',
       clips: { idle: 'Idle', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
       hand: 'Wrist.R',
-      gun: { model: 'quaternius/Pistol.gltf', scale: 0.3, position: [0, 0.1, 0.02], rotation: [0, Math.PI / 2, -Math.PI / 2] },
+      gun: Q_PISTOL,
     },
+    player: {
+      model: 'quaternius/Swat.glb',
+      clips: { idle: 'Idle_Gun', alert: 'Idle_Gun', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
+      hand: 'Wrist.R',
+      gun: Q_PISTOL,
+      tintMaterial: 'Swat',
+    },
+    viewGun: { model: 'quaternius/Pistol.glb', scale: 0.25, position: [0.01, -0.03, 0.0], rotation: [0.06, -Math.PI / 2, 0] },
   },
 };
 
 export function profileModels(art: string): string[] {
   const set = PROFILES[art];
   if (!set) return [];
-  return [set.guard, set.officer].flatMap((p) => [p.model, ...(p.gun ? [p.gun.model] : [])]);
+  const profiles = [set.guard, set.officer, ...(set.player ? [set.player] : [])];
+  return [...profiles.flatMap((p) => [p.model, ...(p.gun ? [p.gun.model] : [])]), ...(set.viewGun ? [set.viewGun.model] : [])];
 }
 
 const FADE = 0.18;

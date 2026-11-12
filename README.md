@@ -1,6 +1,6 @@
 # Tin Wolf
 
-A browser first-person shooter in the spirit of late-90s console shooters: stealth missions with guards and objectives, plus 2-player split-screen versus. Everything (geometry, textures, sound) is generated in code. See `PLAN.md` for the plan and progress, `BRIEF.md` for the original brief.
+A browser first-person shooter in the spirit of late-90s console shooters: stealth missions with guards and objectives, plus 2-player split-screen versus. Level geometry, textures and sound are generated in code; characters, the pistol and furniture are CC0 models. See `PLAN.md` for the plan and progress, `BRIEF.md` for the original brief.
 
 ## Run
 
@@ -20,6 +20,7 @@ URL parameters:
 - `?players=1|2`
 - `?autostart=1` skips lobby and briefing (slot 0 = keyboard + mouse, others = gamepads)
 - `?seed=<n>` fixes the sim RNG
+- `?art=none` uses the code-built figures instead of the character models
 - `?debug=1` shows FPS, collision boxes, guard vision cones / paths / states, and exposes `window.__game`
 
 `window.__game` (debug only): `freeze()`, `step(n)`, `setIntent(slot, intent)`, `teleport(slot, x, z, yawDeg, pitchDeg)`, `look(slot, yawDeg, pitchDeg)`, `player(slot)`, `world`, and `autopilot(slot, [[col,row], …], { crouch, fight })`, which walks a route with the sim's own A*, opens doors and shoots visible guards. Example — the loud route through the depot:
@@ -41,7 +42,9 @@ __game.autopilot(0, [[19,26],[19,23],[19,19],[19,15],[22,14],[23,16]], { fight: 
 | Objectives | Tab | Back / Select |
 | Pause | Esc | Start |
 
-Settings (menu or pause): mouse / gamepad sensitivity, invert look, split direction, volume, internal resolution. Saved in `localStorage`.
+Settings (menu or pause): mouse / gamepad sensitivity, invert look, split direction, volume, graphics (Smooth, or Retro 480–180p pixels). Saved in `localStorage`.
+
+Third-party models are CC0 (Quaternius, Kenney); see `CREDITS.md`. To trim a new glTF to the animations you need: `python3 tools/trim_gltf.py in.gltf out.glb Idle Walk Run`.
 
 Only one mouse can be pointer-locked in a browser, so in split-screen player 1 uses keyboard + mouse and player 2 a gamepad (or both use gamepads).
 

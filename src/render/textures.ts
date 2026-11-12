@@ -5,7 +5,6 @@ import * as THREE from 'three';
  * Each generator is seeded so the look is stable between runs.
  */
 
-type Paint = (ctx: CanvasRenderingContext2D, size: number, rnd: () => number) => void;
 
 function seeded(seed: number): () => number {
   let s = seed >>> 0;
@@ -23,146 +22,329 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-function px(ctx: CanvasRenderingContext2D, x: number, y: number, rgb: [number, number, number], k = 1): void {
-  ctx.fillStyle = `rgb(${Math.max(0, Math.min(255, rgb[0] * k)) | 0},${Math.max(0, Math.min(255, rgb[1] * k)) | 0},${
-    Math.max(0, Math.min(255, rgb[2] * k)) | 0
-  })`;
-  ctx.fillRect(x, y, 1, 1);
+/** Direct pixel access: painters write into an RGBA buffer, then flush it to the canvas. */
+class Pix {
+  readonly d: Uint8ClampedArray;
+  constructor(
+    readonly n: number,
+    private img: ImageData,
+  ) {
+    this.d = img.data;
+  }
+  set(x: number, y: number, r: number, g: number, b: number): void {
+    const n = this.n;
+    x = Math.floor(x);
+    y = Math.floor(y);
+    const i = (((y % n) + n) % n) * n * 4 + (((x % n) + n) % n) * 4;
+    this.d[i] = r;
+    this.d[i + 1] = g;
+    this.d[i + 2] = b;
+    this.d[i + 3] = 255;
+  }
+  /** Multiply the pixel by k (shade). */
+  mul(x: number, y: number, k: number): void {
+    const n = this.n;
+    x = Math.floor(x);
+    y = Math.floor(y);
+    const i = (((y % n) + n) % n) * n * 4 + (((x % n) + n) % n) * 4;
+    this.d[i] = this.d[i]! * k;
+    this.d[i + 1] = this.d[i + 1]! * k;
+    this.d[i + 2] = this.d[i + 2]! * k;
+  }
+  fill(x0: number, y0: number, w: number, h: number, hex: string): void {
+    const [r, g, b] = hexToRgb(hex);
+    for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) this.set(x, y, r, g, b);
+  }
+  shade(x0: number, y0: number, w: number, h: number, k: number): void {
+    for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) this.mul(x, y, k);
+  }
+  flush(ctx: CanvasRenderingContext2D): void {
+    ctx.putImageData(this.img, 0, 0);
+  }
 }
 
-/** Base colour with per-pixel brightness jitter. */
-function noise(ctx: CanvasRenderingContext2D, size: number, rnd: () => number, hex: string, amount: number): void {
-  const c = hexToRgb(hex);
-  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) px(ctx, x, y, c, 1 + (rnd() - 0.5) * amount);
+/** Tileable value noise in [0,1] with `cells` cells across, bilinear-smoothed. */
+function valueNoise(n: number, cells: number, rnd: () => number): Float32Array {
+  const g = new Float32Array(cells * cells).map(() => rnd());
+  const out = new Float32Array(n * n);
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      const fx = (x / n) * cells;
+      const fy = (y / n) * cells;
+      const x0 = Math.floor(fx);
+      const y0 = Math.floor(fy);
+      const tx = fx - x0;
+      const ty = fy - y0;
+      const sx = tx * tx * (3 - 2 * tx);
+      const sy = ty * ty * (3 - 2 * ty);
+      const at = (cx: number, cy: number): number => g[(cy % cells) * cells + (cx % cells)]!;
+      const a = at(x0, y0) + (at(x0 + 1, y0) - at(x0, y0)) * sx;
+      const b = at(x0, y0 + 1) + (at(x0 + 1, y0 + 1) - at(x0, y0 + 1)) * sx;
+      out[y * n + x] = a + (b - a) * sy;
+    }
+  }
+  return out;
 }
 
-function rect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, hex: string, alpha = 1): void {
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = hex;
-  ctx.fillRect(x, y, w, h);
-  ctx.globalAlpha = 1;
+/** Base colour with large soft blotches (grime) and fine grain. */
+function surface(p: Pix, rnd: () => number, hex: string, blotch: number, grain: number, cells = 4): void {
+  const [r, g, b] = hexToRgb(hex);
+  const low = valueNoise(p.n, cells, rnd);
+  const mid = valueNoise(p.n, cells * 4, rnd);
+  for (let y = 0; y < p.n; y++) {
+    for (let x = 0; x < p.n; x++) {
+      const i = y * p.n + x;
+      const k = 1 + (low[i]! - 0.5) * blotch + (mid[i]! - 0.5) * blotch * 0.5 + (rnd() - 0.5) * grain;
+      p.set(x, y, r * k, g * k, b * k);
+    }
+  }
 }
+
+/** Raised edge: light line on top/left, dark line on bottom/right. */
+function bevel(p: Pix, x: number, y: number, w: number, h: number, light = 1.18, dark = 0.72): void {
+  p.shade(x, y, w, 1, light);
+  p.shade(x, y, 1, h, light);
+  p.shade(x, y + h - 1, w, 1, dark);
+  p.shade(x + w - 1, y, 1, h, dark);
+}
+
+function rivet(p: Pix, x: number, y: number): void {
+  p.shade(x, y, 2, 2, 1.35);
+  p.shade(x + 1, y + 1, 2, 2, 0.7);
+  p.shade(x + 1, y + 1, 1, 1, 1.1);
+}
+
+type Paint = (p: Pix, n: number, rnd: () => number) => void;
 
 const PAINTERS: Record<string, Paint> = {
-  concrete: (ctx, n, r) => {
-    noise(ctx, n, r, '#8e8b83', 0.18);
-    for (let i = 0; i < 18; i++) rect(ctx, (r() * n) | 0, (r() * n) | 0, 1, 1, '#5e5b55', 0.7);
-    rect(ctx, 0, 0, n, 1, '#6e6b65', 0.6);
+  concrete: (p, n, r) => {
+    surface(p, r, '#8f8c84', 0.22, 0.1);
+    // Formwork seams and tie holes, as on poured concrete walls.
+    p.shade(0, 0, n, 2, 0.8);
+    p.shade(0, n / 2, n, 1, 0.88);
+    for (const x of [n / 4, (3 * n) / 4]) for (const y of [n / 4, (3 * n) / 4]) {
+      p.shade(x - 2, y - 2, 4, 4, 0.6);
+      p.shade(x - 1, y - 1, 2, 2, 0.75);
+    }
+    for (let i = 0; i < 60; i++) p.shade((r() * n) | 0, (r() * n) | 0, 1 + ((r() * 2) | 0), 1, 0.7);
   },
-  tile: (ctx, n, r) => {
-    noise(ctx, n, r, '#b4bab6', 0.08);
-    for (let i = 0; i < n; i += n / 4) {
-      rect(ctx, i, 0, 1, n, '#80857f');
-      rect(ctx, 0, i, n, 1, '#80857f');
+  tile: (p, n, r) => {
+    surface(p, r, '#b6bcb8', 0.08, 0.05);
+    const t = n / 4;
+    for (let ty = 0; ty < 4; ty++) for (let tx = 0; tx < 4; tx++) {
+      p.shade(tx * t, ty * t, t, t, 0.94 + r() * 0.1);
+      bevel(p, tx * t + 2, ty * t + 2, t - 3, t - 3, 1.08, 0.9);
+      p.fill(tx * t, ty * t, t, 2, '#7b807a');
+      p.fill(tx * t, ty * t, 2, t, '#7b807a');
+    }
+    for (let i = 0; i < 6; i++) p.shade((r() * n) | 0, (r() * n) | 0, 6, 1, 0.85);
+  },
+  metal: (p, n, r) => {
+    surface(p, r, '#727d84', 0.14, 0.06);
+    // Diamond tread plate.
+    for (let y = 0; y < n; y += 12) for (let x = (y / 12) % 2 ? 0 : 6; x < n; x += 12) {
+      for (let k = 0; k < 5; k++) {
+        p.shade(x + k, y + 4 - k, 1, 1, 1.35);
+        p.shade(x + k + 1, y + 5 - k, 1, 1, 0.65);
+      }
+    }
+    for (let i = 0; i < 8; i++) {
+      const x = (r() * n) | 0;
+      const y = (r() * n) | 0;
+      const len = 6 + ((r() * 20) | 0);
+      for (let k = 0; k < len; k++) p.shade(x + k, y + ((k / 4) | 0), 1, 1, 1.15);
     }
   },
-  metal: (ctx, n, r) => {
-    noise(ctx, n, r, '#6f7980', 0.1);
-    for (let y = 2; y < n; y += 6) for (let x = (y / 6) % 2 ? 1 : 4; x < n; x += 6) {
-      rect(ctx, x, y, 2, 1, '#9aa4ab');
-      rect(ctx, x, y + 1, 2, 1, '#4c5459');
+  panel: (p, n, r) => {
+    surface(p, r, '#7e8994', 0.12, 0.05);
+    const half = n / 2;
+    for (const x0 of [0, half]) {
+      bevel(p, x0 + 1, 1, half - 2, n - 2, 1.12, 0.78);
+      p.shade(x0, 0, 1, n, 0.55);
+      for (const y of [6, n - 8]) for (const x of [x0 + 5, x0 + half - 7]) rivet(p, x, y);
     }
-  },
-  panel: (ctx, n, r) => {
-    noise(ctx, n, r, '#7b8691', 0.08);
-    rect(ctx, 0, 0, 1, n, '#5a636c');
-    rect(ctx, n / 2, 0, 1, n, '#5a636c');
-    rect(ctx, 1, 0, 1, n, '#97a2ac');
-    rect(ctx, n / 2 + 1, 0, 1, n, '#97a2ac');
-    rect(ctx, 0, (n * 0.62) | 0, n, 2, '#5f6870');
-    for (const x of [3, n / 2 + 3, n / 2 - 3, n - 3]) {
-      rect(ctx, x, 3, 1, 1, '#c0c8cf');
-      rect(ctx, x, n - 4, 1, 1, '#c0c8cf');
-    }
-  },
-  ceiling: (ctx, n, r) => {
-    noise(ctx, n, r, '#8a8c8c', 0.06);
-    for (let i = 0; i < 40; i++) rect(ctx, (r() * n) | 0, (r() * n) | 0, 1, 1, '#6a6c6c');
-    rect(ctx, 0, 0, n, 1, '#5a5c5c');
-    rect(ctx, 0, 0, 1, n, '#5a5c5c');
-  },
-  wood: (ctx, n, r) => {
-    noise(ctx, n, r, '#8a6a44', 0.12);
-    for (let y = 0; y < n; y += 8) {
-      rect(ctx, 0, y, n, 1, '#5a4228');
-      for (let i = 0; i < 4; i++) rect(ctx, (r() * n) | 0, y + 2 + ((r() * 5) | 0), 3 + ((r() * 5) | 0), 1, '#74573a');
-    }
-  },
-  snow: (ctx, n, r) => {
-    noise(ctx, n, r, '#e4eaee', 0.06);
-    for (let i = 0; i < 14; i++) rect(ctx, (r() * n) | 0, (r() * n) | 0, 2, 1, '#c8d2da');
-  },
-  ice: (ctx, n, r) => {
-    noise(ctx, n, r, '#b8d0dc', 0.08);
-    for (let i = 0; i < 6; i++) rect(ctx, (r() * n) | 0, (r() * n) | 0, 6, 1, '#e8f4fa', 0.8);
-  },
-  rock: (ctx, n, r) => {
-    noise(ctx, n, r, '#76716b', 0.22);
+    // Horizontal rail.
+    const ry = Math.round(n * 0.62);
+    p.shade(0, ry, n, 4, 0.82);
+    p.shade(0, ry, n, 1, 1.2);
+    p.shade(0, ry + 4, n, 1, 0.65);
+    // Rust/grime streaks running down from the rail.
     for (let i = 0; i < 10; i++) {
-      const s = 2 + ((r() * 5) | 0);
-      rect(ctx, (r() * n) | 0, (r() * n) | 0, s, s - 1, r() > 0.5 ? '#5e5a55' : '#8c8780', 0.8);
+      const x = (r() * n) | 0;
+      const len = 6 + ((r() * 24) | 0);
+      for (let k = 0; k < len; k++) p.shade(x, ry + 5 + k, 1, 1, 0.9 + k / len / 10);
     }
   },
-  brick: (ctx, n, r) => {
-    noise(ctx, n, r, '#8a5444', 0.14);
+  ceiling: (p, n, r) => {
+    surface(p, r, '#9a9c9a', 0.06, 0.04);
+    const t = n / 2;
+    for (let ty = 0; ty < 2; ty++) for (let tx = 0; tx < 2; tx++) {
+      p.shade(tx * t, ty * t, t, t, 0.95 + r() * 0.08);
+      for (let y = ty * t + 5; y < ty * t + t - 3; y += 5) for (let x = tx * t + 5; x < tx * t + t - 3; x += 5) if (r() > 0.25) p.shade(x, y, 1, 1, 0.68);
+      p.fill(tx * t, ty * t, t, 2, '#c4c6c3');
+      p.fill(tx * t, ty * t, 2, t, '#c4c6c3');
+      p.shade(tx * t, ty * t + 2, t, 1, 0.8);
+    }
+  },
+  wood: (p, n, r) => {
+    surface(p, r, '#8a6a44', 0.1, 0.06, 2);
+    const ph = n / 8;
+    for (let row = 0; row < 8; row++) {
+      const y0 = row * ph;
+      p.shade(0, y0, n, ph, 0.88 + r() * 0.22);
+      p.fill(0, y0, n, 1, '#4a3420');
+      const off = (r() * n) | 0;
+      p.shade(off, y0, 1, ph, 0.6);
+      for (let g = 0; g < 4; g++) {
+        const gy = y0 + 2 + ((r() * (ph - 3)) | 0);
+        const ph2 = r() * 6;
+        for (let x = 0; x < n; x++) p.shade(x, gy + Math.round(Math.sin(x / 9 + ph2) * 1.2), 1, 1, 0.86);
+      }
+    }
+  },
+  snow: (p, n, r) => {
+    surface(p, r, '#e6ecf0', 0.07, 0.03, 3);
+    for (let i = 0; i < 40; i++) p.shade((r() * n) | 0, (r() * n) | 0, 1, 1, 1.08);
+    for (let i = 0; i < 18; i++) p.shade((r() * n) | 0, (r() * n) | 0, 3, 1, 0.93);
+  },
+  ice: (p, n, r) => {
+    surface(p, r, '#b8d0dc', 0.12, 0.04);
+    for (let i = 0; i < 10; i++) p.shade((r() * n) | 0, (r() * n) | 0, 14, 1, 1.15);
+  },
+  rock: (p, n, r) => {
+    surface(p, r, '#77726b', 0.4, 0.12, 5);
+    for (let i = 0; i < 6; i++) {
+      let x = r() * n;
+      let y = r() * n;
+      for (let k = 0; k < 30; k++) {
+        p.shade(x | 0, y | 0, 1, 1, 0.6);
+        x += r() * 2 - 0.6;
+        y += r() * 2 - 1;
+      }
+    }
+  },
+  brick: (p, n, r) => {
+    surface(p, r, '#8c5646', 0.12, 0.08);
     const bh = n / 8;
+    const bw = n / 4;
     for (let row = 0; row < 8; row++) {
       const y = row * bh;
-      rect(ctx, 0, y, n, 1, '#b8ab98');
-      const off = row % 2 ? n / 8 : 0;
-      for (let x = off; x < n + n / 4; x += n / 4) rect(ctx, x % n, y, 1, bh, '#b8ab98');
+      const off = row % 2 ? bw / 2 : 0;
+      for (let x = -bw; x < n; x += bw) {
+        const bx = x + off;
+        p.shade(bx, y, bw, bh, 0.86 + r() * 0.26);
+        bevel(p, bx + 2, y + 2, bw - 3, bh - 3, 1.1, 0.82);
+        p.fill(bx, y, 2, bh, '#b4a794');
+      }
+      p.fill(0, y, n, 2, '#b4a794');
     }
   },
-  grate: (ctx, n, r) => {
-    noise(ctx, n, r, '#4a5054', 0.1);
-    for (let y = 1; y < n; y += 4) for (let x = 1; x < n; x += 4) rect(ctx, x, y, 2, 2, '#1c1f21');
-  },
-  crate: (ctx, n, r) => {
-    noise(ctx, n, r, '#93703f', 0.12);
-    for (let y = 0; y < n; y += 6) rect(ctx, 0, y, n, 1, '#6c5029');
-    rect(ctx, 0, 0, n, 3, '#5c4220');
-    rect(ctx, 0, n - 3, n, 3, '#5c4220');
-    rect(ctx, 0, 0, 3, n, '#5c4220');
-    rect(ctx, n - 3, 0, 3, n, '#5c4220');
-    for (let i = 0; i < n; i++) rect(ctx, i, i, 2, 1, '#5c4220');
-  },
-  barrel: (ctx, n, r) => {
-    noise(ctx, n, r, '#8a3a2c', 0.1);
-    for (const y of [2, n / 2, n - 4]) {
-      rect(ctx, 0, y, n, 2, '#5a2018');
-      rect(ctx, 0, y + 2, n, 1, '#a8584a');
+  grate: (p, n, r) => {
+    surface(p, r, '#4c5256', 0.12, 0.05);
+    for (let y = 2; y < n; y += 8) for (let x = 2; x < n; x += 8) {
+      p.fill(x, y, 5, 5, '#15181a');
+      p.shade(x, y + 5, 5, 1, 1.4);
     }
-    rect(ctx, n * 0.3, n * 0.3, n * 0.4, n * 0.15, '#d8c040');
   },
-  console: (ctx, n, r) => {
-    noise(ctx, n, r, '#38454f', 0.08);
-    rect(ctx, 3, 3, n - 6, n / 2 - 4, '#0c1a12');
-    for (let y = 5; y < n / 2 - 2; y += 3) rect(ctx, 5, y, ((r() * (n - 12)) | 0) + 3, 1, '#40d070');
+  crate: (p, n, r) => {
+    surface(p, r, '#94713f', 0.12, 0.06, 2);
+    const ph = n / 6;
+    for (let y = 0; y < n; y += ph) p.fill(0, Math.round(y), n, 2, '#5f4524');
+    const b = 12;
+    for (const [x, y, w, h] of [
+      [0, 0, n, b],
+      [0, n - b, n, b],
+      [0, 0, b, n],
+      [n - b, 0, b, n],
+    ] as const) {
+      p.fill(x, y, w, h, '#7a5a30');
+      bevel(p, x, y, w, h, 1.15, 0.7);
+    }
+    for (let i = b; i < n - b; i++) p.fill(i, i - 4, 2, 9, '#7a5a30');
+    for (const [x, y] of [[4, 4], [n - 7, 4], [4, n - 7], [n - 7, n - 7]] as const) rivet(p, x, y);
+  },
+  barrel: (p, n, r) => {
+    surface(p, r, '#8a3a2c', 0.14, 0.05, 2);
+    for (const y of [6, n / 2 - 3, n - 12]) {
+      p.shade(0, y, n, 6, 0.75);
+      p.shade(0, y, n, 1, 1.3);
+    }
+    p.fill(n * 0.3, n * 0.28, n * 0.4, n * 0.14, '#d8c040');
+    p.fill(n * 0.33, n * 0.31, n * 0.34, n * 0.03, '#2a2a2a');
+  },
+  console: (p, n, r) => {
+    surface(p, r, '#3a4752', 0.08, 0.04);
+    bevel(p, 0, 0, n, n, 1.2, 0.6);
+    p.fill(8, 8, n - 16, n / 2 - 12, '#08140e');
+    bevel(p, 6, 6, n - 12, n / 2 - 8, 0.6, 1.3);
+    for (let y = 14; y < n / 2 - 8; y += 6) p.fill(14, y, ((r() * (n - 40)) | 0) + 10, 2, r() > 0.8 ? '#e0b040' : '#40d070');
     const cols = ['#d84a3a', '#e0b040', '#40a0ff', '#40d070'];
-    for (let i = 0; i < 8; i++) rect(ctx, 4 + (i % 4) * ((n - 8) / 4), n / 2 + 4 + Math.floor(i / 4) * 6, 3, 3, cols[i % 4]!);
+    for (let i = 0; i < 12; i++) {
+      const x = 12 + (i % 6) * ((n - 24) / 6);
+      const y = n / 2 + 10 + Math.floor(i / 6) * 22;
+      p.fill(x, y, 10, 10, cols[i % 4]!);
+      bevel(p, x, y, 10, 10, 1.3, 0.6);
+    }
   },
-  door: (ctx, n, r) => {
-    noise(ctx, n, r, '#7d6a4c', 0.08);
-    rect(ctx, 2, 2, n - 4, n - 4, '#8d7a5c');
-    for (let y = 6; y < n; y += 8) rect(ctx, 2, y, n - 4, 1, '#5e4e36');
-    rect(ctx, n - 7, n / 2, 3, 2, '#c8c0a8');
+  door: (p, n, r) => {
+    surface(p, r, '#7d6a4c', 0.1, 0.04);
+    bevel(p, 6, 6, n - 12, n - 12, 1.15, 0.7);
+    for (let y = 22; y < n - 10; y += 26) {
+      p.shade(10, y, n - 20, 3, 0.75);
+      p.shade(10, y, n - 20, 1, 1.25);
+    }
+    p.fill(n - 26, n / 2 - 4, 12, 6, '#c8c0a8');
+    bevel(p, n - 26, n / 2 - 4, 12, 6, 1.3, 0.6);
   },
-  door_red: (ctx, n, r) => {
-    noise(ctx, n, r, '#8a3a32', 0.08);
-    rect(ctx, 2, 2, n - 4, n - 4, '#9a4a40');
-    for (let x = 0; x < n; x += 4) rect(ctx, x, n - 6, 2, 4, x % 8 ? '#1a1a1a' : '#e0c040');
-    rect(ctx, n / 2 - 4, n / 3, 8, 5, '#d8d0c0');
-    rect(ctx, n / 2 - 3, n / 3 + 1, 6, 3, '#c8281e');
+  door_red: (p, n, r) => {
+    surface(p, r, '#8e3c33', 0.1, 0.04);
+    bevel(p, 6, 6, n - 12, n - 12, 1.15, 0.7);
+    for (let x = 0; x < n; x += 16) for (let y = n - 22; y < n - 8; y++) for (let k = 0; k < 8; k++) p.set(x + k + (y - (n - 22)), y, 214, 172, 52);
+    p.fill(n / 2 - 16, n / 3, 32, 20, '#ddd5c4');
+    p.fill(n / 2 - 12, n / 3 + 4, 24, 12, '#c8281e');
   },
-  hazard: (ctx, n) => {
-    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) px(ctx, x, y, ((x + y) >> 2) % 2 ? [30, 30, 30] : [214, 172, 52]);
+  hazard: (p, n) => {
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const yellow = ((x + y) >> 4) % 2 === 0;
+      p.set(x, y, yellow ? 214 : 30, yellow ? 172 : 30, yellow ? 52 : 30);
+    }
   },
-  carpet: (ctx, n, r) => {
-    noise(ctx, n, r, '#5a3a3a', 0.16);
+  carpet: (p, n, r) => {
+    surface(p, r, '#5c3a3a', 0.18, 0.14, 3);
   },
 };
 
 const cache = new Map<string, THREE.Texture>();
+/** Every texture the game uses (procedural and from models), so the filter mode can switch at runtime. */
+const managed = new Set<THREE.Texture>();
+let smooth = true;
+
+function applyFilter(t: THREE.Texture): void {
+  if (smooth) {
+    t.magFilter = THREE.LinearFilter;
+    t.minFilter = THREE.LinearMipmapLinearFilter;
+    t.anisotropy = 8;
+  } else {
+    // Nearest up close for the pixel look; nearest mipmaps far away so walls do not shimmer.
+    t.magFilter = THREE.NearestFilter;
+    t.minFilter = THREE.NearestMipmapNearestFilter;
+    t.anisotropy = 1;
+  }
+  t.needsUpdate = true;
+}
+
+export function manageTexture(t: THREE.Texture): void {
+  if (managed.has(t)) return;
+  managed.add(t);
+  applyFilter(t);
+}
+
+/** Smooth (filtered) or retro (nearest) sampling for all managed textures. */
+export function setTextureSmoothing(on: boolean): void {
+  if (on === smooth) return;
+  smooth = on;
+  for (const t of managed) applyFilter(t);
+}
 
 export function hasTexture(name: string): boolean {
   return name in PAINTERS;
@@ -173,22 +355,22 @@ export function getTexture(name: string): THREE.Texture | null {
   if (!paint) return null;
   let t = cache.get(name);
   if (t) return t;
-  const size = 32;
+  const size = 128;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d')!;
   let seed = 7;
   for (const ch of name) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
-  paint(ctx, size, seeded(seed));
+  const pix = new Pix(size, ctx.createImageData(size, size));
+  paint(pix, size, seeded(seed));
+  pix.flush(ctx);
   t = new THREE.CanvasTexture(canvas);
-  // Nearest up close for the pixel look; nearest mipmaps far away so walls do not shimmer.
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestMipmapNearestFilter;
   t.generateMipmaps = true;
   t.wrapS = THREE.RepeatWrapping;
   t.wrapT = THREE.RepeatWrapping;
   t.colorSpace = THREE.SRGBColorSpace;
+  manageTexture(t);
   cache.set(name, t);
   return t;
 }

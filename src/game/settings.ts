@@ -7,14 +7,15 @@ export interface Settings {
   invertY: boolean;
   split: SplitMode;
   volume: number;
-  /** Internal render height; 0 = native. */
+  /** Retro internal render height; 0 = smooth native rendering. */
   resolution: number;
 }
 
-export const DEFAULT_SETTINGS: Settings = { mouseSens: 1, padSens: 1, invertY: false, split: 'vertical', volume: 0.7, resolution: 240 };
+export const DEFAULT_SETTINGS: Settings = { mouseSens: 1, padSens: 1, invertY: false, split: 'vertical', volume: 0.7, resolution: 0 };
 
-export const RESOLUTIONS = [180, 240, 360, 480, 0];
-const KEY = 'tin-wolf.settings.v1';
+/** 0 = smooth native rendering; the others are retro pixel heights. */
+export const RESOLUTIONS = [0, 480, 360, 240, 180];
+const KEY = 'tin-wolf.settings.v2';
 
 /** localStorage can be missing or throw (private mode, blocked storage); settings then just do not persist. */
 export function loadSettings(): Settings {

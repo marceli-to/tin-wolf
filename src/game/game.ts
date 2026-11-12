@@ -103,7 +103,7 @@ export class Game {
       this.screen.refresh(this.settingsSpec(back));
     };
     const step = (v: number, d: number, min: number, max: number): number => Math.round(Math.min(max, Math.max(min, v + d)) * 10) / 10;
-    const resLabel = (r: number): string => (r ? `${r}p` : 'Native');
+    const resLabel = (r: number): string => (r ? `Retro ${r}p` : 'Smooth');
     const cycleRes = (d: number): void => {
       const i = RESOLUTIONS.indexOf(s.resolution);
       s.resolution = RESOLUTIONS[(i + d + RESOLUTIONS.length) % RESOLUTIONS.length]!;
@@ -122,7 +122,7 @@ export class Game {
           adjust: () => change(() => (s.split = s.split === 'vertical' ? 'horizontal' : 'vertical')),
         },
         { label: row('Volume', `${Math.round(s.volume * 100)}%`), action: () => undefined, adjust: (d) => change(() => (s.volume = step(s.volume, d * 0.1, 0, 1))) },
-        { label: row('Resolution', resLabel(s.resolution)), action: () => change(() => cycleRes(1)), adjust: (d) => change(() => cycleRes(d)) },
+        { label: row('Graphics', resLabel(s.resolution)), action: () => change(() => cycleRes(1)), adjust: (d) => change(() => cycleRes(d)) },
         { label: 'Back', action: back },
       ],
       footer: 'Left / right to change',

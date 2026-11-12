@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { flatMaterial, shadedBox } from './shapes';
+import type { ModelInstance } from './models';
 
 export interface ViewModel {
   root: THREE.Group;
@@ -8,7 +9,13 @@ export interface ViewModel {
 }
 
 /** First-person pistol and sleeve, built from boxes, in camera space (-z forward). */
-export function buildPistolViewModel(sleeve: string): ViewModel {
+export interface ViewGunPlacement {
+  scale: number;
+  position: [number, number, number];
+  rotation: [number, number, number];
+}
+
+export function buildPistolViewModel(sleeve: string, gunModel: ModelInstance | null = null, place?: ViewGunPlacement): ViewModel {
   const root = new THREE.Group();
   const gun = new THREE.Group();
   root.add(gun);
@@ -31,7 +38,16 @@ export function buildPistolViewModel(sleeve: string): ViewModel {
   const arm = new THREE.Mesh(shadedBox(0.09, 0.09, 0.4), cloth);
   arm.position.set(0.02, -0.1, 0.24);
   arm.rotation.x = 0.12;
-  gun.add(slide, frame, grip, sight, hand, arm);
+  if (gunModel && place) {
+    // A real pistol model replaces the box slide, frame, grip and sight.
+    const g = gunModel.object;
+    g.scale.setScalar(place.scale);
+    g.position.set(...place.position);
+    g.rotation.set(...place.rotation);
+    gun.add(g, hand, arm);
+  } else {
+    gun.add(slide, frame, grip, sight, hand, arm);
+  }
 
   const flashMat = new THREE.MeshBasicMaterial({
     color: '#ffd27a',

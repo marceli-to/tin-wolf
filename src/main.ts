@@ -16,7 +16,8 @@ function fail(err: unknown): void {
 
 async function boot(): Promise<void> {
   const game = new Game(app, readParams(location.search));
-  const art = game.params.art;
+  // Quaternius characters are the default look; ?art=none keeps the code-built figures.
+  const art = game.params.art || 'quaternius';
   if (art in PROFILES) {
     // Art trial: load every model the data refers to before the first level starts.
     const lib = new ModelLibrary(`${import.meta.env.BASE_URL}assets/`);

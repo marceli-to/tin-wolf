@@ -10,6 +10,8 @@ M0–M6 are done and committed (65 unit tests, typecheck and build pass). M7 is 
 
 Verified by script in the browser: movement and collision, split-screen, weapons and damage, full versus match → results → rematch, every guard state transition in the test room, the depot's stealth route and loud route end to end (debug autopilot), mission fail → debrief → retry, settings surviving a reload, draw calls.
 
+Art direction changed after M6 (see deviation log, "Art" rows): CC0 characters and smooth rendering by default.
+
 Still needs a human:
 
 - Mouse-look feel with pointer lock, and sensitivity defaults
@@ -350,3 +352,9 @@ PLAN.md  README.md
 | 2026-11-12 | M6 | Added falling snow over open-sky cells, guard footsteps (`guardStep` event, not heard by other guards), mission success/fail jingles | Atmosphere; lets players hear patrols coming |
 | 2026-11-12 | M6 | Settings also include a resolution option (180/240/360/480/native); `noUnusedLocals` enabled | Weak machines and personal taste; keeps the code tidy |
 | 2026-11-12 | M6 | Measured in Chrome on the dev machine: Pumphouse 2 views ≈ 45 draw calls per view, Depot ≈ 170 per view, 60 fps. Not yet measured on integrated graphics | Needs a human on a weaker laptop |
+| 2026-11-12 | Art | **A5 overridden by Marcel:** free CC0 asset packs are allowed. Guards are Quaternius characters (SWAT for guards, suit for officers) with their animations; players use a tinted SWAT model; the pistol (world and first person) is the Quaternius Toon Shooter pistol; office furniture is Kenney's Furniture Kit, desaturated. `?art=none` restores the code-built figures | The code-built boxes looked too crude; Kenney's characters were too cartoonish for the setting (trial on branch `trial/kenney`) |
+| 2026-11-12 | Art | Default rendering is now smooth: native resolution at the device pixel ratio, MSAA, filtered textures. "Retro" 480/360/240/180p with nearest filtering stays as the Graphics setting | Marcel found the 240p pixel look too heavy |
+| 2026-11-12 | Art | Procedural textures redrawn at 128 px (grime noise, bevels, rivets, per-brick and per-tile variation) | 32 px pixel art looked blurry once filtered |
+| 2026-11-12 | Art | Props may carry a `model`, `modelScale` and `solid: false` (decoration); prop entities take `elevation`. Models load once at boot (`render/models.ts`) | Level-format addition needed for furniture |
+| 2026-11-12 | Art | `tools/trim_gltf.py` strips unused animations and repacks models as binary GLB (characters 6.4 MB → 2.4 MB) | Download size; no new npm dependency |
+| 2026-11-12 | Art | Depot hall now ≈ 250 draw calls per view (each character has 7 materials); still under the 300 budget | Merging materials per character is the next step if it gets tight |
