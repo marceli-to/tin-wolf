@@ -1,6 +1,7 @@
 import type { PlayerIntent } from '../core/intent';
 import { DEG } from '../core/math';
 import { floorAtWorld } from '../sim/grid';
+import { autopilot, type AutopilotOptions } from './autopilot';
 import type { Game } from './game';
 
 /** `window.__game` in debug mode: drive the game without real input devices. */
@@ -45,6 +46,16 @@ export function installDebugHooks(game: Game): void {
     player(slot = 0) {
       const p = game.world?.players[slot];
       return p ? JSON.parse(JSON.stringify(p)) : null;
+    },
+    /** Walk slot through cells with A* (debug test driver). Freezes the loop while it runs. */
+    autopilot(slot: number, goals: [number, number][], opts: AutopilotOptions = {}) {
+      const w = game.world;
+      if (!w) return null;
+      game.frozen = true;
+      return autopilot(w, slot, goals, (intent) => {
+        game.setDebugIntent(slot, intent);
+        game.simStep();
+      }, opts);
     },
     events: [] as unknown[],
   };

@@ -3,7 +3,9 @@ import { emptyIntent, type PlayerIntent } from '../core/intent';
 import { separateBodies } from './collision';
 import { updatePlayerMovement } from './player';
 import { updateGuards } from './ai';
+import { updateDoors, updateInteraction } from './doors';
 import { updateMatch } from './match';
+import { updateObjectives } from './objectives';
 import { updatePickups } from './pickups';
 import { respawnPlayer } from './spawn';
 import { updatePlayerWeapon } from './weapons';
@@ -28,6 +30,7 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
     if (p.alive) {
       updatePlayerMovement(world, p, intent, DT);
       updatePlayerWeapon(world, p, intent, DT);
+      updateInteraction(world, p, intent);
     } else {
       p.deadTimer -= DT;
       // Missions end on death (M5); everything else respawns.
@@ -40,8 +43,10 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
   for (let i = 0; i < bodies.length; i++) {
     for (let j = i + 1; j < bodies.length; j++) separateBodies(world.terrain, bodies[i]!, bodies[j]!);
   }
+  updateDoors(world, DT);
   updatePickups(world, DT);
   updateMatch(world, DT);
+  updateObjectives(world, DT);
   world.tick++;
   world.time += DT;
 }

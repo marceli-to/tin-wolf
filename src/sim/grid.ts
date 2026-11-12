@@ -12,6 +12,8 @@ export interface Cell {
   floorMat: string;
   ceilMat: string;
   wallMat: string;
+  /** Solid cells with an explicit wall material show it on every face. */
+  wallExplicit: boolean;
   light: number;
 }
 
@@ -38,7 +40,8 @@ export function buildGrid(level: LevelDef): Grid {
         sky: d.sky,
         floorMat: d.floorMat,
         ceilMat: d.ceilMat,
-        wallMat: d.wall,
+        wallMat: d.wall ?? 'concrete',
+        wallExplicit: d.wall !== undefined,
         light: d.light,
       });
     }

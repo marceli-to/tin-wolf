@@ -86,13 +86,23 @@ describe('guard AI', () => {
   it('a player gunshot alerts a guard who cannot see the player', () => {
     // Guard behind a wall, within earshot.
     const map = ['##############', '#.....#......#', '#.....#......#', '#.....#......#', '#............#', '##############'];
-    const w = guardWorld(map, [{ type: 'guard', id: 'g', archetype: 'guard_basic', cell: [10, 1], yaw: 90 }]);
+    // Within half the noise radius, so the wall does not muffle it enough.
+    const w = guardWorld(map, [{ type: 'guard', id: 'g', archetype: 'guard_basic', cell: [8, 1], yaw: 90 }]);
     place(w, 0, 5, 3, 0);
     run(w, 1, [intent({ fire: true })]);
     run(w, 2, idle);
     const g = w.guards[0]!;
     expect(g.state).toBe('attack');
     expect(Math.hypot(g.lastKnown!.x - 5, g.lastKnown!.z - 3)).toBeLessThan(1);
+  });
+
+  it('walls muffle a distant gunshot', () => {
+    const map = ['####################', '#.....#............#', '#.....#............#', '#.....#............#', '#.....##############', '####################'];
+    const w = guardWorld(map, [{ type: 'guard', id: 'g', archetype: 'guard_basic', cell: [14, 1], yaw: 90 }]);
+    place(w, 0, 5, 3, 0); // 24 m away, wall in between
+    run(w, 1, [intent({ fire: true })]);
+    run(w, 2, idle);
+    expect(w.guards[0]!.state).toBe('patrol');
   });
 
   it('a guard firing alerts a second guard out of sight', () => {

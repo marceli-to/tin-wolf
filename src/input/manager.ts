@@ -18,6 +18,8 @@ export function deviceLabel(d: DeviceId): string {
 
 /** Menu-level actions, independent of slot. */
 export interface MenuInput {
+  up: boolean;
+  down: boolean;
   pause: boolean;
   objectives: boolean;
   confirm: boolean;
@@ -112,18 +114,41 @@ export class InputManager {
   menu(): MenuInput {
     const k = this.kbm;
     const m: MenuInput = {
+      up: k.pressed('ArrowUp') || k.pressed('KeyW'),
+      down: k.pressed('ArrowDown') || k.pressed('KeyS'),
       pause: k.pressed('Escape') || k.pressed('KeyP'),
       objectives: k.pressed('Tab'),
       confirm: k.pressed('Enter') || k.pressed('Space'),
       back: k.pressed('Escape') || k.pressed('Backspace'),
     };
     for (const i of this.pads.connected()) {
+      m.up ||= this.pads.pressed(i, PAD.UP) || this.stickEdge(i, -1);
+      m.down ||= this.pads.pressed(i, PAD.DOWN) || this.stickEdge(i, 1);
       m.pause ||= this.pads.pressed(i, PAD.START);
       m.objectives ||= this.pads.pressed(i, PAD.BACK);
       m.confirm ||= this.pads.pressed(i, PAD.A);
       m.back ||= this.pads.pressed(i, PAD.B);
     }
     return m;
+  }
+
+  private stickHeld = new Map<number, number>();
+
+  /** Left stick flicked up (-1) or down (1) since it was last centred. */
+  private stickEdge(i: number, dir: -1 | 1): boolean {
+    const y = this.pads.axis(i, 1);
+    const held = this.stickHeld.get(i) ?? 0;
+    const now = y < -0.6 ? -1 : y > 0.6 ? 1 : 0;
+    if (now !== held) this.stickHeld.set(i, now);
+    return now === dir && held !== dir;
+  }
+
+  /** The device that pressed confirm this frame (for "press to start" screens). */
+  confirmDevice(): DeviceId | null {
+    const k = this.kbm;
+    if (k.pressed('Enter') || k.pressed('Space') || k.clicked) return { kind: 'kbm' };
+    for (const i of this.pads.connected()) if (this.pads.pressed(i, PAD.A) || this.pads.pressed(i, PAD.START)) return { kind: 'pad', index: i };
+    return null;
   }
 
   /** Pads keep their own crouch toggle; clear it on respawn or level start. */

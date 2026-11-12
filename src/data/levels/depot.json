@@ -1,0 +1,653 @@
+{
+ "id": "depot",
+ "name": "Halvard Depot",
+ "mode": "mission",
+ "cellSize": 2,
+ "fog": {
+  "color": "#8d99a4",
+  "near": 14,
+  "far": 64
+ },
+ "legend": {
+  "R": {
+   "solid": true,
+   "wall": "rock"
+  },
+  "B": {
+   "solid": true,
+   "wall": "brick"
+  },
+  "#": {
+   "solid": true
+  },
+  "s": {
+   "floor": 0,
+   "ceil": 7,
+   "sky": true,
+   "floorMat": "snow",
+   "wall": "rock",
+   "light": 1.0
+  },
+  "h": {
+   "floor": 0,
+   "ceil": 4,
+   "floorMat": "tile",
+   "wall": "panel",
+   "ceilMat": "ceiling",
+   "light": 0.85
+  },
+  "b": {
+   "floor": 0,
+   "ceil": 3,
+   "floorMat": "wood",
+   "wall": "wood",
+   "light": 0.45
+  },
+  "c": {
+   "floor": 0,
+   "ceil": 3,
+   "floorMat": "grate",
+   "wall": "panel",
+   "light": 0.6
+  },
+  "g": {
+   "floor": 0,
+   "ceil": 4.5,
+   "floorMat": "metal",
+   "wall": "metal",
+   "light": 0.4
+  },
+  "o": {
+   "floor": 0,
+   "ceil": 3,
+   "floorMat": "carpet",
+   "wall": "panel",
+   "light": 0.9
+  },
+  "l": {
+   "floor": 0,
+   "ceil": 5,
+   "floorMat": "tile",
+   "wall": "panel",
+   "light": 0.95
+  },
+  "p": {
+   "floor": 0.8,
+   "ceil": 5,
+   "floorMat": "metal",
+   "wall": "hazard",
+   "light": 1.0
+  },
+  "^": {
+   "ramp": "n",
+   "floor": 0,
+   "floorTo": 0.8,
+   "ceil": 5,
+   "floorMat": "metal",
+   "wall": "hazard",
+   "light": 1.0
+  },
+  "G": {
+   "floor": 0,
+   "ceil": 6,
+   "floorMat": "concrete",
+   "wall": "concrete",
+   "light": 0.65
+  },
+  "t": {
+   "floor": 0,
+   "ceil": 3.5,
+   "floorMat": "concrete",
+   "wall": "rock",
+   "light": 0.35
+  },
+  "v": {
+   "floor": 0,
+   "ceil": 1.4,
+   "floorMat": "grate",
+   "wall": "metal",
+   "light": 0.25
+  },
+  "D": {
+   "floor": 0,
+   "ceil": 3,
+   "floorMat": "metal",
+   "wall": "panel",
+   "light": 0.7
+  }
+ },
+ "map": [
+  "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+  "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRttttttttR",
+  "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRttttttttR",
+  "RRRRRRBBBBBBBBBBBBBBBBBBBBBBBBBtBBBRRRRR",
+  "RRRRRRB######lllllppppplllll#GGGGGBRRRRR",
+  "RRRRRRB######lllllppppplllll#GGGGGBRRRRR",
+  "RRRRRRB######llllll^^^llllll#GGGGGBRRRRR",
+  "RRRRRRB######lllllllllllllllDGGGGGBRRRRR",
+  "RRRRRRB######lllllllllllllll#GGGGGBRRRRR",
+  "RRRRRRB######lllllllllllllll#GGGGGBRRRRR",
+  "RRRRRRB############D#########GG#GGBRRRRR",
+  "RRRRRRB############cc########GGGGGBRRRRR",
+  "RRRRRRB#gggggggggg#cc#oooooo#GGGGGBRRRRR",
+  "RRRRRRB#gggggggggg#cc#oooooo#GGGGGBRRRRR",
+  "RRRvvvvvggggggggggDccDoooooo#GGGGGBRRRRR",
+  "RRRvRRB#gggggggggg#cc#oooooo#GGGGGBRRRRR",
+  "RRRvRRB#gggggggggg#cc#oooooo#GG#GGBRRRRR",
+  "RRRvRRB############cc########GGGGGBRRRRR",
+  "RRRvRRBbbbbbb#hhhhhhhhhhhh###GGGGGBRRRRR",
+  "RRRvRRBbbbbbb#hhhhhhhhhhhh###GGGGGBRRRRR",
+  "RRRvRRBbbbbbbDhhh#hhhh#hhh###GGGGGBRRRRR",
+  "RRRvRRBbbbbbb#hhhhhhhhhhhh###GGGGGBRRRRR",
+  "RRRvRRBbbbbbb#hhhhhhhhhhhh###GGGGGBRRRRR",
+  "RRRvRRBbbbbbb#hhhhhhhhhhhh###GGGGGBRRRRR",
+  "RRRvRRBBBBBBBBBBBBBDBBBBBBBBBBBDBBBRRRRR",
+  "RRRvRRsssssssssssssssssssssssssssssRRRRR",
+  "RRRssssssssssssssssssssssssssssssssssRRR",
+  "RRssssssssssssssssssssssssssssssssssssRR",
+  "RssssssssssssssssssssssssssssssssssssssR",
+  "RssssssssssssssssssssssssssssssssssssssR",
+  "RssssssssssssssssssssssssssssssssssssssR",
+  "RssssssssssssssssssssssssssssssssssssssR",
+  "RssssssssssssssssssssssssssssssssssssssR",
+  "RsssssssssssRRsssssssssssssssssssssssssR",
+  "RsssssssssssRssssssssssssssssssssssssssR",
+  "RssssssssssssssssssssssssssRRssssssssssR",
+  "RsssssssssssssssssssssssssssRssssssssssR",
+  "RssssssssssssssssssssssssssssssssssssssR",
+  "RsssssssssssssssssssRRsssssssssssssssssR",
+  "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
+ ],
+ "entities": [
+  {
+   "type": "playerStart",
+   "slot": 0,
+   "cell": [
+    4,
+    36
+   ],
+   "yaw": 20
+  },
+  {
+   "type": "door",
+   "id": "door_front",
+   "cell": [
+    19,
+    24
+   ]
+  },
+  {
+   "type": "door",
+   "id": "door_barracks",
+   "cell": [
+    13,
+    20
+   ]
+  },
+  {
+   "type": "door",
+   "id": "door_generator",
+   "cell": [
+    18,
+    14
+   ]
+  },
+  {
+   "type": "door",
+   "id": "door_office",
+   "cell": [
+    21,
+    14
+   ]
+  },
+  {
+   "type": "door",
+   "id": "door_lab",
+   "cell": [
+    19,
+    10
+   ],
+   "requires": "key_red",
+   "mat": "door_red"
+  },
+  {
+   "type": "door",
+   "id": "door_lab_east",
+   "cell": [
+    28,
+    7
+   ],
+   "requires": "key_red",
+   "mat": "door_red"
+  },
+  {
+   "type": "door",
+   "id": "door_garage",
+   "cell": [
+    31,
+    24
+   ]
+  },
+  {
+   "type": "guard",
+   "id": "y1",
+   "archetype": "guard_basic",
+   "cell": [
+    9,
+    27
+   ],
+   "yaw": 90,
+   "patrol": [
+    [
+     9,
+     27
+    ],
+    [
+     29,
+     27
+    ]
+   ]
+  },
+  {
+   "type": "guard",
+   "id": "y2",
+   "archetype": "guard_basic",
+   "cell": [
+    33,
+    27
+   ],
+   "yaw": 180,
+   "patrol": []
+  },
+  {
+   "type": "guard",
+   "id": "h1",
+   "archetype": "guard_basic",
+   "cell": [
+    19,
+    22
+   ],
+   "yaw": 180,
+   "patrol": []
+  },
+  {
+   "type": "guard",
+   "id": "h2",
+   "archetype": "guard_basic",
+   "cell": [
+    15,
+    19
+   ],
+   "yaw": 90,
+   "patrol": [
+    [
+     15,
+     19
+    ],
+    [
+     24,
+     19
+    ],
+    [
+     24,
+     22
+    ],
+    [
+     15,
+     22
+    ]
+   ]
+  },
+  {
+   "type": "guard",
+   "id": "c1",
+   "archetype": "guard_basic",
+   "cell": [
+    19,
+    17
+   ],
+   "yaw": 0,
+   "patrol": [
+    [
+     20,
+     12
+    ],
+    [
+     19,
+     19
+    ],
+    [
+     16,
+     21
+    ],
+    [
+     19,
+     19
+    ]
+   ]
+  },
+  {
+   "type": "guard",
+   "id": "s1",
+   "archetype": "guard_officer",
+   "cell": [
+    26,
+    13
+   ],
+   "yaw": 90,
+   "patrol": []
+  },
+  {
+   "type": "guard",
+   "id": "g1",
+   "archetype": "guard_basic",
+   "cell": [
+    13,
+    12
+   ],
+   "yaw": 0,
+   "patrol": []
+  },
+  {
+   "type": "guard",
+   "id": "b1",
+   "archetype": "guard_basic",
+   "cell": [
+    8,
+    19
+   ],
+   "yaw": 270,
+   "patrol": []
+  },
+  {
+   "type": "guard",
+   "id": "l1",
+   "archetype": "guard_basic",
+   "cell": [
+    14,
+    8
+   ],
+   "yaw": 90,
+   "patrol": [
+    [
+     14,
+     8
+    ],
+    [
+     26,
+     8
+    ],
+    [
+     26,
+     5
+    ],
+    [
+     14,
+     5
+    ]
+   ]
+  },
+  {
+   "type": "guard",
+   "id": "l2",
+   "archetype": "guard_officer",
+   "cell": [
+    23,
+    4
+   ],
+   "yaw": 180,
+   "patrol": []
+  },
+  {
+   "type": "guard",
+   "id": "r1",
+   "archetype": "guard_basic",
+   "cell": [
+    31,
+    20
+   ],
+   "yaw": 0,
+   "patrol": [
+    [
+     31,
+     20
+    ],
+    [
+     32,
+     5
+    ]
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "key_red",
+   "cell": [
+    23,
+    16
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "medkit",
+   "cell": [
+    11,
+    23
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "armor",
+   "cell": [
+    7,
+    22
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    9,
+    16
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    25,
+    23
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    13,
+    9
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "medkit",
+   "cell": [
+    33,
+    12
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    3,
+    30
+   ]
+  },
+  {
+   "type": "prop",
+   "id": "console_main",
+   "kind": "console",
+   "cell": [
+    20,
+    4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "terminal",
+   "cell": [
+    27,
+    15.4
+   ],
+   "yaw": 90
+  },
+  {
+   "type": "prop",
+   "kind": "terminal",
+   "cell": [
+    15,
+    4.4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    8,
+    29
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    16,
+    31
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_tall",
+   "cell": [
+    23,
+    30
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    24,
+    29
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    31.4,
+    30.4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    31.9,
+    30.9
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    30,
+    6
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_tall",
+   "cell": [
+    33,
+    18
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    16.5,
+    12.5
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    8.5,
+    15.5
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    10,
+    21
+   ]
+  },
+  {
+   "type": "zone",
+   "id": "exit",
+   "cell": [
+    37,
+    1
+   ],
+   "size": [
+    2,
+    2
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    20,
+    16
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    30,
+    21
+   ]
+  }
+ ],
+ "objectives": [
+  {
+   "id": "o1",
+   "text": "Take the red keycard from the security office",
+   "type": "collect",
+   "target": "key_red"
+  },
+  {
+   "id": "o2",
+   "text": "Destroy the guidance console in the lab",
+   "type": "destroy",
+   "target": "console_main"
+  },
+  {
+   "id": "o3",
+   "text": "Leave through the vehicle tunnel",
+   "type": "reach",
+   "target": "exit",
+   "requires": [
+    "o1",
+    "o2"
+   ]
+  }
+ ],
+ "briefing": "Halvard Depot is a weather station high in the Ostfjell range, cut off by snow since October. Its new owners are not studying the weather: they are testing a guidance unit for long-range drones, and the prototype console sits in the depot lab.\n\nThe lab is sealed with a red keycard kept in the security office. Get the card, destroy the console, and get out through the vehicle tunnel north-east of the garage.\n\nThe front door is quickest and best guarded. A maintenance duct runs up the west side of the building into the generator room \u2014 dark, tight, and quiet."
+}

@@ -9,12 +9,18 @@
     "visionFovDeg": 110,
     "noticeTime": 0.9,
     "hearingScale": 1.0,
-    "reactionTime": 0.7,
-    "aimSpreadDeg": 4.5,
-    "burstPause": [0.8, 1.6],
-    "burst": [2, 3],
+    "reactionTime": 0.8,
+    "aimSpreadDeg": 5.5,
+    "burstPause": [
+      0.8,
+      1.6
+    ],
+    "burst": [
+      2,
+      3
+    ],
     "searchTime": 9,
-    "damageScale": 0.6,
+    "damageScale": 0.45,
     "color": "#56663f",
     "legs": "#3a3f30"
   },
@@ -28,12 +34,18 @@
     "visionFovDeg": 120,
     "noticeTime": 0.6,
     "hearingScale": 1.3,
-    "reactionTime": 0.5,
-    "aimSpreadDeg": 3.0,
-    "burstPause": [0.6, 1.2],
-    "burst": [2, 4],
+    "reactionTime": 0.6,
+    "aimSpreadDeg": 4.0,
+    "burstPause": [
+      0.6,
+      1.2
+    ],
+    "burst": [
+      2,
+      4
+    ],
     "searchTime": 14,
-    "damageScale": 0.7,
+    "damageScale": 0.55,
     "color": "#3c4a5c",
     "legs": "#24282e"
   }

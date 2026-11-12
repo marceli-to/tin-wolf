@@ -3,6 +3,11 @@ import type { Player, World } from '../sim/world';
 import { el, esc } from './dom';
 
 export interface HudExtras {
+  /** HTML list of objectives, shown while non-empty. */
+  objectives: string;
+  /** Interaction prompt ("E  Open door"). */
+  prompt: string;
+  promptLocked: boolean;
   /** Short-lived message in the middle of the view (kills, pickups, objectives). */
   notice: string;
   /** Persistent line at the top (score, timer). */
@@ -21,10 +26,12 @@ export class PlayerHud {
   private hurt = el('div', 'hurt');
   private health = el('div', 'hud-health');
   private ammo = el('div', 'hud-ammo');
+  private objectives = el('div', 'hud-objectives');
+  private prompt = el('div', 'prompt');
   private last = '';
 
   constructor(parent: HTMLElement) {
-    this.root.append(this.hurt, this.crosshair, this.top, this.notice, this.center, this.health, this.ammo, this.lockHint);
+    this.root.append(this.hurt, this.crosshair, this.top, this.objectives, this.notice, this.center, this.prompt, this.health, this.ammo, this.lockHint);
     parent.appendChild(this.root);
   }
 
@@ -55,6 +62,8 @@ export class PlayerHud {
       p.protect > 0,
       x.notice,
       x.top,
+      x.objectives,
+      x.prompt,
       world.level.mode,
     ].join('|');
     if (key === this.last) return;
@@ -78,6 +87,10 @@ export class PlayerHud {
     }
     this.notice.innerHTML = x.notice;
     this.top.innerHTML = x.top;
+    this.objectives.innerHTML = x.objectives;
+    this.objectives.classList.toggle('show', !!x.objectives);
+    this.prompt.textContent = p.alive ? x.prompt : '';
+    this.prompt.classList.toggle('locked', x.promptLocked);
   }
 
   dispose(): void {

@@ -14,7 +14,8 @@ export const CellDefSchema = z.object({
   sky: z.boolean().default(false),
   floorMat: z.string().default('concrete'),
   ceilMat: z.string().default('ceiling'),
-  wall: z.string().default('concrete'),
+  /** Wall look. On a solid cell it overrides the look of the room it faces. */
+  wall: z.string().optional(),
   /** 0..1 baked light level for the cell (M6). */
   light: z.number().min(0).max(1).default(0.8),
 });

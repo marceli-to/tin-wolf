@@ -7,6 +7,7 @@ import type { Box, Terrain } from './collision';
 import type { ActorRef, SimEvent } from './events';
 import { buildGrid, cellCenter, floorAtWorld, type Grid } from './grid';
 import { createMatch, type MatchState } from './match';
+import { createMission, type MissionState } from './objectives';
 
 export interface WeaponState {
   id: string;
@@ -186,6 +187,7 @@ export interface World {
   starts: SpawnPoint[];
   events: SimEvent[];
   match: MatchState | null;
+  mission: MissionState | null;
   /** Noises made by guards late in the previous tick, heard at the start of this one. */
   noiseCarry: Noise[];
   /** Collision obstacles, rebuilt each tick from props and doors. */
@@ -266,6 +268,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     starts: [],
     events: [],
     noiseCarry: [],
+    mission: level.mode === 'mission' ? createMission(level.objectives) : null,
     match: level.mode === 'versus' && level.match ? createMatch(level.match.killLimit, level.match.timeLimit) : null,
     terrain: { grid, boxes: [] },
   };

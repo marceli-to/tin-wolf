@@ -214,12 +214,12 @@ Each milestone ends playable. Each task is testable alone. Run `npm test` and th
 **Done when:** in the test room, a patrolling guard can be approached unseen from behind, notices the player in front of him, alerts a second guard by gunfire, loses the player and returns to patrol, and can be killed. Guards never walk through walls or get stuck for more than 2 seconds.
 
 ### M5 – First mission level
-- [ ] Doors (open on interact, optionally locked by item), keycard pickup, destructible props, zones.
-- [ ] `sim/objectives` with the four types and `requires`; unit tests for each type.
-- [ ] Mission fails when the player dies.
-- [ ] Level 1, a snowed-in research depot (original design), about 40×40 cells, 8–12 guards, 3 objectives (find keycard, destroy console, reach exit).
-- [ ] Game state machine: menu (Mission / Versus) → briefing → playing ⇄ paused → debrief (success / failure, time, shots fired, accuracy) → retry or menu. The versus flow from M3 hangs off the same menu.
-- [ ] HUD: objective list on a key press, "objective completed" notice.
+- [x] Doors (open on interact, optionally locked by item), keycard pickup, destructible props, zones.
+- [x] `sim/objectives` with the four types and `requires`; unit tests for each type.
+- [x] Mission fails when the player dies.
+- [x] Level 1, a snowed-in research depot (original design), about 40×40 cells, 8–12 guards, 3 objectives (find keycard, destroy console, reach exit).
+- [x] Game state machine: menu (Mission / Versus) → briefing → playing ⇄ paused → debrief (success / failure, time, shots fired, accuracy) → retry or menu. The versus flow from M3 hangs off the same menu.
+- [x] HUD: objective list on a key press, "objective completed" notice.
 
 **Done when:** one player can complete level 1 from menu to debrief without the debug flag; the mission can also be failed and retried; a stealthy route and a loud route both work. Versus still works from the same menu.
 
@@ -323,3 +323,10 @@ PLAN.md  README.md
 | 2026-11-12 | M4 | Guard-made noises carry over one tick (`world.noiseCarry`) | Guards act after noises are collected, so their own shots would otherwise never be heard |
 | 2026-11-12 | M4 | Combat writes `flinch` / `lastHurtBy` on the guard and the AI reacts on its next update (no callback registry) | Keeps sim free of hidden mutable state |
 | 2026-11-12 | M4 | Blood particles are skipped for hits on the local player in single view | They burst right in front of the camera; the hurt overlay already signals the hit |
+| 2026-11-12 | M5 | Level 1 is "Halvard Depot" (40×40, 11 guards incl. 2 officers). Stealth route: maintenance duct → generator room → time the corridor patrol → office; loud route: front door | Both verified end to end with the debug autopilot (`__game.autopilot`), see below |
+| 2026-11-12 | M5 | Sound through walls or closed doors only carries half its radius | Without it one shot alerted the whole building and stealth was impossible |
+| 2026-11-12 | M5 | A key unlocks its door for good; guards open unlocked doors they walk up to; doors close after 4 s unless someone stands in them | Simplest door rules that make the level read clearly |
+| 2026-11-12 | M5 | Solid cells may set `wall` to override the look of the room they face (cell field `wall` is optional now) | Exterior brick / rock walls without a legend entry per room |
+| 2026-11-12 | M5 | Debug-only autopilot (`src/game/autopilot.ts`) walks a route with the sim's A*, opens doors and fights | Lets an agent check "both routes work" without a human |
+| 2026-11-12 | M5 | Pause also triggers when the mouse is released (pointer-lock loss), since browsers swallow Esc while locked | Esc would otherwise only free the mouse |
+| 2026-11-12 | M5 | Objectives show for 5 s at mission start and toggle with Tab / Back; the interaction prompt names the missing key | Discoverability |

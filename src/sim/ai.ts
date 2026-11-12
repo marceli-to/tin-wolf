@@ -56,7 +56,10 @@ function collectNoises(world: World, from = 0): Noise[] {
 function hear(world: World, g: Guard, def: EnemyDef, n: Noise): void {
   if (n.fromGuard === g.index) return;
   const d = Math.hypot(n.x - g.x, n.z - g.z);
-  if (d > n.radius * def.hearingScale) return;
+  const radius = n.radius * def.hearingScale;
+  if (d > radius) return;
+  // Walls and closed doors muffle sound to half its range.
+  if (d > radius * 0.5 && !clearLine(world, n.x, 1.5, n.z, g.x, g.y + EYE, g.z)) return;
   if (n.kind === 'shot') {
     // A guard firing tells others where its target is; a player shot gives away the player.
     const other = n.fromGuard !== null ? world.guards[n.fromGuard] : null;
