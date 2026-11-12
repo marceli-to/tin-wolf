@@ -178,14 +178,14 @@ Each milestone ends playable. Each task is testable alone. Run `npm test` and th
 **Done when:** two people walk around the test room at the same time, one on mouse+keyboard and one on gamepad, each in their own view, cannot leave the level, and see each other move. Holds 60 fps on a laptop with integrated graphics.
 
 ### M2 – Weapons
-- [ ] Weapon schema + loader; pistol from data.
-- [ ] `sim/weapons`: fire rate, spread, magazine, reload, reserve ammo. Unit tests for ammo counting and the reload timer.
-- [ ] Hitscan: ray-vs-grid (grid traversal) and ray-vs-hitbox with zones head / torso / limb. Unit tests: wall blocks shot; correct zone reported.
-- [ ] Damage, health, death and respawn in the test room.
-- [ ] View model: pistol built from primitives, per-player layer, recoil kick and reload motion.
-- [ ] Effects: muzzle flash, impact puff on walls, hit flash on the damaged player's view.
-- [ ] HUD per view: health, magazine / reserve, crosshair.
-- [ ] Placeholder synth SFX for shot, reload, empty click, hit.
+- [x] Weapon schema + loader; pistol from data.
+- [x] `sim/weapons`: fire rate, spread, magazine, reload, reserve ammo. Unit tests for ammo counting and the reload timer.
+- [x] Hitscan: ray-vs-grid (grid traversal) and ray-vs-hitbox with zones head / torso / limb. Unit tests: wall blocks shot; correct zone reported.
+- [x] Damage, health, death and respawn in the test room.
+- [x] View model: pistol built from primitives, per-player layer, recoil kick and reload motion.
+- [x] Effects: muzzle flash, impact puff on walls, hit flash on the damaged player's view.
+- [x] HUD per view: health, magazine / reserve, crosshair.
+- [x] Placeholder synth SFX for shot, reload, empty click, hit.
 
 **Done when:** the two players can shoot each other in the test room; head shots do more damage than limb shots; ammo and reload behave as the data says; each HUD shows only its own player's values.
 
@@ -310,3 +310,7 @@ PLAN.md  README.md
 | 2026-11-12 | M1 | New data files `items.json` and `props.json` (prop sizes, materials, hp; item kinds) | Keeps content values out of code, as the plan requires |
 | 2026-11-12 | M1 | Doors are thin slabs that slide up (collision boxes), not cell blockers | Players can stand right at a door; also how it renders |
 | 2026-11-12 | M1 | Gamepad crouch is a toggle kept in the input layer; the sim only sees `crouch: boolean` | Keeps the sim free of device-specific state |
+| 2026-11-12 | M2 | Weapon data gains `startReserve`/`maxReserve`; head shot with the pistol is 100 dmg (one-shot kill) | Matches the plan's 4x head multiplier; tune in `weapons.json` if too harsh |
+| 2026-11-12 | M2 | Armour field on players (soaks 2/3 of damage) and `items.json` armour item | Cheap now, used by M3 pickups |
+| 2026-11-12 | M2 | Spawn selection (no line of sight, then farthest) and bullet-hole decals done in M2 | Respawn was needed for M2's death loop; decals are part of the impact effect |
+| 2026-11-12 | M2 | `startLoop` (requestAnimationFrame) moved from `core/` to `game/loop.ts`; `core/loop.ts` keeps only the pure accumulator | Import rule: no DOM APIs in core |

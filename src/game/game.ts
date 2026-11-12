@@ -1,7 +1,7 @@
 import { DT } from '../config';
 import { EventBus } from '../core/events';
 import { emptyIntent, type PlayerIntent } from '../core/intent';
-import { startLoop, type RunningLoop } from '../core/loop';
+import { startLoop, type RunningLoop } from './loop';
 import { loadGameData, loadLevel, type GameData } from '../data';
 import { deviceLabel, InputManager, type DeviceId } from '../input/manager';
 import { GameRenderer, type ViewLook } from '../render/gameRenderer';
@@ -9,6 +9,9 @@ import type { SimEventMap } from '../sim/events';
 import { stepWorld } from '../sim/step';
 import { createWorld, type World } from '../sim/world';
 import { DebugOverlay, PlayerHud } from '../ui/hud';
+import { Sfx } from '../audio/sfx';
+import { playSimEvent } from './audioBridge';
+import type { SimEvent } from '../sim/events';
 import { LobbyView } from '../ui/lobby';
 import type { GameParams } from './params';
 
@@ -28,7 +31,11 @@ export class Game {
   debugIntents: (PlayerIntent | null)[] = [];
   /** When true the loop renders but does not tick; drive the sim with `step(n)`. */
   frozen = false;
+  readonly sfx = new Sfx();
   private huds: PlayerHud[] = [];
+  /** Per-slot transient notices ("You hit P2", objective done) with expiry time. */
+  private notices: { text: string; until: number }[] = [];
+  private clock = 0;
   private lobby: LobbyView;
   private debugOverlay: DebugOverlay | null = null;
   private loop: RunningLoop | null = null;
@@ -49,6 +56,10 @@ export class Game {
     this.lobby = new LobbyView(this.uiLayer);
     if (params.debug) this.debugOverlay = new DebugOverlay(this.uiLayer);
     window.addEventListener('resize', () => this.onResize());
+    // Audio can only start after a user gesture.
+    const unlock = (): void => this.sfx.unlock();
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
     this.renderer.canvas.addEventListener('click', () => this.onCanvasClick());
   }
 
@@ -150,7 +161,27 @@ export class Game {
       return this.input.sample(p.slot, DT);
     });
     stepWorld(world, intents);
-    for (const e of world.events) this.bus.emit(e.type, e as never);
+    for (const e of world.events) {
+      this.bus.emit(e.type, e as never);
+      this.renderer.onSimEvent(e);
+      playSimEvent(this.sfx, world, e);
+      this.noticeFor(e);
+    }
+  }
+
+  notify(slot: number, text: string, seconds = 2.5): void {
+    this.notices[slot] = { text, until: this.clock + seconds };
+  }
+
+  private noticeFor(e: SimEvent): void {
+    if (e.type === 'died' && e.target.kind === 'player') {
+      const victim = e.target.slot;
+      const k = e.killer;
+      if (k?.kind === 'player' && k.slot !== victim) {
+        this.notify(k.slot, `You took down P${victim + 1}`);
+        this.notify(victim, `P${k.slot + 1} got you`);
+      }
+    }
   }
 
   private render(alpha: number, frameTime: number): void {
@@ -160,10 +191,13 @@ export class Game {
         this.debugIntents[p.slot] || this.state !== 'playing' ? { yaw: 0, pitch: 0 } : this.input.pendingLook(p.slot),
       );
       this.renderer.render(world, this.frozen ? 1 : alpha, looks, frameTime);
+      this.clock += frameTime;
       this.huds.forEach((h, i) => {
-        const needsLock = this.input.slotUsesMouse(i) && !this.input.kbm.locked && !this.debugIntents[i];
-        h.lockHint.style.display = needsLock ? 'block' : 'none';
-        h.crosshair.style.display = 'none';
+        const p = world.players[i];
+        if (!p) return;
+        const needsLock = this.state === 'playing' && this.input.slotUsesMouse(i) && !this.input.kbm.locked && !this.debugIntents[i];
+        const n = this.notices[i];
+        h.update(world, p, { notice: n && n.until > this.clock ? n.text : '', top: this.hudTop(i), needsLock });
       });
       if (this.debugOverlay) {
         const p = world.players[0];
@@ -176,6 +210,11 @@ export class Game {
       this.debugOverlay.frame(frameTime, this.state);
     }
     this.input.endFrame();
+  }
+
+  /** Top-of-view line; versus adds score and timer in M3. */
+  protected hudTop(_slot: number): string {
+    return '';
   }
 
   private onResize(): void {

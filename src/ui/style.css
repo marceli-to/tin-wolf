@@ -32,3 +32,23 @@ canvas { display: block; image-rendering: pixelated; }
 .center-msg { position: absolute; left: 0; right: 0; top: 38%; text-align: center; font-size: 28px; color: var(--accent); text-shadow: 2px 2px 0 #000; }
 .debug-overlay { position: absolute; left: 8px; top: 8px; z-index: 30; font-size: 12px; color: #0f8; background: rgba(0,0,0,0.5); padding: 2px 6px; white-space: pre; }
 .error-box { position: absolute; inset: 0; z-index: 50; background: #200; color: #fbb; padding: 24px; white-space: pre-wrap; font-size: 14px; }
+
+.hud.small { font-size: 12px; }
+.hurt { position: absolute; inset: 0; background: radial-gradient(transparent 30%, rgba(170, 10, 0, 0.9)); opacity: 0; }
+.hud-health { position: absolute; left: 20px; bottom: 18px; width: 180px; }
+.hud-health .bar { height: 10px; background: rgba(0,0,0,0.6); border: 1px solid #000; margin-top: 4px; }
+.hud-health .fill { height: 100%; }
+.hud-health .fill.hp { background: linear-gradient(#e8d070, #b08a20); }
+.hud-health .fill.armor { background: linear-gradient(#90b8e0, #4a6a9a); }
+.hud-health .label { margin-top: 4px; font-size: 22px; font-weight: bold; text-shadow: 2px 2px 0 #000; }
+.hud-ammo { position: absolute; right: 20px; bottom: 18px; text-align: right; text-shadow: 2px 2px 0 #000; }
+.hud-ammo .wname { font-size: 13px; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
+.hud-ammo .rounds { font-size: 22px; }
+.hud-ammo .rounds b { font-size: 30px; color: var(--accent); }
+.hud-ammo .reloading { font-size: 12px; color: var(--bad); letter-spacing: 0.2em; }
+.hud.small .hud-health { width: 120px; left: 12px; bottom: 10px; }
+.hud.small .hud-ammo { right: 12px; bottom: 10px; }
+.hud.small .hud-ammo .rounds b { font-size: 22px; }
+.center-msg small { font-size: 14px; color: var(--ink); letter-spacing: 0.15em; }
+.notice { position: absolute; left: 0; right: 0; top: 22%; text-align: center; font-size: 16px; color: var(--ink); text-shadow: 2px 2px 0 #000; letter-spacing: 0.08em; }
+.hud-top { position: absolute; left: 0; right: 0; top: 12px; text-align: center; font-size: 16px; text-shadow: 2px 2px 0 #000; }

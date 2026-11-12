@@ -4,7 +4,7 @@ import { DEG } from '../core/math';
 import type { GameData } from '../data';
 import type { LevelDef } from '../data/schema';
 import type { Box, Terrain } from './collision';
-import type { SimEvent } from './events';
+import type { ActorRef, SimEvent } from './events';
 import { buildGrid, cellCenter, floorAtWorld, type Grid } from './grid';
 
 export interface WeaponState {
@@ -50,6 +50,29 @@ export interface Player {
   deaths: number;
   shotsFired: number;
   shotsHit: number;
+}
+
+export type GuardState = 'patrol' | 'suspicious' | 'attack' | 'search' | 'dead';
+
+/** Guard state. Behaviour lives in sim/ai (M4); combat only touches hp, flinch and lastHurtBy. */
+export interface Guard {
+  index: number;
+  id: string;
+  archetype: string;
+  x: number;
+  y: number;
+  z: number;
+  vy: number;
+  radius: number;
+  height: number;
+  grounded: boolean;
+  yaw: number;
+  prev: { x: number; y: number; z: number; yaw: number };
+  hp: number;
+  state: GuardState;
+  flinch: number;
+  lastHurtBy: ActorRef | null;
+  deadTime: number;
 }
 
 export interface Prop {
@@ -115,6 +138,7 @@ export interface World {
   time: number;
   rng: Rng;
   players: Player[];
+  guards: Guard[];
   props: Prop[];
   doors: Door[];
   pickups: Pickup[];
@@ -191,6 +215,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     time: 0,
     rng: createRng(opts.seed ?? 1),
     players: [],
+    guards: [],
     props: [],
     doors: [],
     pickups: [],

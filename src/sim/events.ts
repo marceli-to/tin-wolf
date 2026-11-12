@@ -3,7 +3,7 @@ export type SimEvent =
   | { type: 'shotFired'; shooter: ActorRef; x: number; y: number; z: number; weapon: string; noise: number }
   | { type: 'impact'; x: number; y: number; z: number; nx: number; ny: number; nz: number; surface: 'world' | 'flesh' | 'prop' }
   | { type: 'hit'; target: ActorRef; shooter: ActorRef | null; zone: HitZone; damage: number; x: number; y: number; z: number }
-  | { type: 'died'; target: ActorRef; killer: ActorRef | null }
+  | { type: 'died'; target: ActorRef; killer: ActorRef | null; x?: number; z?: number }
   | { type: 'spawned'; slot: number }
   | { type: 'reloadStart'; slot: number }
   | { type: 'dryFire'; slot: number }

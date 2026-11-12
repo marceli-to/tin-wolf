@@ -2,6 +2,8 @@ import { DT } from '../config';
 import { emptyIntent, type PlayerIntent } from '../core/intent';
 import { separateBodies } from './collision';
 import { updatePlayerMovement } from './player';
+import { respawnPlayer } from './spawn';
+import { updatePlayerWeapon } from './weapons';
 import { rebuildBoxes, type World } from './world';
 
 /** Advances the world by one fixed tick. Events from this tick are left in `world.events`. */
@@ -16,7 +18,16 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
   }
   for (const p of world.players) {
     const intent = intents[p.slot] ?? emptyIntent();
-    if (p.alive) updatePlayerMovement(world, p, intent, DT);
+    p.hurtTimer = Math.max(0, p.hurtTimer - DT);
+    p.protect = Math.max(0, p.protect - DT);
+    if (p.alive) {
+      updatePlayerMovement(world, p, intent, DT);
+      updatePlayerWeapon(world, p, intent, DT);
+    } else {
+      p.deadTimer -= DT;
+      // Missions end on death (M5); everything else respawns.
+      if (p.deadTimer <= 0 && world.level.mode !== 'mission') respawnPlayer(world, p);
+    }
   }
   const ps = world.players;
   for (let i = 0; i < ps.length; i++) {
