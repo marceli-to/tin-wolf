@@ -1,0 +1,42 @@
+# Tin Fox – static site (Apache). Upload with the rest of dist/.
+
+Options -Indexes
+
+# Always HTTPS (also behind a proxy that sets X-Forwarded-Proto).
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} off
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# Types Apache does not know by default.
+<IfModule mod_mime.c>
+  AddType model/gltf-binary .glb
+  AddType font/ttf .ttf
+  AddType image/svg+xml .svg
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+# Compress text and models (GLB geometry shrinks well; PNG/JPG do not).
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml font/ttf model/gltf-binary application/manifest+json
+</IfModule>
+
+# Caching: index.html is always revalidated so a new build is picked up at once.
+# The code bundle has a content hash in its name and never changes; models and
+# the font keep their names between builds, so they are cached for a week.
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "^index-[\w-]+\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(glb|ttf|png|svg|ico|webmanifest)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+</IfModule>
