@@ -244,6 +244,10 @@ export const PropKindSchema = z.object({
   modelFit: z.enum(['scale', 'footprint', 'stretch']).default('scale'),
   /** An alarm panel: an alerted guard runs to it and raises the alarm; destroying it prevents that. */
   alarm: z.boolean().default(false),
+  /** Explodes when destroyed (needs `hp`): damage at the centre falling off to 0 at `radius`; guards hear it within `noise` m. */
+  blast: z.object({ radius: z.number().positive(), damage: z.number().positive(), noise: z.number().min(0) }).optional(),
+  /** Render-only: model materials recoloured by name (e.g. an explosive barrel's body red, its bands yellow). */
+  colors: z.record(z.string(), z.string()).optional(),
 });
 export type PropKindDef = z.output<typeof PropKindSchema>;
 export const PropKindsSchema = z.record(z.string(), PropKindSchema);

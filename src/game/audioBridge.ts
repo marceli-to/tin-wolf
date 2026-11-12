@@ -83,9 +83,12 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
     case 'doorLocked':
       sfx.play('locked', 0.6);
       break;
-    case 'propDestroyed':
-      at('explosion', e.x, e.z, 1);
+    case 'propDestroyed': {
+      // Explosive props make their bang with the blast a moment later.
+      const prop = world.props.find((p) => p.id === e.id);
+      if (!world.data.props[prop?.kind ?? '']?.blast) at('explosion', e.x, e.z, 1);
       break;
+    }
     case 'guardAlerted':
       at('alert', e.x, e.z, 0.5);
       break;

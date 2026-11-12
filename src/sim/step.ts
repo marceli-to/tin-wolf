@@ -7,7 +7,7 @@ import { updateDoors, updateInteraction } from './doors';
 import { updateMatch } from './match';
 import { updateObjectives } from './objectives';
 import { updatePickups } from './pickups';
-import { updateProjectiles } from './projectiles';
+import { updateBlasts, updateProjectiles } from './projectiles';
 import { updateTargets } from './targets';
 import { respawnPlayer } from './spawn';
 import { updatePlayerWeapon } from './weapons';
@@ -41,6 +41,7 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
   }
   // Before guards, so they hear this tick's explosions.
   updateProjectiles(world, DT);
+  updateBlasts(world, DT);
   updateGuards(world, DT);
   // Push overlapping living bodies apart (players and guards alike).
   const bodies = [...world.players.filter((p) => p.alive), ...world.guards.filter((g) => g.state !== 'dead')];

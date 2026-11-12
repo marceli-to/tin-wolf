@@ -113,7 +113,7 @@ export function fireHitscan(
     applyDamage(world, t.ref, dmg, t.zone, shooter, hit);
   } else if (t.kind === 'prop') {
     emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'prop' });
-    damageProp(world, t.index, weapon.damage);
+    damageProp(world, t.index, weapon.damage, shooter);
   } else if (t.kind === 'target') {
     emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'prop' });
     hitTarget(world, t.index, shooter.kind === 'player' ? (world.players[shooter.slot] ?? null) : null, t.off);
@@ -123,7 +123,10 @@ export function fireHitscan(
   return hit;
 }
 
-export function damageProp(world: World, index: number, amount: number): void {
+/** Seconds between an explosive prop breaking and its blast, so chains ripple instead of going off at once. */
+export const BLAST_DELAY = 0.1;
+
+export function damageProp(world: World, index: number, amount: number, by: ActorRef | null = null): void {
   const p = world.props[index];
   if (!p || !p.alive || !p.destructible) return;
   p.hp -= amount;
@@ -131,7 +134,11 @@ export function damageProp(world: World, index: number, amount: number): void {
     p.hp = 0;
     p.alive = false;
     const b = p.box;
-    emit(world, { type: 'propDestroyed', id: p.id, x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2, z: (b.minZ + b.maxZ) / 2 });
+    const cx = (b.minX + b.maxX) / 2;
+    const cz = (b.minZ + b.maxZ) / 2;
+    emit(world, { type: 'propDestroyed', id: p.id, x: cx, y: (b.minY + b.maxY) / 2, z: cz });
+    const blast = world.data.props[p.kind]?.blast;
+    if (blast) world.blasts.push({ ...blast, x: cx, y: b.minY + 0.2, z: cz, owner: by, timer: BLAST_DELAY });
   }
 }
 

@@ -164,6 +164,8 @@ export class GameRenderer {
           m.metalness = Math.min(m.metalness, 0.15);
           m.roughness = Math.max(m.roughness, 0.55);
         }
+        const colors = kind!.colors;
+        if (colors) for (const m of model.materials) if (colors[m.name]) (m.userData.base as THREE.Color | undefined)?.set(colors[m.name]!);
         tintModel(model.materials, Math.min(1.25, this.light(o.position.x, o.position.z) + 0.3));
         if (!p.destructible) {
           // Static: merged with every other static prop below; nothing to update per frame.

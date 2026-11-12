@@ -235,7 +235,7 @@ function collectNoises(world: World, from = 0): Noise[] {
         radius: e.noise,
         kind: 'shot',
         fromGuard: null,
-        fromSlot: e.owner.kind === 'player' ? e.owner.slot : null,
+        fromSlot: e.owner?.kind === 'player' ? e.owner.slot : null,
       });
     } else if (e.type === 'footstep') {
       out.push({ x: e.x, z: e.z, radius: e.loud ? SPRINT_FOOTSTEP_RADIUS : FOOTSTEP_RADIUS, kind: 'step', fromGuard: null, fromSlot: e.slot });

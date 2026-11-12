@@ -1388,6 +1388,38 @@
     30,
     8
    ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    34,
+    26
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    32,
+    19
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    8,
+    26
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    20,
+    23
+   ]
   }
  ],
  "objectives": [

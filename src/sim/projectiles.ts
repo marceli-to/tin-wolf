@@ -5,7 +5,7 @@ import type { ActorRef } from './events';
 import { clearLine } from './los';
 import { rayBox, rayGrid, type Ray, type RayHit } from './raycast';
 import { hitTarget } from './targets';
-import { doorBox, emit, type World } from './world';
+import { doorBox, emit, type Blast, type World } from './world';
 
 const RADIUS = 0.08;
 /** Lighter than body gravity so throws carry across a room. */
@@ -109,16 +109,25 @@ export function updateProjectiles(world: World, dt: number): void {
   world.projectiles = world.projectiles.filter((p) => p.fuse > 0);
   for (const pr of exploding) {
     const def = world.data.weapons[pr.weapon];
-    if (def) explode(world, pr.owner, pr.x, pr.y, pr.z, def);
+    if (def) explode(world, pr.owner, pr.x, pr.y, pr.z, { radius: def.blastRadius, damage: def.blastDamage, noise: def.noiseRadius });
   }
 }
 
+/** Explosive props that broke a moment ago go off. */
+export function updateBlasts(world: World, dt: number): void {
+  if (!world.blasts.length) return;
+  for (const b of world.blasts) b.timer -= dt;
+  const due = world.blasts.filter((b) => b.timer <= 0);
+  world.blasts = world.blasts.filter((b) => b.timer > 0);
+  for (const b of due) explode(world, b.owner, b.x, b.y, b.z, b);
+}
+
 /** Blast damage falls off linearly with distance and is blocked by walls, doors and props. */
-export function explode(world: World, owner: ActorRef, x: number, y: number, z: number, def: WeaponDef): void {
-  const r = def.blastRadius;
+export function explode(world: World, owner: ActorRef | null, x: number, y: number, z: number, blast: Blast): void {
+  const r = blast.radius;
   // Measure from slightly above the grenade so a floor-level blast is not blocked by the floor.
   const ey = y + 0.25;
-  emit(world, { type: 'explosion', owner, x, y, z, radius: r, noise: def.noiseRadius });
+  emit(world, { type: 'explosion', owner, x, y, z, radius: r, noise: blast.noise });
   for (const a of actorShapes(world)) {
     const ay = a.y + a.height * 0.5;
     const d = Math.hypot(a.x - x, ay - ey, a.z - z);
@@ -126,7 +135,7 @@ export function explode(world: World, owner: ActorRef, x: number, y: number, z: 
     if (!clearLine(world, x, ey, z, a.x, ay, a.z) && !clearLine(world, x, ey, z, a.x, a.y + 0.3, a.z)) continue;
     const k = Math.max(0, 1 - Math.max(0, d - 0.5) / r);
     if (k <= 0) continue;
-    applyDamage(world, a.ref, def.blastDamage * k, 'torso', owner, { x: a.x, y: ay, z: a.z });
+    applyDamage(world, a.ref, blast.damage * k, 'torso', owner, { x: a.x, y: ay, z: a.z });
   }
   world.props.forEach((p, i) => {
     if (!p.alive || !p.destructible) return;
@@ -135,10 +144,10 @@ export function explode(world: World, owner: ActorRef, x: number, y: number, z: 
     const cy = Math.max(b.minY, Math.min(ey, b.maxY));
     const cz = Math.max(b.minZ, Math.min(z, b.maxZ));
     const d = Math.hypot(cx - x, cy - ey, cz - z);
-    if (d <= r) damageProp(world, i, def.blastDamage * (1 - d / r));
+    if (d <= r) damageProp(world, i, blast.damage * (1 - d / r), owner);
   });
   // Training targets in the blast (and in sight of it) go down.
-  const thrower = owner.kind === 'player' ? (world.players[owner.slot] ?? null) : null;
+  const thrower = owner?.kind === 'player' ? (world.players[owner.slot] ?? null) : null;
   world.targets.forEach((t, i) => {
     if (Math.hypot(t.x - x, t.y - ey, t.z - z) > r + t.radius) return;
     if (!clearLine(world, x, ey, z, t.x, t.y, t.z)) return;

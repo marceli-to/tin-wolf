@@ -392,6 +392,22 @@
     24,
     11
    ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    5,
+    23
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    17,
+    14
+   ]
   }
  ]
 }

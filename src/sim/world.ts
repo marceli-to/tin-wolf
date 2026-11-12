@@ -248,12 +248,29 @@ export interface World {
   alarm: { raised: boolean; time: number };
   /** Reinforcements waiting for the alarm (guard entities with `reserve`). */
   reserves: GuardEntity[];
+  /** Explosions waiting to go off (explosive props, a moment after they break: chains ripple). */
+  blasts: PendingBlast[];
   /** Training: target boards and the timed course. */
   targets: Target[];
   course: CourseState | null;
 }
 
 export type GuardEntity = Extract<EntityDef, { type: 'guard' }>;
+
+export interface Blast {
+  radius: number;
+  damage: number;
+  noise: number;
+}
+
+export interface PendingBlast extends Blast {
+  x: number;
+  y: number;
+  z: number;
+  /** Who set it off (gets the credit and can be hurt by it); null if nobody. */
+  owner: ActorRef | null;
+  timer: number;
+}
 
 export interface WorldOptions {
   players: number;
@@ -369,6 +386,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     match: level.mode === 'versus' && level.match ? createMatch(level.match.killLimit, level.match.timeLimit) : null,
     terrain: { grid, boxes: [] },
     alarm: { raised: false, time: 0 },
+    blasts: [],
     targets: [],
     course: null,
     reserves: [],

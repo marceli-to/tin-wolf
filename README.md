@@ -34,6 +34,10 @@ URL parameters:
 __game.autopilot(0, [[19,26],[19,23],[19,19],[19,15],[22,14],[23,16]], { fight: true })
 ```
 
+## Explosive barrels
+
+Red barrels with a yellow band (`barrel_red`, the Space Kit barrel) blow up after a few hits or a nearby grenade: about 4 m of blast that hurts players and guards alike (less further out, nothing behind a wall), sets off other red barrels a moment later, and credits whoever set it off (so it counts as a takedown in versus; your own barrel can hurt you). Guards hear it like a grenade and do not avoid them. The plain wooden barrels never explode. Placed by the yard and garage guards in the depot, in symmetric pairs in each arena, and two on the training range. Any prop kind can explode with a `blast` (`radius`, `damage`, `noise`) and `hp`.
+
 ## Training
 
 Menu → Training (one or two players). An outdoor range with 17 round targets: close, mid and far lanes (the far ones are for the Heron LR), two moving targets on rails, a couple up on crates, and three small ones hidden behind tall crates that need a grenade lobbed over from close up. Targets tip over when hit (a centre hit is a *Bullseye!*) and stand up again after 2.5 s. You carry every weapon and reserves never run out.

@@ -95,6 +95,26 @@
     "modelScale": 1.2,
     "modelFit": "stretch"
   },
+  "barrel_red": {
+    "size": [
+      0.72,
+      0.9,
+      0.62
+    ],
+    "mat": "barrel",
+    "hp": 30,
+    "model": "kenney/space/barrel.glb",
+    "modelFit": "footprint",
+    "colors": {
+      "metalRed": "#ff4a3a",
+      "metal": "#ffd23a"
+    },
+    "blast": {
+      "radius": 4,
+      "damage": 130,
+      "noise": 35
+    }
+  },
   "chest": {
     "size": [
       1.1,

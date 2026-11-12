@@ -9,7 +9,7 @@ export type SimEvent =
   | { type: 'weaponSwitched'; slot: number; weapon: string }
   | { type: 'thrown'; shooter: ActorRef; x: number; y: number; z: number; weapon: string }
   | { type: 'bounce'; x: number; y: number; z: number }
-  | { type: 'explosion'; owner: ActorRef; x: number; y: number; z: number; radius: number; noise: number }
+  | { type: 'explosion'; owner: ActorRef | null; x: number; y: number; z: number; radius: number; noise: number }
   | { type: 'dryFire'; slot: number }
   | { type: 'pickup'; slot: number; item: string; x: number; y: number; z: number }
   | { type: 'doorOpened'; id: string; x: number; y: number; z: number }

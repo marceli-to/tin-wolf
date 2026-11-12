@@ -451,6 +451,38 @@
     16
    ],
    "respawn": 20
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    7,
+    3
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    14,
+    14
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    3,
+    8
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    18,
+    9
+   ]
   }
  ]
 }
