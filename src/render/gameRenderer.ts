@@ -138,13 +138,13 @@ export class GameRenderer {
         o.updateMatrixWorld(true);
         const mb = new THREE.Box3().setFromObject(o);
         o.position.set((b.minX + b.maxX) / 2 - (mb.min.x + mb.max.x) / 2, b.minY - mb.min.y, (b.minZ + b.maxZ) / 2 - (mb.min.z + mb.max.z) / 2);
-        // Kenney's palette is bright and toy-like; pull it a third of the way toward grey.
+        // glTF defaults metalness to 1 and the kits rely on that plus a metal map; with no
+        // environment map, metal renders near-black, so props are lit as (mostly) dielectric.
         for (const m of model.materials) {
-          const c = m.userData.base as THREE.Color;
-          const l = c.r * 0.3 + c.g * 0.59 + c.b * 0.11;
-          c.lerp(new THREE.Color(l, l, l), 0.35);
+          m.metalness = Math.min(m.metalness, 0.15);
+          m.roughness = Math.max(m.roughness, 0.55);
         }
-        tintModel(model.materials, Math.min(1.1, this.light(o.position.x, o.position.z) + 0.15));
+        tintModel(model.materials, Math.min(1.25, this.light(o.position.x, o.position.z) + 0.3));
         if (!p.destructible) {
           // Static: merged with every other static prop below; nothing to update per frame.
           batch.add(o);
@@ -194,6 +194,7 @@ export class GameRenderer {
         o.updateMatrixWorld(true);
         const mb = new THREE.Box3().setFromObject(o);
         o.position.set(-(mb.min.x + mb.max.x) / 2, -(mb.min.y + mb.max.y) / 2, -(mb.min.z + mb.max.z) / 2);
+        for (const m of inst.materials) m.metalness = Math.min(m.metalness, 0.15);
         if (item.kind === 'key') for (const m of inst.materials) (m.userData.base as THREE.Color).set(item.color), m.color.set(item.color);
         holder.add(o);
       } else if (item) holder.add(buildPickupMesh(item));
