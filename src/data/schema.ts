@@ -122,7 +122,12 @@ export const EnemySchema = z.object({
   aimSpreadDeg: z.number().min(0),
   burstPause: z.tuple([z.number(), z.number()]),
   searchTime: z.number().positive(),
+  /** Multiplier on weapon damage so guards are less lethal than players. */
+  damageScale: z.number().positive().default(1),
+  /** Shots per burst, min and max. */
+  burst: z.tuple([z.number().int().positive(), z.number().int().positive()]).default([2, 3]),
   color: z.string(),
+  legs: z.string().default('#2e2e30'),
 });
 export type EnemyDef = z.output<typeof EnemySchema>;
 export const EnemiesSchema = z.record(z.string(), EnemySchema);

@@ -232,9 +232,11 @@ export class Game {
       });
       if (this.debugOverlay) {
         const p = world.players[0];
+        const guards = world.guards.map((g) => `${g.id}:${g.state} ${g.awareness.toFixed(2)}`).join('  ');
         this.debugOverlay.frame(
           frameTime,
-          p ? `tick ${world.tick}  p0 ${p.x.toFixed(2)} ${p.y.toFixed(2)} ${p.z.toFixed(2)}  yaw ${((p.yaw * 180) / Math.PI).toFixed(0)}` : '',
+          (p ? `tick ${world.tick}  p0 ${p.x.toFixed(2)} ${p.y.toFixed(2)} ${p.z.toFixed(2)}  yaw ${((p.yaw * 180) / Math.PI).toFixed(0)}` : '') +
+            (guards ? `\n${guards}` : ''),
         );
       }
     } else if (this.debugOverlay) {

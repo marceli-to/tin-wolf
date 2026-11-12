@@ -2,6 +2,7 @@ import { DT } from '../config';
 import { emptyIntent, type PlayerIntent } from '../core/intent';
 import { separateBodies } from './collision';
 import { updatePlayerMovement } from './player';
+import { updateGuards } from './ai';
 import { updateMatch } from './match';
 import { updatePickups } from './pickups';
 import { respawnPlayer } from './spawn';
@@ -33,13 +34,11 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
       if (p.deadTimer <= 0 && world.level.mode !== 'mission') respawnPlayer(world, p);
     }
   }
-  const ps = world.players;
-  for (let i = 0; i < ps.length; i++) {
-    for (let j = i + 1; j < ps.length; j++) {
-      const a = ps[i]!;
-      const b = ps[j]!;
-      if (a.alive && b.alive) separateBodies(world.terrain, a, b);
-    }
+  updateGuards(world, DT);
+  // Push overlapping living bodies apart (players and guards alike).
+  const bodies = [...world.players.filter((p) => p.alive), ...world.guards.filter((g) => g.state !== 'dead')];
+  for (let i = 0; i < bodies.length; i++) {
+    for (let j = i + 1; j < bodies.length; j++) separateBodies(world.terrain, bodies[i]!, bodies[j]!);
   }
   updatePickups(world, DT);
   updateMatch(world, DT);

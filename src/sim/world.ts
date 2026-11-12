@@ -53,9 +53,19 @@ export interface Player {
   shotsHit: number;
 }
 
+/** Something guards can hear. */
+export interface Noise {
+  x: number;
+  z: number;
+  radius: number;
+  kind: 'shot' | 'step';
+  fromGuard: number | null;
+  fromSlot: number | null;
+}
+
 export type GuardState = 'patrol' | 'suspicious' | 'attack' | 'search' | 'dead';
 
-/** Guard state. Behaviour lives in sim/ai (M4); combat only touches hp, flinch and lastHurtBy. */
+/** Guard state. Behaviour lives in sim/ai; combat only touches hp, flinch and lastHurtBy. */
 export interface Guard {
   index: number;
   id: string;
@@ -63,17 +73,45 @@ export interface Guard {
   x: number;
   y: number;
   z: number;
+  vx: number;
+  vz: number;
   vy: number;
   radius: number;
   height: number;
   grounded: boolean;
   yaw: number;
+  /** Desired facing; the body turns toward it at a limited rate. */
+  aimYaw: number;
+  aimPitch: number;
   prev: { x: number; y: number; z: number; yaw: number };
   hp: number;
   state: GuardState;
+  /** 0..1 how sure the guard is that someone is there. 1 means attack. */
+  awareness: number;
+  /** Where the guard believes the intruder is. */
+  lastKnown: { x: number; z: number } | null;
+  targetSlot: number | null;
+  sees: boolean;
+  /** Seconds before the first shot after spotting someone. */
+  reaction: number;
+  burstLeft: number;
+  fireCooldown: number;
+  stateTime: number;
+  searchTime: number;
   flinch: number;
   lastHurtBy: ActorRef | null;
   deadTime: number;
+  sinceShot: number;
+  patrol: { x: number; z: number }[];
+  patrolIndex: number;
+  post: { x: number; z: number; yaw: number };
+  path: { x: number; z: number }[];
+  pathIndex: number;
+  /** Where the current path leads, to avoid re-planning to the same goal. */
+  pathGoal: { x: number; z: number } | null;
+  stuckTime: number;
+  lastProgress: { x: number; z: number };
+  running: boolean;
 }
 
 export interface Prop {
@@ -148,6 +186,8 @@ export interface World {
   starts: SpawnPoint[];
   events: SimEvent[];
   match: MatchState | null;
+  /** Noises made by guards late in the previous tick, heard at the start of this one. */
+  noiseCarry: Noise[];
   /** Collision obstacles, rebuilt each tick from props and doors. */
   terrain: Terrain;
 }
@@ -225,6 +265,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     spawns: [],
     starts: [],
     events: [],
+    noiseCarry: [],
     match: level.mode === 'versus' && level.match ? createMatch(level.match.killLimit, level.match.timeLimit) : null,
     terrain: { grid, boxes: [] },
   };
@@ -310,9 +351,61 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
         world.zones.push({ id: e.id, minX: x0, maxX: x0 + w * s, minZ: z0, maxZ: z0 + h * s });
         break;
       }
-      case 'guard':
+      case 'guard': {
+        const def = data.enemies[e.archetype];
+        if (!def) throw new Error(`Unknown enemy archetype '${e.archetype}'`);
+        const yaw = e.yaw * DEG;
+        const toPoint = ([pc, pr]: [number, number]) => ({
+          x: Number.isInteger(pc) ? (pc + 0.5) * s : pc * s,
+          z: Number.isInteger(pr) ? (pr + 0.5) * s : pr * s,
+        });
+        const gy = floorAtWorld(grid, x, z) ?? 0;
+        world.guards.push({
+          index: world.guards.length,
+          id: e.id,
+          archetype: e.archetype,
+          x,
+          y: gy,
+          z,
+          vx: 0,
+          vz: 0,
+          vy: 0,
+          radius: PLAYER.radius,
+          height: PLAYER.height,
+          grounded: true,
+          yaw,
+          aimYaw: yaw,
+          aimPitch: 0,
+          prev: { x, y: gy, z, yaw },
+          hp: def.hp,
+          state: 'patrol',
+          awareness: 0,
+          lastKnown: null,
+          targetSlot: null,
+          sees: false,
+          reaction: 0,
+          burstLeft: 0,
+          fireCooldown: 0,
+          stateTime: 0,
+          searchTime: 0,
+          flinch: 0,
+          lastHurtBy: null,
+          deadTime: 0,
+          sinceShot: 10,
+          patrol: e.patrol.map(toPoint),
+          patrolIndex: 0,
+          post: { x, z, yaw },
+          path: [],
+          pathIndex: 0,
+          pathGoal: null,
+          stuckTime: 0,
+          lastProgress: { x, z },
+          running: false,
+        });
+        break;
+      }
       case 'light':
-        // Guards arrive in M4; lights are read by the renderer.
+        // Lights are read by the renderer (M6).
         break;
     }
   }

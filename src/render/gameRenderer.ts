@@ -25,6 +25,14 @@ interface ActorVisual {
   flash: THREE.Mesh;
 }
 
+const STATE_COLORS: Record<string, string> = {
+  patrol: '#40d070',
+  suspicious: '#e8d040',
+  attack: '#ff4030',
+  search: '#ff9a30',
+  dead: '#555555',
+};
+
 /** Owns the Three.js scene. Reads world state each frame; never writes to it. */
 export class GameRenderer {
   readonly renderer: THREE.WebGLRenderer;
@@ -38,6 +46,9 @@ export class GameRenderer {
   private pickupMeshes: THREE.Group[] = [];
   private time = 0;
   private players: ActorVisual[] = [];
+  private guards: ActorVisual[] = [];
+  private debugLines: THREE.LineSegments | null = null;
+  private debug = false;
   private rects: ViewRect[] = [];
   private debugGroup = new THREE.Group();
   /** View models render in a second pass over a cleared depth buffer so they never clip into walls. */
@@ -108,6 +119,16 @@ export class GameRenderer {
       this.dynamic.add(h.root);
       return { h, phase: 0, flash };
     });
+    this.guards = world.guards.map((g) => {
+      const def = world.data.enemies[g.archetype];
+      const h = buildHumanoid({ body: def?.color ?? '#556', legs: def?.legs ?? '#333', skin: '#c99a7a' });
+      const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), this.flashMat);
+      flash.position.set(0, 0, -0.2);
+      flash.visible = false;
+      h.gun.add(flash);
+      this.dynamic.add(h.root);
+      return { h, phase: Math.random() * 6, flash };
+    });
     this.viewModels = world.players.map((p) => {
       const vm = buildPistolViewModel(PLAYER_COLORS[p.slot] ?? '#555');
       setLayerDeep(vm.root, LAYER.VIEWMODEL + p.slot);
@@ -118,11 +139,19 @@ export class GameRenderer {
       return vm;
     });
     this.bob = world.players.map(() => 0);
+    this.debug = debug;
     if (debug) this.buildDebug(world);
     this.resize();
   }
 
   private buildDebug(world: World): void {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(4096 * 3), 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(4096 * 3), 3));
+    this.debugLines = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ vertexColors: true, fog: false, depthTest: false }));
+    this.debugLines.frustumCulled = false;
+    this.debugLines.renderOrder = 10;
+    this.debugGroup.add(this.debugLines);
     const mat = new THREE.LineBasicMaterial({ color: '#00ff88' });
     for (const b of world.terrain.boxes) {
       const g = new THREE.EdgesGeometry(new THREE.BoxGeometry(b.maxX - b.minX, b.maxY - b.minY, b.maxZ - b.minZ));
@@ -146,6 +175,8 @@ export class GameRenderer {
     this.vmScene.clear();
     this.viewModels = [];
     this.effects.clear();
+    this.debugLines = null;
+    this.guards = [];
     this.propMeshes = [];
     this.doorMeshes = [];
     this.pickupMeshes = [];
@@ -166,8 +197,65 @@ export class GameRenderer {
     return this.rects;
   }
 
+  /** Vision cones, paths and last-known positions per guard. */
+  private drawDebug(world: World): void {
+    const lines = this.debugLines!;
+    const pos = lines.geometry.getAttribute('position') as THREE.BufferAttribute;
+    const col = lines.geometry.getAttribute('color') as THREE.BufferAttribute;
+    let n = 0;
+    const seg = (ax: number, ay: number, az: number, bx: number, by: number, bz: number, color: string): void => {
+      if (n + 2 > pos.count) return;
+      _c.set(color);
+      pos.setXYZ(n, ax, ay, az);
+      col.setXYZ(n++, _c.r, _c.g, _c.b);
+      pos.setXYZ(n, bx, by, bz);
+      col.setXYZ(n++, _c.r, _c.g, _c.b);
+    };
+    for (const g of world.guards) {
+      const def = world.data.enemies[g.archetype];
+      if (!def || g.state === 'dead') continue;
+      const color = STATE_COLORS[g.state] ?? '#fff';
+      const y = g.y + 0.1;
+      const half = (def.visionFovDeg * Math.PI) / 360;
+      const r = def.visionRange;
+      const steps = 10;
+      let px = g.x + Math.sin(g.yaw - half) * r;
+      let pz = g.z - Math.cos(g.yaw - half) * r;
+      seg(g.x, y, g.z, px, y, pz, color);
+      for (let i = 1; i <= steps; i++) {
+        const a = g.yaw - half + (2 * half * i) / steps;
+        const qx = g.x + Math.sin(a) * r;
+        const qz = g.z - Math.cos(a) * r;
+        seg(px, y, pz, qx, y, qz, color);
+        px = qx;
+        pz = qz;
+      }
+      seg(g.x, y, g.z, px, y, pz, color);
+      let lx = g.x;
+      let lz = g.z;
+      for (let i = g.pathIndex; i < g.path.length; i++) {
+        const w = g.path[i]!;
+        seg(lx, y + 0.05, lz, w.x, y + 0.05, w.z, '#40a0ff');
+        lx = w.x;
+        lz = w.z;
+      }
+      if (g.lastKnown) {
+        const k = g.lastKnown;
+        seg(k.x - 0.4, y + 0.1, k.z, k.x + 0.4, y + 0.1, k.z, '#ff40ff');
+        seg(k.x, y + 0.1, k.z - 0.4, k.x, y + 0.1, k.z + 0.4, '#ff40ff');
+      }
+      // Awareness bar above the head.
+      const top = g.y + g.height + 0.3;
+      seg(g.x - 0.4, top, g.z, g.x - 0.4 + 0.8 * g.awareness, top, g.z, color);
+    }
+    lines.geometry.setDrawRange(0, n);
+    pos.needsUpdate = true;
+    col.needsUpdate = true;
+  }
+
   onSimEvent(e: SimEvent): void {
-    if (e.type === 'impact') this.effects.impact(e.x, e.y, e.z, e.nx, e.ny, e.nz, e.surface);
+    // Blood on a player would burst right in front of their own camera; the hurt overlay covers it.
+    if (e.type === 'impact' && !(e.onPlayer && this.cameras.length === 1)) this.effects.impact(e.x, e.y, e.z, e.nx, e.ny, e.nz, e.surface);
     else if (e.type === 'propDestroyed') this.effects.burst(e.x, e.y, e.z, '#6a6a6a', 24, 5);
   }
 
@@ -191,6 +279,33 @@ export class GameRenderer {
       const b = doorBox(world, d);
       m.position.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, (b.minZ + b.maxZ) / 2);
     });
+
+    world.guards.forEach((g, i) => {
+      const v = this.guards[i];
+      if (!v) return;
+      const x = lerp(g.prev.x, g.x, alpha);
+      const y = lerp(g.prev.y, g.y, alpha);
+      const z = lerp(g.prev.z, g.z, alpha);
+      const speed = Math.hypot(g.vx, g.vz);
+      v.phase += speed * frameTime * 3.4;
+      v.h.root.position.set(x, y, z);
+      v.h.root.rotation.y = -g.yaw;
+      const dead = g.state === 'dead';
+      const fall = dead ? Math.min(1, g.deadTime / 0.55) : 0;
+      // Death: topple backwards around the feet and settle on the floor.
+      v.h.root.rotation.x = (Math.PI / 2) * fall * fall;
+      v.h.root.position.y = y + 0.13 * fall;
+      poseHumanoid(v.h, {
+        phase: dead ? 0 : v.phase,
+        stride: dead ? 0 : Math.min(1, speed / 3),
+        crouch: 0,
+        aim: g.state === 'attack' && !dead ? 1 : 0,
+        pitch: g.aimPitch,
+      });
+      v.h.body.rotation.x = -g.flinch * 1.2;
+      v.flash.visible = !dead && g.sinceShot < 0.06;
+    });
+    if (this.debugLines) this.drawDebug(world);
 
     world.players.forEach((p, i) => {
       const v = this.players[i];
@@ -263,6 +378,8 @@ export class GameRenderer {
     r.setScissorTest(false);
   }
 }
+
+const _c = new THREE.Color();
 
 function disposeDeep(obj: THREE.Object3D): void {
   obj.traverse((o) => {

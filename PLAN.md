@@ -201,15 +201,15 @@ Each milestone ends playable. Each task is testable alone. Run `npm test` and th
 **Done when:** two people play a complete match from lobby to result screen and start a rematch, without the debug flag. Nobody spawns in the opponent's sights. This is the first shippable game.
 
 ### M4 – Enemies (single-player from here to M5; test with `?players=1`)
-- [ ] Enemy schema + loader; guard actor built from primitives (head, torso, limbs) with procedural walk animation.
-- [ ] Pathfinding: A* on the grid respecting heights and closed doors, with path smoothing. Unit tests on a fixed map.
-- [ ] Perception: vision cone with line-of-sight ray; hearing of `noiseRadius` events.
-- [ ] State machine: `patrol → suspicious → attack → search → patrol`, plus `dead`. Reaction delay before the first shot. Unit tests for each transition.
-- [ ] Guards alert other guards within earshot of a shot.
-- [ ] Hit reactions by zone (flinch interrupts aiming), death fall, body stays.
-- [ ] Guards shoot with spread from the archetype; the player takes damage.
-- [ ] AI decisions run at 10 Hz, staggered across guards; movement stays at 60 Hz.
-- [ ] Debug overlay: vision cones, current state and path per guard.
+- [x] Enemy schema + loader; guard actor built from primitives (head, torso, limbs) with procedural walk animation.
+- [x] Pathfinding: A* on the grid respecting heights and closed doors, with path smoothing. Unit tests on a fixed map.
+- [x] Perception: vision cone with line-of-sight ray; hearing of `noiseRadius` events.
+- [x] State machine: `patrol → suspicious → attack → search → patrol`, plus `dead`. Reaction delay before the first shot. Unit tests for each transition.
+- [x] Guards alert other guards within earshot of a shot.
+- [x] Hit reactions by zone (flinch interrupts aiming), death fall, body stays.
+- [x] Guards shoot with spread from the archetype; the player takes damage.
+- [x] AI decisions run at 10 Hz, staggered across guards; movement stays at 60 Hz.
+- [x] Debug overlay: vision cones, current state and path per guard.
 
 **Done when:** in the test room, a patrolling guard can be approached unseen from behind, notices the player in front of him, alerts a second guard by gunfire, loses the player and returns to patrol, and can be killed. Guards never walk through walls or get stuck for more than 2 seconds.
 
@@ -318,3 +318,8 @@ PLAN.md  README.md
 | 2026-11-12 | M3 | A* (`sim/nav.ts`) written in M3 instead of M4 | Needed for the spawn reachability check; M4 reuses it |
 | 2026-11-12 | M3 | Arena 1 is "Pumphouse" (20×20); a draw is shown as "DRAW" (no sudden death); a finished match freezes the sim | Simplest rule that satisfies "tie" |
 | 2026-11-12 | M3 | Until the M5 menu exists, the default URL opens the versus lobby on Pumphouse | Versus is the first shippable mode |
+| 2026-11-12 | M4 | Enemy archetypes gain `damageScale`, `burst`, `legs`; a second archetype `guard_officer` | Guards at full pistol damage were too lethal; officer gives the level variety |
+| 2026-11-12 | M4 | Vision range scales with the target cell's `light` and with crouching | Makes the stealth route a real choice; uses the cell light already in the format |
+| 2026-11-12 | M4 | Guard-made noises carry over one tick (`world.noiseCarry`) | Guards act after noises are collected, so their own shots would otherwise never be heard |
+| 2026-11-12 | M4 | Combat writes `flinch` / `lastHurtBy` on the guard and the AI reacts on its next update (no callback registry) | Keeps sim free of hidden mutable state |
+| 2026-11-12 | M4 | Blood particles are skipped for hits on the local player in single view | They burst right in front of the camera; the hurt overlay already signals the hit |

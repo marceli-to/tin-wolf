@@ -100,7 +100,7 @@ export function fireHitscan(
   const t = hit.target;
   if (t.kind === 'actor') {
     const dmg = weapon.damage * weapon.zoneMultiplier[t.zone];
-    emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'flesh' });
+    emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'flesh', onPlayer: t.ref.kind === 'player' });
     applyDamage(world, t.ref, dmg, t.zone, shooter, hit);
   } else if (t.kind === 'prop') {
     emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'prop' });
