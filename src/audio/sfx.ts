@@ -56,6 +56,11 @@ export class Sfx {
     if (this.master) this.master.gain.value = v;
   }
 
+  /** The audio context and noise buffer, once unlocked (shared with the music). */
+  get audio(): { ctx: AudioContext; noise: AudioBuffer } | null {
+    return this.ctx && this.noise ? { ctx: this.ctx, noise: this.noise } : null;
+  }
+
   /** `vol` 0..1, `pan` -1..1, `delay` seconds from now. */
   play(name: SfxName, vol = 1, pan = 0, delay = 0): void {
     const ctx = this.ctx;

@@ -58,7 +58,9 @@ Missions have three difficulties (left / right on the briefing, or Settings): Ea
 
 Gamepads get aim assist: turning slows down over a visible enemy, and while you move or turn the aim drifts gently toward it (it never aims for you when you stand still). Mouse aiming is untouched.
 
-Settings (menu or pause): mouse / gamepad sensitivity, invert look, gamepad aim assist, split direction, volume, graphics (Smooth, or Retro 480–180p pixels). Saved in `localStorage`.
+Music is synthesised too (`src/audio/music.ts`, a small step sequencer): a menu theme, a quiet track while sneaking, a driving one while guards are fighting you or the alarm is up, and an upbeat versus track. It has its own volume.
+
+Settings (menu or pause): mouse / gamepad sensitivity, invert look, gamepad aim assist, difficulty, music volume, split direction, volume, graphics (Smooth, or Retro 480–180p pixels). Saved in `localStorage`.
 
 Third-party models are CC0 (Kenney by default, Quaternius with `?art=quaternius`); see `CREDITS.md`. To trim a new glTF to the animations you need: `python3 tools/trim_gltf.py in.gltf out.glb Idle Walk Run`.
 

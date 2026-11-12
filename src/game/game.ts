@@ -1,4 +1,5 @@
 import { Sfx } from '../audio/sfx';
+import { Music, type Mood } from '../audio/music';
 import { DT } from '../config';
 import { EventBus } from '../core/events';
 import { emptyIntent, type PlayerIntent } from '../core/intent';
@@ -39,6 +40,9 @@ export class Game {
   readonly input: InputManager;
   readonly renderer: GameRenderer;
   readonly sfx = new Sfx();
+  readonly music = new Music();
+  /** Clock time until which the mission music stays on 'alert' after the last guard stopped attacking. */
+  private alertUntil = 0;
   state: GameState = 'menu';
   world: World | null = null;
   levelId = VERSUS_LEVEL;
@@ -81,7 +85,11 @@ export class Game {
     if (params.debug) this.debugOverlay = new DebugOverlay(this.uiLayer);
     window.addEventListener('resize', () => this.onResize());
     // Audio can only start after a user gesture.
-    const unlock = (): void => this.sfx.unlock();
+    const unlock = (): void => {
+      this.sfx.unlock();
+      const a = this.sfx.audio;
+      if (a) this.music.attach(a.ctx, a.noise);
+    };
     window.addEventListener('pointerdown', unlock);
     window.addEventListener('keydown', unlock);
     this.renderer.canvas.addEventListener('click', () => this.onCanvasClick());
@@ -98,6 +106,7 @@ export class Game {
       aimAssist: s.aimAssist,
     };
     this.sfx.setVolume(s.volume);
+    this.music.setVolume(s.music);
     this.renderer.split = s.split;
     this.renderer.internalHeight = s.resolution;
     this.onResize();
@@ -133,6 +142,7 @@ export class Game {
         },
         { label: row('Difficulty', this.difficultyName()), action: () => change(() => this.cycleDifficulty(1)), adjust: (d) => change(() => this.cycleDifficulty(d)) },
         { label: row('Volume', `${Math.round(s.volume * 100)}%`), action: () => undefined, adjust: (d) => change(() => (s.volume = step(s.volume, d * 0.1, 0, 1))) },
+        { label: row('Music', `${Math.round(s.music * 100)}%`), action: () => undefined, adjust: (d) => change(() => (s.music = step(s.music, d * 0.1, 0, 1))) },
         { label: row('Graphics', resLabel(s.resolution)), action: () => change(() => cycleRes(1)), adjust: (d) => change(() => cycleRes(d)) },
         { label: 'Back', action: back },
       ],
@@ -633,8 +643,30 @@ export class Game {
     }
   }
 
+  /** Background music for the current screen; missions switch to 'alert' while guards fight. */
+  private musicMood(): Mood {
+    const w = this.world;
+    switch (this.state) {
+      case 'menu':
+      case 'lobby':
+      case 'briefing':
+        return 'menu';
+      case 'playing':
+      case 'paused': {
+        if (!w) return 'menu';
+        if (w.match) return w.match.over ? 'none' : 'versus';
+        if (w.mission?.over) return 'none';
+        if (w.alarm.raised || w.guards.some((g) => g.state === 'attack')) this.alertUntil = this.clock + 6;
+        return this.clock < this.alertUntil ? 'alert' : 'sneak';
+      }
+      default:
+        return 'none';
+    }
+  }
+
   private render(alpha: number, frameTime: number): void {
     this.clock += frameTime;
+    this.music.setMood(this.musicMood());
     if (this.state === 'playing' && this.clock < this.sirenUntil && this.clock >= this.nextSiren) {
       this.sfx.play('alarm', 0.5);
       this.nextSiren = this.clock + 1.2;

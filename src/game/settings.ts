@@ -13,9 +13,11 @@ export interface Settings {
   aimAssist: boolean;
   /** Mission difficulty, a key of data/difficulty.json. */
   difficulty: string;
+  /** Music volume 0..1 (separate from sound effects). */
+  music: number;
 }
 
-export const DEFAULT_SETTINGS: Settings = { mouseSens: 1, padSens: 1, invertY: false, split: 'vertical', volume: 0.7, resolution: 0, aimAssist: true, difficulty: 'normal' };
+export const DEFAULT_SETTINGS: Settings = { mouseSens: 1, padSens: 1, invertY: false, split: 'vertical', volume: 0.7, resolution: 0, aimAssist: true, difficulty: 'normal', music: 0.5 };
 
 export const DIFFICULTIES = ['easy', 'normal', 'hard'];
 
@@ -38,6 +40,7 @@ export function loadSettings(): Settings {
       resolution: RESOLUTIONS.includes(v.resolution as number) ? (v.resolution as number) : DEFAULT_SETTINGS.resolution,
       aimAssist: typeof v.aimAssist === 'boolean' ? v.aimAssist : DEFAULT_SETTINGS.aimAssist,
       difficulty: DIFFICULTIES.includes(v.difficulty as string) ? (v.difficulty as string) : DEFAULT_SETTINGS.difficulty,
+      music: clampNum(v.music, 0, 1, DEFAULT_SETTINGS.music),
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
