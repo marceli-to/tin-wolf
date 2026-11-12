@@ -25,7 +25,8 @@ export type SfxName =
   | 'mission_success'
   | 'mission_fail'
   | 'guard_step'
-  | 'ui_select';
+  | 'ui_select'
+  | 'alarm';
 
 export class Sfx {
   private ctx: AudioContext | null = null;
@@ -142,6 +143,11 @@ export class Sfx {
       case 'alert':
         this.tone(out, t, 'square', 520, 520, 0.12, 0.25);
         this.tone(out, t + 0.14, 'square', 780, 780, 0.16, 0.25);
+        break;
+      case 'alarm':
+        // One rise-and-fall of a siren; the game repeats it while the alarm sounds.
+        this.tone(out, t, 'sawtooth', 560, 920, 0.6, 0.22);
+        this.tone(out, t + 0.6, 'sawtooth', 920, 560, 0.6, 0.22);
         break;
       case 'objective':
         [523, 659, 784, 1046].forEach((f, i) => this.tone(out, t + i * 0.09, 'triangle', f, f, 0.14, 0.3));

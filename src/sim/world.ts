@@ -2,7 +2,7 @@ import { PLAYER } from '../config';
 import { createRng, type Rng } from '../core/rng';
 import { DEG } from '../core/math';
 import type { GameData } from '../data';
-import { scaleEnemy, type EnemyDef, type LevelDef } from '../data/schema';
+import { scaleEnemy, type EnemyDef, type EntityDef, type LevelDef } from '../data/schema';
 import type { Box, Terrain } from './collision';
 import type { ActorRef, SimEvent } from './events';
 import type { BodyShape } from './hitbox';
@@ -127,6 +127,15 @@ export interface Guard {
   uniform: string | null;
   /** Render-only: outfit name. */
   look: string | null;
+  /** Cover spot the guard is heading to or hiding at, and for how long it hides there. */
+  cover: { x: number; z: number } | null;
+  coverPhase: 'moving' | 'hiding' | null;
+  coverTimer: number;
+  /** Seconds before the guard may take cover again. */
+  coverCooldown: number;
+  crouching: boolean;
+  /** Index of the alarm panel (in world.props) the guard is running to, or null. */
+  alarmTarget: number | null;
 }
 
 export interface Prop {
@@ -229,7 +238,13 @@ export interface World {
   noiseCarry: Noise[];
   /** Collision obstacles, rebuilt each tick from props and doors. */
   terrain: Terrain;
+  /** Set once a guard reaches an alarm panel. */
+  alarm: { raised: boolean; time: number };
+  /** Reinforcements waiting for the alarm (guard entities with `reserve`). */
+  reserves: GuardEntity[];
 }
+
+export type GuardEntity = Extract<EntityDef, { type: 'guard' }>;
 
 export interface WorldOptions {
   players: number;
@@ -341,6 +356,8 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     mission: level.mode === 'mission' ? createMission(level.objectives) : null,
     match: level.mode === 'versus' && level.match ? createMatch(level.match.killLimit, level.match.timeLimit) : null,
     terrain: { grid, boxes: [] },
+    alarm: { raised: false, time: 0 },
+    reserves: [],
   };
   const s = grid.size;
   let auto = 0;
@@ -427,59 +444,9 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
         break;
       }
       case 'guard': {
-        const def = world.enemies[e.archetype];
-        if (!def) throw new Error(`Unknown enemy archetype '${e.archetype}'`);
-        const yaw = e.yaw * DEG;
-        const toPoint = ([pc, pr]: [number, number]) => ({
-          x: Number.isInteger(pc) ? (pc + 0.5) * s : pc * s,
-          z: Number.isInteger(pr) ? (pr + 0.5) * s : pr * s,
-        });
-        const gy = floorAtWorld(grid, x, z) ?? 0;
-        world.guards.push({
-          index: world.guards.length,
-          id: e.id,
-          archetype: e.archetype,
-          x,
-          y: gy,
-          z,
-          vx: 0,
-          vz: 0,
-          vy: 0,
-          radius: PLAYER.radius,
-          height: PLAYER.height,
-          grounded: true,
-          yaw,
-          aimYaw: yaw,
-          aimPitch: 0,
-          prev: { x, y: gy, z, yaw },
-          hp: def.hp,
-          state: 'patrol',
-          awareness: 0,
-          lastKnown: null,
-          targetSlot: null,
-          sees: false,
-          reaction: 0,
-          burstLeft: 0,
-          fireCooldown: 0,
-          stateTime: 0,
-          searchTime: 0,
-          flinch: 0,
-          lastHurtBy: null,
-          deadTime: 0,
-          sinceShot: 10,
-          patrol: e.patrol.map(toPoint),
-          patrolIndex: 0,
-          post: { x, z, yaw },
-          path: [],
-          pathIndex: 0,
-          pathGoal: null,
-          stuckTime: 0,
-          lastProgress: { x, z },
-          running: false,
-          stepDist: 0,
-          uniform: e.uniform ?? def.uniform ?? null,
-          look: e.look ?? null,
-        });
+        if (!world.enemies[e.archetype]) throw new Error(`Unknown enemy archetype '${e.archetype}'`);
+        if (e.reserve) world.reserves.push(e);
+        else spawnGuard(world, e);
         break;
       }
       case 'light':
@@ -495,6 +462,73 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
   }
   rebuildBoxes(world);
   return world;
+}
+
+/** Adds a guard from its level entity (also used for reinforcements when the alarm goes off). */
+export function spawnGuard(world: World, e: GuardEntity): Guard {
+  const def = world.enemies[e.archetype]!;
+  const s = world.grid.size;
+  const [c, r] = e.cell;
+  const x = Number.isInteger(c) ? (c + 0.5) * s : c * s;
+  const z = Number.isInteger(r) ? (r + 0.5) * s : r * s;
+  const yaw = e.yaw * DEG;
+  const toPoint = ([pc, pr]: [number, number]) => ({
+    x: Number.isInteger(pc) ? (pc + 0.5) * s : pc * s,
+    z: Number.isInteger(pr) ? (pr + 0.5) * s : pr * s,
+  });
+  const gy = floorAtWorld(world.grid, x, z) ?? 0;
+  world.guards.push({
+    index: world.guards.length,
+    id: e.id,
+    archetype: e.archetype,
+    x,
+    y: gy,
+    z,
+    vx: 0,
+    vz: 0,
+    vy: 0,
+    radius: PLAYER.radius,
+    height: PLAYER.height,
+    grounded: true,
+    yaw,
+    aimYaw: yaw,
+    aimPitch: 0,
+    prev: { x, y: gy, z, yaw },
+    hp: def.hp,
+    state: 'patrol',
+    awareness: 0,
+    lastKnown: null,
+    targetSlot: null,
+    sees: false,
+    reaction: 0,
+    burstLeft: 0,
+    fireCooldown: 0,
+    stateTime: 0,
+    searchTime: 0,
+    flinch: 0,
+    lastHurtBy: null,
+    deadTime: 0,
+    sinceShot: 10,
+    patrol: e.patrol.map(toPoint),
+    patrolIndex: 0,
+    post: { x, z, yaw },
+    path: [],
+    pathIndex: 0,
+    pathGoal: null,
+    stuckTime: 0,
+    lastProgress: { x, z },
+    running: false,
+    stepDist: 0,
+    uniform: e.uniform ?? def.uniform ?? null,
+    look: e.look ?? null,
+    cover: null,
+    coverPhase: null,
+    coverTimer: 0,
+    coverCooldown: 0,
+    crouching: false,
+    alarmTarget: null,
+  });
+  return world.guards[world.guards.length - 1]!;
 }
 
 /** Door panel geometry: a thin slab across the cell that slides up into the ceiling. */

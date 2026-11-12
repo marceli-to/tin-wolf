@@ -4,7 +4,7 @@ import { measureHeight, tintModel } from './models';
 import { flatMaterial, shadedBox } from './shapes';
 
 /** Game-side animation names; each art set maps them to its own clip names. */
-export type CharacterAnim = 'idle' | 'alert' | 'walk' | 'run' | 'aim' | 'shoot' | 'die';
+export type CharacterAnim = 'idle' | 'alert' | 'walk' | 'run' | 'aim' | 'shoot' | 'die' | 'crouch';
 
 export interface CharacterProfile {
   model: string;
@@ -298,7 +298,7 @@ export const PROFILES: Record<string, ArtSet> = {
   quaternius: {
     guard: {
       model: 'quaternius/Swat.glb',
-      clips: { idle: 'Idle_Gun', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
+      clips: { idle: 'Idle_Gun', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death', crouch: 'Idle_Gun_Pointing' },
       hand: 'Wrist.R',
       muzzle: Q_MUZZLE,
       heldGun: Q_GUN,
@@ -306,7 +306,7 @@ export const PROFILES: Record<string, ArtSet> = {
     },
     officer: {
       model: 'quaternius/Suit.glb',
-      clips: { idle: 'Idle', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
+      clips: { idle: 'Idle', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death', crouch: 'Idle_Gun_Pointing' },
       hand: 'Wrist.R',
       muzzle: Q_MUZZLE,
       heldGun: Q_GUN,
@@ -314,7 +314,7 @@ export const PROFILES: Record<string, ArtSet> = {
     looks: {
       worker: {
         model: 'quaternius/Worker.glb',
-        clips: { idle: 'Idle_Gun', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
+        clips: { idle: 'Idle_Gun', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death', crouch: 'Idle_Gun_Pointing' },
         hand: 'Wrist.R',
         muzzle: Q_MUZZLE,
         heldGun: Q_GUN,
@@ -322,7 +322,7 @@ export const PROFILES: Record<string, ArtSet> = {
     },
     player: {
       model: 'quaternius/Swat.glb',
-      clips: { idle: 'Idle_Gun', alert: 'Idle_Gun', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
+      clips: { idle: 'Idle_Gun', alert: 'Idle_Gun', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death', crouch: 'Idle_Gun_Pointing' },
       hand: 'Wrist.R',
       muzzle: Q_MUZZLE,
       heldGun: Q_GUN,
@@ -352,6 +352,7 @@ const K_CLIPS: Record<CharacterAnim, string> = {
   aim: 'holding-right',
   shoot: 'holding-right-shoot',
   die: 'die',
+  crouch: 'crouch',
 };
 const kenneyChar = (file: string): CharacterProfile => ({
   model: `kenney/characters/${file}.glb`,

@@ -16,6 +16,8 @@ export type SimEvent =
   | { type: 'doorLocked'; id: string; slot: number; requires: string }
   | { type: 'propDestroyed'; id: string; x: number; y: number; z: number }
   | { type: 'guardAlerted'; id: string; x: number; y: number; z: number }
+  | { type: 'alarmRaised'; id: string; x: number; y: number; z: number }
+  | { type: 'alarmRunner'; id: string; x: number; z: number }
   | { type: 'objectiveCompleted'; id: string; text: string }
   | { type: 'missionEnded'; success: boolean; reason: string }
   | { type: 'matchEnded'; winner: number | null }

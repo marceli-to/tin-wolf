@@ -52,6 +52,8 @@ Kestrel 9 pistol, Kestrel 9 SD (silenced: guards only hear it within 4 m), Vireo
 
 Nintendo controllers (Switch Pro) follow their printed labels: A uses, B crouches, X/Y as in the table, like in Switch games.
 
+Guards fight smarter: after a burst, or when badly hurt, they may duck behind a crate or a wall corner, crouch for a moment and pop out again (`cover` chance per archetype in `enemies.json`). The first guard to spot you runs for the nearest yellow **alarm panel** (props with `"alarm": true`) instead of shooting — stop him, or shoot the panel first. If he gets there a siren sounds, every guard hunts you, and the level's reinforcements (guard entities with `"reserve": true`) arrive. Guards no longer hit each other.
+
 Missions have three difficulties (left / right on the briefing, or Settings): Easy guards notice and react slower, miss more, hit softer and have less health; Hard is the reverse. The multipliers are data (`src/data/difficulty.json`).
 
 Gamepads get aim assist: turning slows down over a visible enemy, and while you move or turn the aim drifts gently toward it (it never aims for you when you stand still). Mouse aiming is untouched.

@@ -22,6 +22,9 @@ import { DIFFICULTIES, loadSettings, RESOLUTIONS, saveSettings, type Settings } 
 import { DEFAULT_INPUT_SETTINGS } from '../input/settings';
 import type { GameParams } from './params';
 
+/** How long the siren wails after the alarm is raised. */
+const SIREN_SECONDS = 10;
+
 export type GameState = 'menu' | 'lobby' | 'briefing' | 'playing' | 'paused' | 'results' | 'debrief';
 
 const MISSION_LEVEL = 'depot';
@@ -54,6 +57,9 @@ export class Game {
   private debugOverlay: DebugOverlay | null = null;
   private loop: RunningLoop | null = null;
   private uiLayer: HTMLElement;
+  /** Siren: repeats while the clock is before sirenUntil. */
+  private sirenUntil = 0;
+  private nextSiren = 0;
   settings: Settings = loadSettings();
 
   constructor(
@@ -324,6 +330,7 @@ export class Game {
   startLevel(): void {
     const level = this.tryLoad(this.levelId);
     if (!level) return;
+    this.sirenUntil = 0;
     // The Kenney figures have big heads; their hit zones follow suit.
     const body = this.params.art === 'kenney' ? 'chibi' : 'human';
     // Difficulty only changes guards, so it applies to missions; versus has none.
@@ -570,6 +577,14 @@ export class Game {
       case 'objectiveCompleted':
         w.players.forEach((p) => this.notify(p.slot, `Objective complete<br><small>${esc(e.text)}</small>`, 3.5));
         break;
+      case 'alarmRunner':
+        w.players.forEach((p) => this.notify(p.slot, 'A guard is running for the alarm!<br><small>Stop him, or shoot the alarm panel</small>', 3));
+        break;
+      case 'alarmRaised':
+        w.players.forEach((p) => this.notify(p.slot, 'ALARM!<br><small>Reinforcements are coming</small>', 4));
+        this.sirenUntil = this.clock + SIREN_SECONDS;
+        this.nextSiren = this.clock;
+        break;
       case 'missionEnded':
         w.players.forEach((p) => this.notify(p.slot, e.success ? 'MISSION COMPLETE' : '', 3));
         break;
@@ -590,6 +605,10 @@ export class Game {
 
   private render(alpha: number, frameTime: number): void {
     this.clock += frameTime;
+    if (this.state === 'playing' && this.clock < this.sirenUntil && this.clock >= this.nextSiren) {
+      this.sfx.play('alarm', 0.5);
+      this.nextSiren = this.clock + 1.2;
+    }
     const world = this.world;
     if (world && this.state !== 'lobby' && this.state !== 'menu' && this.state !== 'briefing') {
       const looks: ViewLook[] = world.players.map((p) =>

@@ -70,6 +70,8 @@ export function traceShot(world: World, ray: Ray, range: number, ignore: ActorRe
   });
   for (const a of actorShapes(world)) {
     if (ignore && sameActor(a.ref, ignore)) continue;
+    // Guards never shoot each other: with the alarm up they converge in crowds.
+    if (ignore?.kind === 'guard' && a.ref.kind === 'guard') continue;
     for (const z of humanoidZones(a.height, world.body)) {
       const t = rayCylinder(ray, a.x, a.z, z.r, a.y + z.y0, a.y + z.y1, limit());
       if (t !== null) consider(t, -ray.dx, -ray.dy, -ray.dz, { kind: 'actor', ref: a.ref, zone: z.zone });

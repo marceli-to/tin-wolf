@@ -7,7 +7,7 @@ import { fireHitscan } from './combat';
 import { cellAt, worldToCell } from './grid';
 import { clearLine } from './los';
 import { canStep, findPath, type NavOptions } from './nav';
-import { emit, type Guard, type GuardState, type Noise, type Player, type World } from './world';
+import { emit, spawnGuard, type Guard, type GuardState, type Noise, type Player, type World } from './world';
 
 const TICKS_PER_THINK = Math.max(1, Math.round(TICK_RATE / AI.thinkRate));
 const THINK_DT = TICKS_PER_THINK / TICK_RATE;
@@ -17,6 +17,20 @@ const EYE = 1.55;
 const NEAR_SENSE = 1.4;
 const FOOTSTEP_RADIUS = 6;
 const ARRIVE = 0.4;
+/** Eye height of a crouching guard (behind cover). */
+const CROUCH_EYE = 0.95;
+/** How far a guard looks for cover, and how close to the intruder a cover spot may be. */
+const COVER_RADIUS = 9;
+const COVER_MIN_TARGET_DIST = 4;
+const COVER_HIDE: [number, number] = [1.2, 2.6];
+const COVER_COOLDOWN: [number, number] = [3, 5];
+/** Alerted guards only run for alarm panels this close (metres, straight line). */
+const ALARM_RADIUS = 30;
+const ALARM_REACH = 0.8;
+
+export function guardEye(g: Guard): number {
+  return g.crouching ? CROUCH_EYE : EYE;
+}
 
 export function guardDef(world: World, g: Guard): EnemyDef {
   return world.enemies[g.archetype]!;
@@ -25,13 +39,179 @@ export function guardDef(world: World, g: Guard): EnemyDef {
 function setState(world: World, g: Guard, s: GuardState): void {
   if (g.state === s) return;
   if (s === 'attack' && g.state !== 'attack') emit(world, { type: 'guardAlerted', id: g.id, x: g.x, y: g.y, z: g.z });
+  const was = g.state;
   g.state = s;
   g.stateTime = 0;
   g.pathGoal = null;
   g.path = [];
   g.pathIndex = 0;
+  if (s !== 'attack') {
+    leaveCover(world, g);
+    g.alarmTarget = null;
+  }
   if (s === 'search') g.searchTime = guardDef(world, g).searchTime;
   if (s === 'patrol') g.awareness = 0;
+  if (s === 'attack' && was !== 'attack') maybeRunForAlarm(world, g);
+}
+
+// ---- cover -------------------------------------------------------------------
+
+function leaveCover(world: World, g: Guard): void {
+  if (g.coverPhase) g.coverCooldown = range(world.rng, COVER_COOLDOWN[0], COVER_COOLDOWN[1]);
+  g.cover = null;
+  g.coverPhase = null;
+  g.crouching = false;
+}
+
+function openAt(world: World, x: number, z: number, r: number): boolean {
+  const [cx, cz] = worldToCell(world.grid, x, z);
+  const c = cellAt(world.grid, cx, cz);
+  if (!c || c.solid) return false;
+  for (const b of world.terrain.boxes) if (x > b.minX - r && x < b.maxX + r && z > b.minZ - r && z < b.maxZ + r && b.maxY - b.minY > 0.3) return false;
+  return true;
+}
+
+/**
+ * A spot near the guard where a crouching body is hidden from the intruder: behind a prop at least
+ * waist high, or beside a wall corner. The closest such spot wins.
+ */
+export function findCover(world: World, g: Guard, target: Player): { x: number; z: number } | null {
+  const tx = target.x;
+  const ty = target.y + playerEyeOf(target);
+  const tz = target.z;
+  const cands: { x: number; z: number }[] = [];
+  for (const p of world.props) {
+    if (!p.alive || !p.solid || p.box.maxY - p.box.minY < 0.8) continue;
+    const cx = (p.box.minX + p.box.maxX) / 2;
+    const cz = (p.box.minZ + p.box.maxZ) / 2;
+    if (Math.hypot(cx - g.x, cz - g.z) > COVER_RADIUS) continue;
+    let dx = cx - tx;
+    let dz = cz - tz;
+    const d = Math.hypot(dx, dz) || 1;
+    dx /= d;
+    dz /= d;
+    const reach = Math.abs(dx) * (p.box.maxX - p.box.minX) * 0.5 + Math.abs(dz) * (p.box.maxZ - p.box.minZ) * 0.5 + g.radius + 0.2;
+    cands.push({ x: cx + dx * reach, z: cz + dz * reach });
+  }
+  // Wall edges: open cells next to a solid one, around the guard.
+  const s = world.grid.size;
+  const [gcx, gcz] = worldToCell(world.grid, g.x, g.z);
+  const span = Math.ceil(COVER_RADIUS / s);
+  for (let cz = gcz - span; cz <= gcz + span; cz++) {
+    for (let cx = gcx - span; cx <= gcx + span; cx++) {
+      const c = cellAt(world.grid, cx, cz);
+      if (!c || c.solid) continue;
+      for (const [ox, oz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const n = cellAt(world.grid, cx + ox, cz + oz);
+        if (n && n.solid) cands.push({ x: (cx + 0.5 + ox * 0.3) * s, z: (cz + 0.5 + oz * 0.3) * s });
+      }
+    }
+  }
+  let best: { x: number; z: number } | null = null;
+  let bestD = Infinity;
+  for (const c of cands) {
+    const d = Math.hypot(c.x - g.x, c.z - g.z);
+    if (d > COVER_RADIUS || d >= bestD) continue;
+    if (Math.hypot(c.x - tx, c.z - tz) < COVER_MIN_TARGET_DIST) continue;
+    if (!openAt(world, c.x, c.z, g.radius)) continue;
+    const fy = g.y;
+    // Body hidden when crouched (a waist-high crate leaves the top of the head showing, as in most shooters).
+    if (clearLine(world, tx, ty, tz, c.x, fy + 0.75, c.z) || clearLine(world, tx, ty, tz, c.x, fy + 0.45, c.z)) continue;
+    best = c;
+    bestD = d;
+  }
+  return best;
+}
+
+function playerEyeOf(p: Player): number {
+  return PLAYER.eyeHeight + (PLAYER.crouchEyeHeight - PLAYER.eyeHeight) * p.crouch;
+}
+
+/** Sends the guard to cover if there is some; true if it is on its way. */
+export function takeCover(world: World, g: Guard): boolean {
+  const target = g.targetSlot !== null ? world.players[g.targetSlot] : null;
+  if (!target || g.coverPhase || g.coverCooldown > 0 || g.alarmTarget !== null) return false;
+  const c = findCover(world, g, target);
+  if (!c) return false;
+  g.pathGoal = null;
+  if (!setGoal(world, g, c.x, c.z)) return false;
+  g.cover = c;
+  g.coverPhase = 'moving';
+  return true;
+}
+
+// ---- alarm -------------------------------------------------------------------
+
+/** Where a guard stands to use an alarm panel: the open side of the panel nearest to `from`. */
+export function alarmFront(world: World, index: number, from: { x: number; z: number }): { x: number; z: number } | null {
+  const p = world.props[index];
+  if (!p) return null;
+  const cx = (p.box.minX + p.box.maxX) / 2;
+  const cz = (p.box.minZ + p.box.maxZ) / 2;
+  const hx = (p.box.maxX - p.box.minX) / 2 + 0.55;
+  const hz = (p.box.maxZ - p.box.minZ) / 2 + 0.55;
+  let best: { x: number; z: number } | null = null;
+  let bestD = Infinity;
+  for (const [ox, oz] of [[hx, 0], [-hx, 0], [0, hz], [0, -hz]] as const) {
+    const x = cx + ox;
+    const z = cz + oz;
+    const [c, r] = worldToCell(world.grid, x, z);
+    const cell = cellAt(world.grid, c, r);
+    if (!cell || cell.solid) continue;
+    const d = Math.hypot(x - from.x, z - from.z);
+    if (d < bestD) {
+      best = { x, z };
+      bestD = d;
+    }
+  }
+  return best;
+}
+
+function isAlarm(world: World, i: number): boolean {
+  const p = world.props[i];
+  return !!p && p.alive && !!world.data.props[p.kind]?.alarm;
+}
+
+/** The first guard to be alerted runs for the nearest intact alarm panel (one runner at a time). */
+function maybeRunForAlarm(world: World, g: Guard): void {
+  if (world.alarm.raised || world.guards.some((o) => o.alarmTarget !== null && o.state !== 'dead')) return;
+  let best = -1;
+  let bestD = ALARM_RADIUS;
+  world.props.forEach((p, i) => {
+    if (!isAlarm(world, i)) return;
+    const d = Math.hypot((p.box.minX + p.box.maxX) / 2 - g.x, (p.box.minZ + p.box.maxZ) / 2 - g.z);
+    if (d < bestD) {
+      best = i;
+      bestD = d;
+    }
+  });
+  if (best < 0) return;
+  const front = alarmFront(world, best, g);
+  if (!front || !setGoal(world, g, front.x, front.z)) return;
+  g.alarmTarget = best;
+  emit(world, { type: 'alarmRunner', id: g.id, x: g.x, z: g.z });
+}
+
+/** Every guard hunts the intruder, and the reinforcements arrive. */
+export function raiseAlarm(world: World, by: Guard | null): void {
+  if (world.alarm.raised) return;
+  world.alarm = { raised: true, time: world.time };
+  const slot = by?.targetSlot ?? world.players.find((p) => p.alive)?.slot ?? 0;
+  const target = world.players[slot];
+  emit(world, { type: 'alarmRaised', id: by?.id ?? '', x: by?.x ?? 0, y: by?.y ?? 0, z: by?.z ?? 0 });
+  for (const e of world.reserves) spawnGuard(world, e);
+  world.reserves = [];
+  for (const o of world.guards) {
+    if (o.state === 'dead') continue;
+    o.alarmTarget = null;
+    o.awareness = 1;
+    o.targetSlot = slot;
+    if (target) o.lastKnown = { x: target.x, z: target.z };
+    if (o.state !== 'attack') o.reaction = guardDef(world, o).reactionTime;
+    setState(world, o, 'attack');
+    // Already fighting: re-plan toward the intruder's current position.
+    o.pathGoal = null;
+  }
 }
 
 function collectNoises(world: World, from = 0): Noise[] {
@@ -68,7 +248,7 @@ function hear(world: World, g: Guard, def: EnemyDef, n: Noise): void {
   const radius = n.radius * def.hearingScale;
   if (d > radius) return;
   // Walls and closed doors muffle sound to half its range.
-  if (d > radius * 0.5 && !clearLine(world, n.x, 1.5, n.z, g.x, g.y + EYE, g.z)) return;
+  if (d > radius * 0.5 && !clearLine(world, n.x, 1.5, n.z, g.x, g.y + guardEye(g), g.z)) return;
   if (n.kind === 'shot') {
     // A guard firing tells others where its target is; a player shot gives away the player.
     const other = n.fromGuard !== null ? world.guards[n.fromGuard] : null;
@@ -104,7 +284,7 @@ export function sightFactor(world: World, g: Guard, def: EnemyDef, p: Player): n
   const off = Math.abs(angleDiff(g.yaw, yawTo(g.x, g.z, p.x, p.z)));
   const halfFov = (def.visionFovDeg * DEG) / 2;
   if (off > halfFov && dist > NEAR_SENSE) return 0;
-  const ey = g.y + EYE;
+  const ey = g.y + guardEye(g);
   const seen =
     clearLine(world, g.x, ey, g.z, p.x, p.y + p.height * 0.9, p.z) || clearLine(world, g.x, ey, g.z, p.x, p.y + p.height * 0.55, p.z);
   if (!seen) return 0;
@@ -319,6 +499,24 @@ function planMovement(world: World, g: Guard, def: EnemyDef): void {
     }
     case 'attack': {
       const target = g.targetSlot !== null ? world.players[g.targetSlot] : null;
+      if (g.alarmTarget !== null) {
+        // Running for the alarm: nothing else matters until it is raised or the panel is gone.
+        const front = isAlarm(world, g.alarmTarget) ? alarmFront(world, g.alarmTarget, g) : null;
+        if (front && setGoal(world, g, front.x, front.z)) {
+          g.running = true;
+          break;
+        }
+        g.alarmTarget = null;
+      }
+      if (g.coverPhase === 'moving' && g.cover) {
+        g.running = true;
+        if (!setGoal(world, g, g.cover.x, g.cover.z)) leaveCover(world, g);
+        break;
+      }
+      if (g.coverPhase === 'hiding') {
+        g.path = [];
+        break;
+      }
       if (g.sees && target) {
         const d = Math.hypot(target.x - g.x, target.z - g.z);
         // Close in when far away; otherwise hold position and shoot.
@@ -358,7 +556,7 @@ function act(world: World, g: Guard, def: EnemyDef, dt: number): void {
       const d = Math.hypot(dx, dz) || 1;
       g.vx = (dx / d) * speed;
       g.vz = (dz / d) * speed;
-      if (!(g.state === 'attack' && g.sees)) g.aimYaw = Math.atan2(dx, -dz);
+      if (!(g.state === 'attack' && g.sees && g.alarmTarget === null)) g.aimYaw = Math.atan2(dx, -dz);
     }
   }
   if (speed === 0) {
@@ -367,10 +565,10 @@ function act(world: World, g: Guard, def: EnemyDef, dt: number): void {
   }
 
   // Facing.
-  if (g.state === 'attack' && g.sees && target) {
+  if (g.state === 'attack' && g.sees && target && g.alarmTarget === null) {
     g.aimYaw = yawTo(g.x, g.z, target.x, target.z);
     const hd = Math.hypot(target.x - g.x, target.z - g.z);
-    g.aimPitch = Math.atan2(target.y + target.height * 0.62 - (g.y + EYE), hd);
+    g.aimPitch = Math.atan2(target.y + target.height * 0.62 - (g.y + guardEye(g)), hd);
   } else if ((g.state === 'suspicious' || g.state === 'attack') && g.lastKnown && speed === 0) {
     g.aimYaw = yawTo(g.x, g.z, g.lastKnown.x, g.lastKnown.z);
     g.aimPitch = 0;
@@ -421,6 +619,25 @@ function act(world: World, g: Guard, def: EnemyDef, dt: number): void {
   }
   updateVertical(world.terrain, g, dt);
 
+  // Cover: arrive and crouch, hide for a while, then stand and fight again.
+  if (g.coverPhase === 'moving' && g.cover && Math.hypot(g.cover.x - g.x, g.cover.z - g.z) < 0.6) {
+    g.coverPhase = 'hiding';
+    g.crouching = true;
+    g.coverTimer = range(world.rng, COVER_HIDE[0], COVER_HIDE[1]);
+    g.path = [];
+  } else if (g.coverPhase === 'hiding') {
+    g.coverTimer -= dt;
+    if (g.coverTimer <= 0) leaveCover(world, g);
+  }
+  g.height = g.crouching ? PLAYER.crouchHeight : PLAYER.height;
+
+  // Alarm: the runner reaches the panel.
+  if (g.alarmTarget !== null) {
+    const front = alarmFront(world, g.alarmTarget, g);
+    if (front && Math.hypot(front.x - g.x, front.z - g.z) < ALARM_REACH && isAlarm(world, g.alarmTarget)) raiseAlarm(world, g);
+    return;
+  }
+
   // Shooting.
   if (g.state !== 'attack' || !g.sees || !target || !target.alive || g.flinch > 0) return;
   g.reaction -= dt;
@@ -430,10 +647,12 @@ function act(world: World, g: Guard, def: EnemyDef, dt: number): void {
   if (g.burstLeft <= 0) g.burstLeft = Math.round(range(world.rng, def.burst[0], def.burst[1] + 0.999) - 0.5) || 1;
   const moving = Math.hypot(target.vx, target.vz) > 2 ? 1.4 : 1;
   const scaled = { ...weapon, damage: weapon.damage * def.damageScale };
-  fireHitscan(world, { kind: 'guard', index: g.index }, g.x, g.y + EYE, g.z, g.yaw, g.aimPitch, scaled, def.weapon, def.aimSpreadDeg * moving);
+  fireHitscan(world, { kind: 'guard', index: g.index }, g.x, g.y + guardEye(g), g.z, g.yaw, g.aimPitch, scaled, def.weapon, def.aimSpreadDeg * moving);
   g.sinceShot = 0;
   g.burstLeft--;
   g.fireCooldown = g.burstLeft > 0 ? weapon.fireInterval * 1.6 : range(world.rng, def.burstPause[0], def.burstPause[1]);
+  // End of a burst: some guards duck behind cover before the next one.
+  if (g.burstLeft <= 0 && !g.coverPhase && def.cover > 0 && nextFloat(world.rng) < def.cover) takeCover(world, g);
 }
 
 /** Per-tick guard update. Perception and decisions run at AI.thinkRate, staggered by guard index. */
@@ -448,11 +667,14 @@ export function updateGuards(world: World, dt: number): void {
     if (g.state === 'dead') {
       g.deadTime += dt;
       g.vx = g.vz = 0;
+      g.alarmTarget = null;
+      g.crouching = false;
       continue;
     }
     const def = guardDef(world, g);
     g.stateTime += dt;
     g.sinceShot += dt;
+    g.coverCooldown = Math.max(0, g.coverCooldown - dt);
     g.fireCooldown = Math.max(0, g.fireCooldown - dt);
     if (g.flinch > 0) {
       g.flinch = Math.max(0, g.flinch - dt);
@@ -472,6 +694,9 @@ export function updateGuards(world: World, dt: number): void {
       if (g.state !== 'attack') {
         g.reaction = def.reactionTime;
         setState(world, g, 'attack');
+      } else if (g.hp < def.hp * 0.5 && def.cover > 0 && !g.coverPhase) {
+        // Badly hurt in a fight: get out of the line of fire.
+        takeCover(world, g);
       }
     }
     for (const n of noises) hear(world, g, def, n);

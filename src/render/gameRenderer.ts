@@ -180,7 +180,7 @@ export class GameRenderer {
       const cx = (b.minX + b.maxX) / 2;
       const cz = (b.minZ + b.maxZ) / 2;
       // Crates and consoles show their whole texture per face; panels tile in world units.
-      const perFace = p.mat === 'crate' || p.mat === 'console' || p.mat === 'barrel';
+      const perFace = p.mat === 'crate' || p.mat === 'console' || p.mat === 'barrel' || p.mat === 'alarm';
       const m = new THREE.Mesh(litBox(w, h, d, cx, cz, !perFace), texturedMaterial(p.mat, materialColor(p.mat)));
       m.position.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, (b.minZ + b.maxZ) / 2);
       this.dynamic.add(m);
@@ -226,28 +226,8 @@ export class GameRenderer {
       this.dynamic.add(h.root);
       return { h, phase: 0, flash };
     });
-    this.guards = world.guards.map((g) => {
-      const def = world.data.enemies[g.archetype];
-      const set = PROFILES[this.art];
-      const profile = set ? ((g.look && set.looks?.[g.look]) || (g.archetype === 'guard_officer' ? set.officer : set.guard)) : null;
-      const inst = profile && this.models ? this.models.instance(profile.model) : null;
-      if (profile && inst) {
-        const gun = profile.gun ? this.models!.instance(profile.gun.model) : null;
-        if (g.uniform && profile.tintMaterial) {
-          for (const m of inst.materials) if (m.name === profile.tintMaterial) (m.userData.base as THREE.Color).set(g.uniform);
-        }
-        const model = new ModelCharacter(inst, profile, g.height, this.flashMat, gun, this.heldGuns(world, def ? [def.weapon] : []), this.gunRef());
-        this.dynamic.add(model.root);
-        return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
-      }
-      const h = buildHumanoid({ body: def?.color ?? '#556', legs: def?.legs ?? '#333', skin: '#c99a7a' });
-      const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), this.flashMat);
-      flash.position.set(0, 0, -0.2);
-      flash.visible = false;
-      h.gun.add(flash);
-      this.dynamic.add(h.root);
-      return { h, phase: Math.random() * 6, flash };
-    });
+    this.guards = [];
+    for (const g of world.guards) this.guards.push(this.guardVisual(world, g));
     this.vmScene.add(new THREE.HemisphereLight('#e8eef4', '#4a443c', 1.6));
     const vmSun = new THREE.DirectionalLight('#fff4e0', 1.2);
     vmSun.position.set(0.5, 1, 0.8);
@@ -284,6 +264,30 @@ export class GameRenderer {
     this.bob = world.players.map(() => 0);
     if (debug) this.buildDebug(world);
     this.resize();
+  }
+
+  /** Figure for one guard; also called for reinforcements that arrive after the level loaded. */
+  private guardVisual(world: World, g: World['guards'][number]): ActorVisual {
+    const def = world.data.enemies[g.archetype];
+    const set = PROFILES[this.art];
+    const profile = set ? ((g.look && set.looks?.[g.look]) || (g.archetype === 'guard_officer' ? set.officer : set.guard)) : null;
+    const inst = profile && this.models ? this.models.instance(profile.model) : null;
+    if (profile && inst) {
+      const gun = profile.gun ? this.models!.instance(profile.gun.model) : null;
+      if (g.uniform && profile.tintMaterial) {
+        for (const m of inst.materials) if (m.name === profile.tintMaterial) (m.userData.base as THREE.Color).set(g.uniform);
+      }
+      const model = new ModelCharacter(inst, profile, g.height, this.flashMat, gun, this.heldGuns(world, def ? [def.weapon] : []), this.gunRef());
+      this.dynamic.add(model.root);
+      return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
+    }
+    const h = buildHumanoid({ body: def?.color ?? '#556', legs: def?.legs ?? '#333', skin: '#c99a7a' });
+    const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), this.flashMat);
+    flash.position.set(0, 0, -0.2);
+    flash.visible = false;
+    h.gun.add(flash);
+    this.dynamic.add(h.root);
+    return { h, phase: Math.random() * 6, flash };
   }
 
   /** Fresh model instances for the weapons that have one (falls back to the model's own gun). */
@@ -562,6 +566,11 @@ export class GameRenderer {
     world.props.forEach((p, i) => {
       const m = this.propMeshes[i];
       if (m) m.visible = p.alive;
+      // Alarm panels flash once the alarm is raised.
+      if (m && world.alarm.raised && world.data.props[p.kind]?.alarm) {
+        const mat = (m as THREE.Mesh).material as THREE.MeshBasicMaterial | undefined;
+        if (mat?.color) mat.color.setScalar(Math.sin(this.time * 12) > 0 ? 2.2 : 1);
+      }
     });
     world.doors.forEach((d, i) => {
       const m = this.doorMeshes[i];
@@ -570,6 +579,8 @@ export class GameRenderer {
       m.position.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, (b.minZ + b.maxZ) / 2);
     });
 
+    // Reinforcements arrive with the alarm.
+    while (this.guards.length < world.guards.length) this.guards.push(this.guardVisual(world, world.guards[this.guards.length]!));
     world.guards.forEach((g, i) => {
       const v = this.guards[i];
       if (!v) return;
@@ -582,6 +593,7 @@ export class GameRenderer {
         m.root.position.set(x, y, z);
         m.root.rotation.y = -g.yaw;
         if (g.state === 'dead') m.play('die');
+        else if (g.crouching) m.play('crouch');
         else if (g.state === 'attack' && g.sees && speed < 0.1) m.play(g.sinceShot < 0.35 ? 'shoot' : 'aim');
         else if (speed > 2.5) m.play('run');
         else if (speed > 0.1) m.play('walk');
@@ -603,7 +615,7 @@ export class GameRenderer {
       poseHumanoid(v.h, {
         phase: dead ? 0 : v.phase,
         stride: dead ? 0 : Math.min(1, speed / 3),
-        crouch: 0,
+        crouch: g.crouching && !dead ? 1 : 0,
         aim: g.state === 'attack' && !dead ? 1 : 0,
         pitch: g.aimPitch,
       });

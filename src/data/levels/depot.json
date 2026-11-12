@@ -1284,6 +1284,94 @@
    ],
    "level": 0.7,
    "radius": 3
+  },
+  {
+   "type": "prop",
+   "id": "alarm_lab",
+   "kind": "alarm_panel",
+   "cell": [
+    16,
+    4.06
+   ],
+   "yaw": 0,
+   "elevation": 1.0
+  },
+  {
+   "type": "prop",
+   "id": "alarm_hall",
+   "kind": "alarm_panel",
+   "cell": [
+    22,
+    18.06
+   ],
+   "yaw": 0,
+   "elevation": 1.0
+  },
+  {
+   "type": "prop",
+   "id": "alarm_office",
+   "kind": "alarm_panel",
+   "cell": [
+    25,
+    12.06
+   ],
+   "yaw": 0,
+   "elevation": 1.0
+  },
+  {
+   "type": "prop",
+   "id": "alarm_yard",
+   "kind": "alarm_panel",
+   "cell": [
+    12,
+    25.06
+   ],
+   "yaw": 0,
+   "elevation": 1.0
+  },
+  {
+   "type": "prop",
+   "id": "alarm_garage",
+   "kind": "alarm_panel",
+   "cell": [
+    29.06,
+    15
+   ],
+   "yaw": 90,
+   "elevation": 1.0
+  },
+  {
+   "type": "guard",
+   "id": "rA",
+   "archetype": "guard_basic",
+   "cell": [
+    31,
+    5
+   ],
+   "yaw": 180,
+   "reserve": true
+  },
+  {
+   "type": "guard",
+   "id": "rB",
+   "archetype": "guard_rifle",
+   "cell": [
+    36,
+    31
+   ],
+   "yaw": 180,
+   "reserve": true
+  },
+  {
+   "type": "guard",
+   "id": "rC",
+   "archetype": "guard_basic",
+   "cell": [
+    9,
+    21
+   ],
+   "yaw": 180,
+   "reserve": true
   }
  ],
  "objectives": [
@@ -1310,7 +1398,7 @@
    ]
   }
  ],
- "briefing": "Halvard Depot is a weather station high in the Ostfjell range, cut off by snow since October. Its new owners are not studying the weather: they are testing a guidance unit for long-range drones, and the prototype console sits in the depot lab.\n\nThe lab is sealed with a red keycard kept in the security office. Get the card, destroy the console, and get out through the vehicle tunnel: it leaves the garage through the north wall (yellow stripes on the floor) and runs east to daylight.\n\nThe front door is quickest and best guarded. A maintenance duct runs up the west side of the building into the generator room \u2014 dark, tight, and quiet.",
+ "briefing": "Halvard Depot is a weather station high in the Ostfjell range, cut off by snow since October. Its new owners are not studying the weather: they are testing a guidance unit for long-range drones, and the prototype console sits in the depot lab.\n\nThe lab is sealed with a red keycard kept in the security office. Get the card, destroy the console, and get out through the vehicle tunnel: it leaves the garage through the north wall (yellow stripes on the floor) and runs east to daylight.\n\nThe front door is quickest and best guarded. A maintenance duct runs up the west side of the building into the generator room — dark, tight, and quiet.",
  "loadout": [
   "pistol_sd",
   "pistol"

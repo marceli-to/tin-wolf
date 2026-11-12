@@ -24,7 +24,8 @@
     "color": "#56663f",
     "legs": "#3a3f30",
     "drop": "ammo_pistol",
-    "dropAmount": 8
+    "dropAmount": 8,
+    "cover": 0.45
   },
   "guard_officer": {
     "name": "Officer",
@@ -51,7 +52,8 @@
     "color": "#3c4a5c",
     "legs": "#24282e",
     "drop": "ammo_pistol",
-    "dropAmount": 12
+    "dropAmount": 12,
+    "cover": 0.7
   },
   "guard_rifle": {
     "name": "Rifle guard",
@@ -78,6 +80,7 @@
     "color": "#56663f",
     "legs": "#3a3f30",
     "drop": "weapon_smg",
-    "dropAmount": 20
+    "dropAmount": 20,
+    "cover": 0.35
   }
 }

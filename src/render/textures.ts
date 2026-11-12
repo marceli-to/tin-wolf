@@ -309,6 +309,13 @@ const PAINTERS: Record<string, Paint> = {
       p.set(x, y, yellow ? 214 : 30, yellow ? 172 : 30, yellow ? 52 : 30);
     }
   },
+  alarm: (p, n, r) => {
+    surface(p, r, '#8e2f28', 0.12, 0.05);
+    bevel(p, 4, 4, n - 8, n - 8, 1.2, 0.7);
+    p.fill(n / 2 - 22, n / 2 - 22, 44, 44, '#d8cfb8');
+    p.fill(n / 2 - 15, n / 2 - 15, 30, 30, '#e0281e');
+    bevel(p, n / 2 - 15, n / 2 - 15, 30, 30, 1.3, 0.6);
+  },
   carpet: (p, n, r) => {
     surface(p, r, '#5c3a3a', 0.18, 0.14, 3);
   },
@@ -422,6 +429,13 @@ const FLAT_PAINTERS: Record<string, Paint> = {
   },
   carpet: (p, n) => {
     p.fill(0, 0, n, n, '#b35556');
+  },
+  alarm: (p, n) => {
+    p.fill(0, 0, n, n, '#f2c443');
+    flatPanel(p, 0, 0, n, n, 6);
+    p.fill(n / 2 - 26, n / 2 - 26, 52, 52, '#3d4450');
+    p.fill(n / 2 - 18, n / 2 - 18, 36, 36, '#ef3b2f');
+    flatPanel(p, n / 2 - 18, n / 2 - 18, 36, 36, 4);
   },
 };
 

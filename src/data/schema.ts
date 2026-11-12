@@ -37,6 +37,8 @@ export const EntitySchema = z.discriminatedUnion('type', [
     uniform: z.string().optional(),
     /** Outfit name (render-only), e.g. 'worker'. */
     look: z.string().optional(),
+    /** Reinforcement: absent until an alarm is raised, then arrives hunting the intruder. */
+    reserve: z.boolean().default(false),
     ...Base,
     id: z.string(),
   }),
@@ -156,6 +158,8 @@ export const EnemySchema = z.object({
   legs: z.string().default('#2e2e30'),
   /** Uniform colour for the character model (archetype default). */
   uniform: z.string().optional(),
+  /** Chance (0..1) of ducking behind cover after a burst in a fight. */
+  cover: z.number().min(0).max(1).default(0),
   /** Item left where the guard falls. */
   drop: z.string().optional(),
   dropAmount: z.number().optional(),
@@ -224,6 +228,8 @@ export const PropKindSchema = z.object({
    * fill the collision box's floor area; 'stretch' fills the whole collision box (non-uniform).
    */
   modelFit: z.enum(['scale', 'footprint', 'stretch']).default('scale'),
+  /** An alarm panel: an alerted guard runs to it and raises the alarm; destroying it prevents that. */
+  alarm: z.boolean().default(false),
 });
 export type PropKindDef = z.output<typeof PropKindSchema>;
 export const PropKindsSchema = z.record(z.string(), PropKindSchema);
