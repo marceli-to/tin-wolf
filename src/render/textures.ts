@@ -314,6 +314,125 @@ const PAINTERS: Record<string, Paint> = {
   },
 };
 
+/** Flat panel with a soft raised edge, the way Kenney kits model their tiles. */
+function flatPanel(p: Pix, x: number, y: number, w: number, h: number, edge = 3): void {
+  p.shade(x, y, w, edge, 1.08);
+  p.shade(x, y + edge, edge, h - edge, 1.04);
+  p.shade(x, y + h - edge, w, edge, 0.9);
+  p.shade(x + w - edge, y, edge, h - edge, 0.94);
+}
+
+/** Clean, flat-coloured surfaces (no grime, grain or rivets) to sit next to Kenney models. */
+const FLAT_PAINTERS: Record<string, Paint> = {
+  concrete: (p, n) => {
+    p.fill(0, 0, n, n, '#c4bfb3');
+    flatPanel(p, 0, 0, n, n / 2);
+    flatPanel(p, 0, n / 2, n, n / 2);
+  },
+  tile: (p, n) => {
+    p.fill(0, 0, n, n, '#dfe4e1');
+    for (const x of [0, n / 2]) for (const y of [0, n / 2]) flatPanel(p, x, y, n / 2, n / 2, 2);
+  },
+  metal: (p, n) => {
+    p.fill(0, 0, n, n, '#9fb0bb');
+    flatPanel(p, 0, 0, n, n, 4);
+  },
+  panel: (p, n) => {
+    p.fill(0, 0, n, n, '#aebdca');
+    flatPanel(p, 0, 0, n, n / 2, 4);
+    flatPanel(p, 0, n / 2, n, n / 2, 4);
+  },
+  ceiling: (p, n) => {
+    p.fill(0, 0, n, n, '#d3d6d8');
+    for (const x of [0, n / 2]) for (const y of [0, n / 2]) flatPanel(p, x, y, n / 2, n / 2, 2);
+  },
+  wood: (p, n) => {
+    p.fill(0, 0, n, n, '#c99460');
+    for (let i = 0; i < 4; i++) flatPanel(p, 0, (i * n) / 4, n, n / 4, 2);
+  },
+  snow: (p, n) => {
+    p.fill(0, 0, n, n, '#f1f5f7');
+  },
+  ice: (p, n) => {
+    p.fill(0, 0, n, n, '#c6e6f2');
+    for (let i = 0; i < 3; i++) p.shade(((i * 41) % n) | 0, 0, 6, n, 1.06);
+  },
+  rock: (p, n) => {
+    p.fill(0, 0, n, n, '#968f86');
+    flatPanel(p, 0, 0, n / 2, n / 2, 4);
+    flatPanel(p, n / 2, 0, n / 2, n / 2, 4);
+    flatPanel(p, n / 4, n / 2, n / 2, n / 2, 4);
+    flatPanel(p, -n / 4, n / 2, n / 2, n / 2, 4);
+  },
+  brick: (p, n) => {
+    p.fill(0, 0, n, n, '#e6dccb');
+    const bh = n / 4;
+    for (let row = 0; row < 4; row++) {
+      const off = row % 2 ? n / 4 : 0;
+      for (let i = -1; i < 2; i++) {
+        const x = off + i * (n / 2) + 2;
+        p.fill(x, row * bh + 2, n / 2 - 4, bh - 4, '#cf7357');
+        flatPanel(p, x, row * bh + 2, n / 2 - 4, bh - 4, 2);
+      }
+    }
+  },
+  grate: (p, n) => {
+    p.fill(0, 0, n, n, '#6c7680');
+    for (let i = 0; i < n; i += 16) {
+      p.shade(i, 0, 3, n, 0.75);
+      p.shade(0, i, n, 3, 0.75);
+    }
+  },
+  crate: (p, n) => {
+    p.fill(0, 0, n, n, '#d9a160');
+    flatPanel(p, 0, 0, n, n, 10);
+    p.shade(10, 10, n - 20, n - 20, 0.94);
+  },
+  barrel: (p, n) => {
+    p.fill(0, 0, n, n, '#d6543f');
+    for (const y of [n / 5, (4 * n) / 5]) p.shade(0, y - 4, n, 8, 0.8);
+  },
+  console: (p, n) => {
+    p.fill(0, 0, n, n, '#4a5d72');
+    flatPanel(p, 0, 0, n, n, 4);
+    p.fill(n / 6, n / 6, (2 * n) / 3, n / 3, '#5fd0f0');
+    flatPanel(p, n / 6, n / 6, (2 * n) / 3, n / 3, 3);
+    const lights = ['#f5c542', '#7ad36b', '#ef6b5b', '#f5c542'];
+    lights.forEach((c, i) => p.fill(n / 6 + i * (n / 6), (2 * n) / 3, 10, 10, c));
+  },
+  door: (p, n) => {
+    p.fill(0, 0, n, n, '#b8956a');
+    flatPanel(p, 6, 6, n - 12, n - 12, 4);
+  },
+  door_red: (p, n) => {
+    p.fill(0, 0, n, n, '#d9574a');
+    flatPanel(p, 6, 6, n - 12, n - 12, 4);
+    p.fill(n / 2 - 14, n / 3, 28, 18, '#f4ede0');
+  },
+  door_blue: (p, n) => {
+    p.fill(0, 0, n, n, '#4f78d6');
+    flatPanel(p, 6, 6, n - 12, n - 12, 4);
+    p.fill(n / 2 - 14, n / 3, 28, 18, '#f4ede0');
+  },
+  hazard: (p, n) => {
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const yellow = ((x + y) >> 4) % 2 === 0;
+      p.set(x, y, yellow ? 246 : 58, yellow ? 197 : 62, yellow ? 66 : 70);
+    }
+  },
+  carpet: (p, n) => {
+    p.fill(0, 0, n, n, '#b35556');
+  },
+};
+
+let painters = PAINTERS;
+
+/** Switches every level surface to the flat style. Call before the first texture is built. */
+export function useFlatTextures(on: boolean): void {
+  painters = on ? { ...PAINTERS, ...FLAT_PAINTERS } : PAINTERS;
+  cache.clear();
+}
+
 const cache = new Map<string, THREE.Texture>();
 /** Every texture the game uses (procedural and from models), so the filter mode can switch at runtime. */
 const managed = new Set<THREE.Texture>();
@@ -347,11 +466,11 @@ export function setTextureSmoothing(on: boolean): void {
 }
 
 export function hasTexture(name: string): boolean {
-  return name in PAINTERS;
+  return name in painters;
 }
 
 export function getTexture(name: string): THREE.Texture | null {
-  const paint = PAINTERS[name];
+  const paint = painters[name];
   if (!paint) return null;
   let t = cache.get(name);
   if (t) return t;

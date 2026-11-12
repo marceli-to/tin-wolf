@@ -9,7 +9,7 @@ import { buildLightField, lampsFromLevel, type LightField } from './lighting';
 import { setTextureSmoothing, texturedMaterial } from './textures';
 import { Snow } from './snow';
 import { tintModel, type ModelLibrary } from './models';
-import { ModelCharacter, PROFILES, Q_GUN, type HeldGun } from './modelCharacter';
+import { ModelCharacter, PROFILES, type HeldGun } from './modelCharacter';
 import { StaticBatch } from './staticBatch';
 import { rayGrid } from '../sim/raycast';
 import type { Grid } from '../sim/grid';
@@ -139,7 +139,12 @@ export class GameRenderer {
         // box and stand it on the box's floor.
         o.position.set(0, 0, 0);
         o.updateMatrixWorld(true);
-        const mb = new THREE.Box3().setFromObject(o);
+        let mb = new THREE.Box3().setFromObject(o);
+        if (kind!.modelFit !== 'scale') {
+          fitToBox(o, mb, b, kind!.modelFit);
+          o.updateMatrixWorld(true);
+          mb = new THREE.Box3().setFromObject(o);
+        }
         o.position.set((b.minX + b.maxX) / 2 - (mb.min.x + mb.max.x) / 2, b.minY - mb.min.y, (b.minZ + b.maxZ) / 2 - (mb.min.z + mb.max.z) / 2);
         // glTF defaults metalness to 1 and the kits rely on that plus a metal map; with no
         // environment map, metal renders near-black, so props are lit as (mostly) dielectric.
@@ -197,10 +202,11 @@ export class GameRenderer {
     this.players = world.players.map((p) => {
       const color = PLAYER_COLORS[p.slot] ?? '#888';
       const prof = set?.player;
-      const inst = prof && this.models ? this.models.instance(prof.model) : null;
+      const file = set?.playerModels?.[p.slot % set.playerModels.length] ?? prof?.model;
+      const inst = prof && file && this.models ? this.models.instance(file) : null;
       if (prof && inst) {
         const gun = prof.gun ? this.models!.instance(prof.gun.model) : null;
-        for (const m of inst.materials) if (m.name === prof.tintMaterial) (m.userData.base as THREE.Color).multiply(new THREE.Color(color)).multiplyScalar(2.2);
+        if (prof.tintMaterial) for (const m of inst.materials) if (m.name === prof.tintMaterial) (m.userData.base as THREE.Color).multiply(new THREE.Color(color)).multiplyScalar(2.2);
         const model = new ModelCharacter(inst, prof, p.height, this.flashMat, gun, this.heldGuns(world, Object.keys(world.data.weapons)), this.gunRef());
         setLayerDeep(model.root, LAYER.BODY + p.slot);
         this.dynamic.add(model.root);
@@ -246,7 +252,7 @@ export class GameRenderer {
       const armsInst = va && this.models ? this.models.instance(va.model) : null;
       let vm: ViewModel;
       if (va && armsInst) {
-        for (const m of armsInst.materials) if (m.name === va.tintMaterial) m.color.multiply(new THREE.Color(PLAYER_COLORS[p.slot] ?? '#888')).multiplyScalar(2.2);
+        if (va.tintMaterial) for (const m of armsInst.materials) if (m.name === va.tintMaterial) m.color.multiply(new THREE.Color(PLAYER_COLORS[p.slot] ?? '#888')).multiplyScalar(2.2);
         vm = buildModelArmsViewModel(armsInst, this.heldGuns(world, Object.keys(world.data.weapons)), this.gunRef(), {
           clip: va.clip,
           collapse: va.collapse,
@@ -254,6 +260,9 @@ export class GameRenderer {
           hand: va.hand,
           muzzle: va.muzzle,
           height: p.height,
+          headBone: va.headBone,
+          grip: va.grip,
+          gunOnly: va.gunOnly,
         });
       } else {
         const vg = set?.viewGun;
@@ -285,7 +294,8 @@ export class GameRenderer {
   }
 
   private gunRef(): THREE.Object3D | null {
-    return this.models?.instance(Q_GUN)?.object ?? null;
+    const ref = PROFILES[this.art]?.gunRef;
+    return ref ? (this.models?.instance(ref)?.object ?? null) : null;
   }
 
   /** Spinning pickup: the item's model if it has one, else the code-built shape. */
@@ -706,4 +716,22 @@ function disposeDeep(obj: THREE.Object3D): void {
     if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
     else mat?.dispose();
   });
+}
+
+/**
+ * Sizes a prop model to its collision box: 'footprint' scales uniformly to fill the floor area,
+ * 'stretch' fills the box exactly. `mb` is the model's current world box; yaw is a multiple of 90°
+ * for boxed props, so local x maps to world x or z.
+ */
+function fitToBox(o: THREE.Object3D, mb: THREE.Box3, b: { minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number }, mode: 'footprint' | 'stretch'): void {
+  const ms = mb.getSize(new THREE.Vector3());
+  const rx = (b.maxX - b.minX) / Math.max(ms.x, 1e-3);
+  const ry = (b.maxY - b.minY) / Math.max(ms.y, 1e-3);
+  const rz = (b.maxZ - b.minZ) / Math.max(ms.z, 1e-3);
+  if (mode === 'footprint') {
+    o.scale.multiplyScalar(Math.min(rx, rz));
+    return;
+  }
+  const swap = Math.abs(Math.cos(o.rotation.y)) < 0.7;
+  o.scale.multiply(new THREE.Vector3(swap ? rz : rx, ry, swap ? rx : rz));
 }

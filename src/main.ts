@@ -2,7 +2,8 @@ import { installDebugHooks } from './game/debug';
 import { Game } from './game/game';
 import { readParams } from './game/params';
 import { ModelLibrary } from './render/models';
-import { profileModels, PROFILES } from './render/modelCharacter';
+import { useFlatTextures } from './render/textures';
+import { applyArtOverrides, profileModels, PROFILES } from './render/modelCharacter';
 
 const app = document.getElementById('app')!;
 
@@ -16,10 +17,12 @@ function fail(err: unknown): void {
 
 async function boot(): Promise<void> {
   const game = new Game(app, readParams(location.search));
-  // Quaternius characters are the default look; ?art=none keeps the code-built figures.
+  // Quaternius characters are the default look; ?art=kenney tries the Kenney kits; ?art=none keeps the code-built figures.
   const art = game.params.art || 'quaternius';
   if (art in PROFILES) {
     // Art trial: load every model the data refers to before the first level starts.
+    applyArtOverrides(PROFILES[art]!, game.data);
+    useFlatTextures(!!PROFILES[art]!.flatTextures);
     const lib = new ModelLibrary(`${import.meta.env.BASE_URL}assets/`);
     const paths = [...Object.values(game.data.props), ...Object.values(game.data.items), ...Object.values(game.data.weapons)].flatMap((k) => (k.model ? [k.model] : []));
     await lib.load([...new Set([...paths, ...profileModels(art)])]);

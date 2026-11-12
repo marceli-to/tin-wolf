@@ -23,6 +23,84 @@ export interface CharacterProfile {
   heldGun?: string;
   /** Muzzle position in hand-bone space (metres), for models that carry their own gun. */
   muzzle?: [number, number, number];
+  /** For models without a gun of their own: where held guns go in the hand bone (model units). */
+  grip?: GripSpec;
+  /**
+   * Arm pose layered over every animation but death: tracks of `bones` come from `clip` (and from
+   * `shootClip` while shooting), so a figure walks and runs with its gun raised.
+   */
+  armed?: { clip: string; shootClip: string; bones: string[] };
+}
+
+export interface GripSpec {
+  /** Hand point in the hand bone's space, where the gun's grip goes (model units). */
+  position: [number, number, number];
+  /** Gun-pack axes to hand-bone axes (radians, XYZ order). */
+  rotation: [number, number, number];
+  /** Model units per gun-pack unit, applied to every gun so their relative sizes stay. */
+  scale: number;
+}
+
+/**
+ * Puts a gun model in a hand that has no gun of its own: the gun's grip (the centre of its lowest
+ * vertices) goes to the grip point, rotated into hand axes. Returns the holder added to `hand`.
+ */
+export function attachHeldGun(hand: THREE.Object3D, gun: THREE.Object3D, grip: GripSpec, relSize?: number): THREE.Object3D {
+  gun.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(gun);
+  const g = new THREE.Vector3();
+  const v = new THREE.Vector3();
+  let n = 0;
+  const lowY = box.min.y + (box.max.y - box.min.y) * 0.25;
+  gun.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    const pos = mesh.geometry.getAttribute('position');
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
+      if (v.y <= lowY) {
+        g.add(v);
+        n++;
+      }
+    }
+  });
+  if (n) g.divideScalar(n);
+  else box.getCenter(g);
+  const holder = new THREE.Group();
+  const inner = new THREE.Group();
+  inner.add(gun);
+  // A thrown weapon sits in the palm, centred.
+  if (relSize) box.getCenter(g);
+  gun.position.sub(g);
+  holder.add(inner);
+  holder.position.set(...grip.position);
+  holder.rotation.set(...grip.rotation);
+  holder.scale.setScalar(grip.scale * (relSize ?? 1));
+  hand.add(holder);
+  return holder;
+}
+
+/**
+ * Animation clips per game animation. With an `armed` pose the arm tracks of every clip but death
+ * are replaced by the armed clip's, so legs walk while the arms keep the gun up.
+ */
+export function buildClips(animations: THREE.AnimationClip[], profile: CharacterProfile): Map<CharacterAnim, THREE.AnimationClip> {
+  const byName = new Map(animations.map((c) => [c.name, c]));
+  const out = new Map<CharacterAnim, THREE.AnimationClip>();
+  const armed = profile.armed;
+  const isArm = (t: THREE.KeyframeTrack): boolean => !!armed && armed.bones.some((b) => t.name.startsWith(`${THREE.PropertyBinding.sanitizeNodeName(b)}.`));
+  for (const [anim, name] of Object.entries(profile.clips) as [CharacterAnim, string][]) {
+    const base = byName.get(name);
+    if (!base) continue;
+    const pose = armed && anim !== 'die' ? byName.get(anim === 'shoot' ? armed.shootClip : armed.clip) : null;
+    if (!pose) {
+      out.set(anim, base);
+      continue;
+    }
+    const tracks = [...base.tracks.filter((t) => !isArm(t)), ...pose.tracks.filter(isArm)];
+    out.set(anim, new THREE.AnimationClip(`${anim}+armed`, base.duration, tracks));
+  }
+  return out;
 }
 
 /**
@@ -146,13 +224,33 @@ export function findNode(root: THREE.Object3D, name: string): THREE.Object3D | n
   return o ?? null;
 }
 
+/** Render-only replacement for a data entry's model when an art set is active. */
+export interface ModelOverride {
+  /** Model path, or null to fall back to the code-built shape. */
+  model: string | null;
+  modelScale?: number;
+  modelFit?: 'scale' | 'footprint' | 'stretch';
+}
+
 export interface ArtSet {
   guard: CharacterProfile;
   officer: CharacterProfile;
   /** Alternative outfits a guard can wear via `look` (same rig and animations). */
   looks?: Record<string, CharacterProfile>;
   /** Player bodies (seen by the other player in split-screen); the named material takes the player colour. */
-  player?: CharacterProfile & { tintMaterial: string };
+  player?: CharacterProfile & { tintMaterial?: string };
+  /** Player body per slot, instead of tinting one shared model. */
+  playerModels?: string[];
+  /** Reference gun: every gun keeps its size relative to it (packs whose characters carry a gun). */
+  gunRef?: string;
+  /** Models used instead of the ones named in props.json, items.json and weapons.json. */
+  overrides?: {
+    props?: Record<string, ModelOverride>;
+    items?: Record<string, ModelOverride>;
+    weapons?: Record<string, ModelOverride>;
+  };
+  /** Level surfaces drawn flat and clean (no grime, rivets or noise) to match the models. */
+  flatTextures?: boolean;
   /** First-person gun model and its placement in view-model space (used when there are no view arms). */
   viewGun?: { model: string; scale: number; position: [number, number, number]; rotation: [number, number, number] };
   /** First-person arms: the player model in an aiming pose, head collapsed, placed at the camera. */
@@ -163,10 +261,15 @@ export interface ArtSet {
     collapse: string[];
     /** Where the model's head bone sits relative to the camera (metres; x right, y up, z back). */
     headOffset: [number, number, number];
-    tintMaterial: string;
+    tintMaterial?: string;
     hand: string;
     muzzle: [number, number, number];
     heldGun?: string;
+    /** Head bone placed at `headOffset` (default 'Head'). */
+    headBone?: string;
+    grip?: GripSpec;
+    /** First person shows the gun alone, without the figure's hand. */
+    gunOnly?: boolean;
   };
 }
 
@@ -222,11 +325,131 @@ export const PROFILES: Record<string, ArtSet> = {
   },
 };
 
+// Kenney Mini Characters: blocky rigid parts (root, legs, torso, arms, head), no gun of their own.
+// In bind pose the right arm points along the bone's -x with the fist at its end.
+const K_GRIP: GripSpec = { position: [-0.27, 0.0, 0.02], rotation: [0, Math.PI / 2 + 0.5, 0], scale: 0.4 };
+const K_CLIPS: Record<CharacterAnim, string> = {
+  idle: 'idle',
+  alert: 'holding-right',
+  walk: 'walk',
+  run: 'sprint',
+  aim: 'holding-right',
+  shoot: 'holding-right-shoot',
+  die: 'die',
+};
+const kenneyChar = (file: string): CharacterProfile => ({
+  model: `kenney/characters/${file}.glb`,
+  clips: K_CLIPS,
+  hand: 'arm-right',
+  grip: K_GRIP,
+  armed: { clip: 'holding-right', shootClip: 'holding-right-shoot', bones: ['arm-right'] },
+});
+
+PROFILES.kenney = {
+  guard: kenneyChar('character-male-c'),
+  officer: kenneyChar('character-male-d'),
+  looks: { worker: kenneyChar('character-worker') },
+  player: kenneyChar('character-soldier'),
+  playerModels: ['kenney/characters/character-soldier.glb', 'kenney/characters/character-female-b.glb'],
+  viewArms: {
+    model: 'kenney/characters/character-soldier.glb',
+    clip: 'holding-right',
+    collapse: ['head', 'leg-left', 'leg-right', 'arm-left'],
+    headBone: 'head',
+    hand: 'arm-right',
+    muzzle: [0, 0, 0],
+    headOffset: [-0.3, -0.31, 0.04],
+    // Smaller than in third person: up close the toy blasters filled a quarter of the screen.
+    grip: { ...K_GRIP, position: [-0.29, 0.03, 0.02], scale: 0.26 },
+    gunOnly: true,
+  },
+  flatTextures: true,
+  overrides: {
+    props: {
+      console: { model: 'kenney/space-station/computer-wide.glb', modelFit: 'stretch' },
+      terminal: { model: 'kenney/space-station/computer-system.glb', modelFit: 'stretch' },
+      crate: { model: 'kenney/survival/box.glb', modelFit: 'stretch' },
+      crate_tall: { model: 'kenney/factory/box-large.glb', modelFit: 'stretch' },
+      crate_large: { model: 'kenney/factory/box-long.glb', modelFit: 'stretch' },
+      cargo: { model: 'kenney/factory/box-wide.glb', modelFit: 'stretch' },
+      barrel: { model: 'kenney/survival/barrel.glb', modelFit: 'stretch' },
+      barrel_small: { model: 'kenney/survival/barrel.glb', modelFit: 'stretch' },
+      chest: { model: 'kenney/survival/chest.glb', modelFit: 'stretch' },
+      ammo_crate: { model: 'kenney/blasters/crate-small.glb', modelFit: 'footprint' },
+      locker: { model: 'kenney/furniture/bookcaseClosedDoors.glb', modelFit: 'stretch' },
+      shelf: { model: 'kenney/furniture/bookcaseOpen.glb', modelFit: 'stretch' },
+      shelf_wide: { model: 'kenney/furniture/bookcaseClosedWide.glb', modelFit: 'stretch' },
+      shelf_low: { model: 'kenney/furniture/bookcaseOpenLow.glb', modelFit: 'stretch' },
+      lab_desk: { model: 'kenney/space-station/table-large.glb', modelFit: 'stretch' },
+      lab_desk_small: { model: 'kenney/space-station/table.glb', modelFit: 'stretch' },
+      lab_desk_corner: { model: 'kenney/furniture/deskCorner.glb', modelFit: 'stretch' },
+      lab_chair: { model: 'kenney/space-station/chair.glb', modelFit: 'footprint' },
+      satellite_dish: { model: 'kenney/space/satelliteDish_large.glb', modelFit: 'footprint' },
+      desk: { model: 'kenney/furniture/desk.glb', modelFit: 'stretch' },
+      office_chair: { model: 'kenney/furniture/chairDesk.glb', modelFit: 'footprint' },
+      bookcase: { model: 'kenney/furniture/bookcaseClosedWide.glb', modelFit: 'stretch' },
+      closet: { model: 'kenney/furniture/bookcaseClosedDoors.glb', modelFit: 'stretch' },
+      side_table: { model: 'kenney/furniture/sideTableDrawers.glb', modelFit: 'stretch' },
+      bunk_bed: { model: 'kenney/furniture/bedBunk.glb', modelFit: 'footprint' },
+      mess_table: { model: 'kenney/furniture/table.glb', modelFit: 'stretch' },
+      chair: { model: 'kenney/furniture/chair.glb', modelFit: 'footprint' },
+      stool: { model: 'kenney/furniture/stoolBar.glb', modelFit: 'footprint' },
+      armchair: { model: 'kenney/furniture/loungeChair.glb', modelFit: 'footprint' },
+    },
+    items: {
+      // No keycard or medkit in the Kenney kits: the code-built shapes are flat-coloured anyway.
+      key_red: { model: null },
+      key_blue: { model: null },
+      medkit: { model: null },
+      ammo_pistol: { model: 'kenney/blasters/clip-small.glb', modelScale: 1.6 },
+      ammo_smg: { model: 'kenney/blasters/clip-large.glb', modelScale: 1.6 },
+      weapon_smg: { model: 'kenney/blasters/blaster-d.glb', modelScale: 0.6 },
+      weapon_pistol_sd: { model: 'kenney/blasters/blaster-h.glb', modelScale: 0.6 },
+      grenades: { model: 'kenney/blasters/grenade-a.glb', modelScale: 1.4 },
+    },
+    weapons: {
+      pistol: { model: 'kenney/blasters/blaster-k.glb' },
+      pistol_sd: { model: 'kenney/blasters/blaster-h.glb' },
+      smg: { model: 'kenney/blasters/blaster-d.glb' },
+      grenade: { model: 'kenney/blasters/grenade-a.glb' },
+    },
+  },
+};
+
+PROFILES.quaternius!.gunRef = Q_GUN;
+
 export function profileModels(art: string): string[] {
   const set = PROFILES[art];
   if (!set) return [];
   const profiles = [set.guard, set.officer, ...(set.player ? [set.player] : []), ...Object.values(set.looks ?? {})];
-  return [...profiles.flatMap((p) => [p.model, ...(p.gun ? [p.gun.model] : []), ...(p.heldGun ? [p.heldGun] : [])]), ...(set.viewArms?.heldGun ? [set.viewArms.heldGun] : []), ...(set.viewGun ? [set.viewGun.model] : []), ...(set.viewArms ? [set.viewArms.model] : [])];
+  return [
+    ...profiles.flatMap((p) => [p.model, ...(p.gun ? [p.gun.model] : []), ...(p.heldGun ? [p.heldGun] : [])]),
+    ...(set.viewArms?.heldGun ? [set.viewArms.heldGun] : []),
+    ...(set.viewGun ? [set.viewGun.model] : []),
+    ...(set.viewArms ? [set.viewArms.model] : []),
+    ...(set.playerModels ?? []),
+    ...(set.gunRef ? [set.gunRef] : []),
+  ];
+}
+
+/** Applies an art set's model overrides to the (render-only) model fields of the game data. */
+export function applyArtOverrides(
+  set: ArtSet,
+  data: { props: Record<string, { model?: string; modelScale: number; modelFit: string }>; items: Record<string, { model?: string; modelScale: number }>; weapons: Record<string, { model?: string }> },
+): void {
+  const apply = (table: Record<string, { model?: string; modelScale?: number; modelFit?: string }>, over: Record<string, ModelOverride> | undefined): void => {
+    for (const [k, o] of Object.entries(over ?? {})) {
+      const def = table[k];
+      if (!def) continue;
+      if (o.model === null) delete def.model;
+      else def.model = o.model;
+      if (o.modelScale !== undefined) def.modelScale = o.modelScale;
+      if (o.modelFit !== undefined) def.modelFit = o.modelFit;
+    }
+  };
+  apply(data.props, set.overrides?.props);
+  apply(data.items, set.overrides?.items);
+  apply(data.weapons, set.overrides?.weapons);
 }
 
 const FADE = 0.18;
@@ -238,7 +461,7 @@ export class ModelCharacter {
   /** The hand-held gun, exposed for placement tuning. */
   readonly gun: THREE.Object3D;
   private mixer: THREE.AnimationMixer;
-  private actions = new Map<string, THREE.AnimationAction>();
+  private actions = new Map<CharacterAnim, THREE.AnimationAction>();
   private current: CharacterAnim | null = null;
   private materials: THREE.MeshStandardMaterial[];
   /** Held weapons by id, with the barrel tip in hand space (null for thrown weapons). */
@@ -251,7 +474,7 @@ export class ModelCharacter {
    */
   constructor(
     model: ModelInstance,
-    private profile: CharacterProfile,
+    profile: CharacterProfile,
     height: number,
     flashMaterial: THREE.Material,
     gunModel: ModelInstance | null,
@@ -270,8 +493,8 @@ export class ModelCharacter {
     this.root.add(inner);
     this.materials = [...model.materials, ...(gunModel?.materials ?? []), ...held.flatMap((h) => h.model.materials)];
     this.mixer = new THREE.AnimationMixer(inner);
-    for (const clip of model.animations) this.actions.set(clip.name, this.mixer.clipAction(clip));
-    const die = this.actions.get(profile.clips.die);
+    for (const [anim, clip] of buildClips(model.animations, profile)) this.actions.set(anim, this.mixer.clipAction(clip));
+    const die = this.actions.get('die');
     if (die) {
       die.setLoop(THREE.LoopOnce, 1);
       die.clampWhenFinished = true;
@@ -288,8 +511,8 @@ export class ModelCharacter {
       g.rotation.set(...profile.gun.rotation);
       holder.add(g);
       this.gun = g;
-    } else if (profile.muzzle) {
-      // The model holds its own gun; nothing to add.
+    } else if (profile.muzzle || profile.grip) {
+      // The model holds its own gun, or held guns go into the grip below.
       this.gun = holder;
     } else {
       const box = new THREE.Mesh(shadedBox(0.07, 0.12, 0.28), flatMaterial('#232428'));
@@ -304,9 +527,24 @@ export class ModelCharacter {
       flash.position.set(-0.75, 0.26, 0);
       flash.scale.setScalar(1 / profile.gun.scale);
       this.gun.add(flash);
+    } else if (profile.grip) {
+      // Guns go into the empty hand; the flash sits on each barrel tip in hand space.
+      const aim = this.actions.get('aim');
+      aim?.play();
+      this.mixer.update(0.3);
+      inner.updateMatrixWorld(true);
+      for (const h of held) {
+        const holder = attachHeldGun(hand, h.model.object, profile.grip, h.fit === 'hand' ? 0.45 : undefined);
+        const tip = h.fit === 'hand' ? null : findMuzzleIn(holder, hand);
+        holder.visible = false;
+        this.held.set(h.id, { holder, tip });
+      }
+      aim?.stop();
+      flash.scale.setScalar(1 / inner.scale.x);
+      hand.add(flash);
     } else if (profile.muzzle) {
       // Pose the gun in the aiming clip once, then pin the flash to each barrel tip in hand space.
-      const aim = this.actions.get(profile.clips.aim);
+      const aim = this.actions.get('aim');
       aim?.play();
       this.mixer.update(0.3);
       for (const h of held) {
@@ -352,9 +590,9 @@ export class ModelCharacter {
 
   play(name: CharacterAnim): void {
     if (name === this.current) return;
-    const next = this.actions.get(this.profile.clips[name]);
+    const next = this.actions.get(name);
     if (!next) return;
-    const prev = this.current ? this.actions.get(this.profile.clips[this.current]) : null;
+    const prev = this.current ? this.actions.get(this.current) : null;
     if (prev === next) {
       this.current = name;
       return;

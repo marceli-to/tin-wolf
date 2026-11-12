@@ -21,6 +21,7 @@ URL parameters:
 - `?players=1|2`
 - `?autostart=1` skips lobby and briefing (slot 0 = keyboard + mouse, others = gamepads)
 - `?seed=<n>` fixes the sim RNG
+- `?art=kenney` swaps every model for Kenney's toy-like kits and draws level surfaces flat (art trial; same levels and gameplay)
 - `?art=none` uses the code-built figures instead of the character models
 - `?debug=1` shows FPS, collision boxes, guard vision cones / paths / states, and exposes `window.__game`
 

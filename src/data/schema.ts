@@ -187,6 +187,11 @@ export const PropKindSchema = z.object({
   /** Optional model file under /assets, used when model art is enabled. */
   model: z.string().optional(),
   modelScale: z.number().default(1),
+  /**
+   * How the model is sized (render-only): 'scale' uses `modelScale`; 'footprint' scales it uniformly to
+   * fill the collision box's floor area; 'stretch' fills the whole collision box (non-uniform).
+   */
+  modelFit: z.enum(['scale', 'footprint', 'stretch']).default('scale'),
 });
 export type PropKindDef = z.output<typeof PropKindSchema>;
 export const PropKindsSchema = z.record(z.string(), PropKindSchema);

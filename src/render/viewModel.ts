@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { flatMaterial, shadedBox } from './shapes';
 import type { ModelInstance } from './models';
-import { findMuzzle, findMuzzleIn, findNode, swapHeldGun, type HeldGun } from './modelCharacter';
+import { attachHeldGun, findMuzzle, findMuzzleIn, findNode, swapHeldGun, type GripSpec, type HeldGun } from './modelCharacter';
 
 export interface ViewModel {
   root: THREE.Group;
@@ -23,6 +23,12 @@ export interface ViewArmsSpec {
   /** Muzzle in hand-bone space (metres); the model carries its own gun. */
   muzzle: [number, number, number];
   height: number;
+  /** Head bone placed at `headOffset` (default 'Head'). */
+  headBone?: string;
+  /** Empty hand: guns are attached here instead of replacing a gun the model carries. */
+  grip?: GripSpec;
+  /** Show only the gun: the figure's own meshes are hidden (its bones still pose the gun). */
+  gunOnly?: boolean;
 }
 
 /**
@@ -38,6 +44,9 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], re
   const box = new THREE.Box3().setFromObject(body, true);
   body.scale.setScalar(spec.height / (box.max.y - box.min.y || 1));
   for (const name of spec.collapse) findNode(body, name)?.scale.setScalar(0.0001);
+  if (spec.gunOnly) body.traverse((o) => {
+    if ((o as THREE.SkinnedMesh).isSkinnedMesh) o.visible = false;
+  });
   const mixer = new THREE.AnimationMixer(body);
   const clip = arms.animations.find((c) => c.name === spec.clip);
   if (clip) mixer.clipAction(clip).play();
@@ -45,7 +54,7 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], re
   // Put the head bone at the requested spot relative to the camera.
   gun.add(body);
   gun.updateMatrixWorld(true);
-  const head = findNode(body, 'Head');
+  const head = findNode(body, spec.headBone ?? 'Head');
   const hp = new THREE.Vector3();
   head?.getWorldPosition(hp);
   body.position.set(spec.headOffset[0] - hp.x, spec.headOffset[1] - hp.y, spec.headOffset[2] - hp.z);
@@ -73,7 +82,9 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], re
   flash.visible = false;
   const guns = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null }>();
   for (const h of held) {
-    const holder = swapHeldGun(body, hand, h.model.object, h.fit === 'hand' ? { relSize: 0.35 } : { ref: ref ?? undefined });
+    const holder = spec.grip
+      ? attachHeldGun(hand, h.model.object, spec.grip, h.fit === 'hand' ? 0.45 : undefined)
+      : swapHeldGun(body, hand, h.model.object, h.fit === 'hand' ? { relSize: 0.35 } : { ref: ref ?? undefined });
     if (!holder) continue;
     holder.visible = false;
     guns.set(h.id, { holder, tip: h.fit === 'hand' ? null : findMuzzleIn(holder, hand) });
