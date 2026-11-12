@@ -6,7 +6,8 @@ A browser first-person shooter in the spirit of late-90s console shooters: steal
 
 ```sh
 npm install
-npm run dev        # http://localhost:5181
+npm run dev        # http://localhost:5181 (live reload)
+npm run build      # dist/, served by Herd at https://tin-wolf.test (cd dist && herd link tin-wolf && herd secure tin-wolf)
 npm test           # sim + core unit tests (Vitest, Node)
 npm run typecheck
 npm run build

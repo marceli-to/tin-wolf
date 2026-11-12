@@ -10,7 +10,11 @@ M0–M6 are done and committed. M7: "More weapons" is done (asked for by Marcel)
 
 Verified by script in the browser: movement and collision, split-screen, weapons and damage, full versus match → results → rematch, every guard state transition in the test room, the depot's stealth route and loud route end to end (debug autopilot), mission fail → debrief → retry, settings surviving a reload, draw calls.
 
-Art direction changed after M6 (see deviation log, "Art" rows): CC0 characters and smooth rendering by default.
+Art direction changed after M6 (see deviation log, "Art" rows): all models are Quaternius CC0 (characters, Sci-Fi Essentials props, Ultimate Furniture, Ultimate Gun Pack), smooth rendering by default.
+
+Repository: https://github.com/marceli-to/tin-wolf (`master`).
+
+Next (ask first): the remaining M7 items. Candidates raised with Marcel: guards using cover and alarm panels, difficulty levels, more arena maps, music, gamepad aim assist, 4-player split-screen. Optional polish: a two-handed pose or lower placement for the first-person SMG (it uses the pistol aim pose); smaller kit textures (~12 MB of models).
 
 Still needs a human:
 
@@ -19,6 +23,7 @@ Still needs a human:
 - The sound mix (all SFX are synthesised; the executor cannot hear them)
 - 60 fps on a laptop with integrated graphics, and Firefox / Safari
 - Playing the depot by hand: is the corridor timing on the stealth route fair, are guards too sharp or too dull
+- Weapon feel: SMG recoil and spread, grenade arc, bounce and blast radius (all in `src/data/weapons.json`)
 
 ## 0. Decisions and assumptions
 
@@ -367,3 +372,4 @@ PLAN.md  README.md
 | 2026-11-12 | M7 | **More weapons** (asked for by Marcel): Kestrel 9 SD (silenced, 4 m noise), Vireo SMG (automatic) and frag grenades (projectile with bounces, rolling drag, fuse, line-of-sight blast, self-damage, alerts guards like a shot). Players own several weapons with shared ammo pools (`ammo` per weapon); switch with Q / wheel / 1–4 / pad Y and LB (0.4 s, no firing). Levels set a `loadout` (depot: both pistols). Items gain `weapon` and `ammo` kinds; a new gun is drawn on pickup. Guards drop loot (`drop` on archetypes); new `guard_rifle` archetype with the SMG guards the yard and garage | Plan item; the SMG is a submachine gun rather than a rifle because the pose is one-handed |
 | 2026-11-12 | M7 | Held weapons: every pack gun is placed with `swapHeldGun` relative to the reference pistol (`ref`), so sizes stay true; the silenced pistol is Pistol_5 with the pack's short silencer merged in. Grenades in hand are scaled to the palm (`fit: 'hand'`) | One rig, one pose, several guns |
 | 2026-11-12 | M7 | Grenades update before guards in the tick so the AI hears an explosion the same tick | Found by test: explosions after `updateGuards` were never heard |
+| 2026-11-12 | M7 | `swapHeldGun` maps gun-pack axes (barrel +x, up +y) onto the built-in pistol mesh (barrel -x, up +z) with a fixed basis instead of a half-turn about y | Every swapped gun lay on its side; Marcel spotted it once the SMG made it obvious |
