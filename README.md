@@ -7,11 +7,15 @@ A browser first-person shooter in the spirit of late-90s console shooters: steal
 ```sh
 npm install
 npm run dev        # http://localhost:5181 (live reload)
-npm run build      # dist/ (upload its contents, including .htaccess, to the web root), served by Herd at https://tin-wolf.test (cd dist && herd link tin-wolf && herd secure tin-wolf)
+npm run build      # dist/, served by Herd at https://tin-wolf.test (cd dist && herd link tin-wolf && herd secure tin-wolf)
 npm test           # sim + core unit tests (Vitest, Node)
 npm run typecheck
 npm run build
 ```
+
+## Deploy
+
+`./deploy.sh` publishes the committed state to https://tinfox.kimiyu.ch (Hostpoint, same account as the other kimiyu sites, over SSH with your own key). It refuses to run with uncommitted changes, runs the tests, builds, and mirrors `dist/` (including `.htaccess`) into `www/tinfox.kimiyu.ch/public`, deleting files that are no longer part of the build.
 
 Levels: `depot` (mission, Halvard Depot), versus arenas `arena_pumphouse`, `arena_warehouse` (raised corner platforms, pillar blocks) and `arena_snowfort` (outdoors, a hut in the middle), `test_room` (sandbox with two guards). Versus in the menu lets you pick the map. The two new arenas are point-symmetric so neither start is better; they were generated with a small script and are plain level JSON.
 
