@@ -4,6 +4,7 @@ import { actorShapes, applyDamage, damageProp } from './combat';
 import type { ActorRef } from './events';
 import { clearLine } from './los';
 import { rayBox, rayGrid, type Ray, type RayHit } from './raycast';
+import { hitTarget } from './targets';
 import { doorBox, emit, type World } from './world';
 
 const RADIUS = 0.08;
@@ -135,5 +136,12 @@ export function explode(world: World, owner: ActorRef, x: number, y: number, z: 
     const cz = Math.max(b.minZ, Math.min(z, b.maxZ));
     const d = Math.hypot(cx - x, cy - ey, cz - z);
     if (d <= r) damageProp(world, i, def.blastDamage * (1 - d / r));
+  });
+  // Training targets in the blast (and in sight of it) go down.
+  const thrower = owner.kind === 'player' ? (world.players[owner.slot] ?? null) : null;
+  world.targets.forEach((t, i) => {
+    if (Math.hypot(t.x - x, t.y - ey, t.z - z) > r + t.radius) return;
+    if (!clearLine(world, x, ey, z, t.x, t.y, t.z)) return;
+    hitTarget(world, i, thrower, null);
   });
 }

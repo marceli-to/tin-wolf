@@ -17,7 +17,7 @@ npm run build
 
 `./deploy.sh` publishes the committed state to https://tinfox.kimiyu.ch (Hostpoint, same account as the other kimiyu sites, over SSH with your own key). It refuses to run with uncommitted changes, runs the tests, builds, and mirrors `dist/` (including `.htaccess`) into `www/tinfox.kimiyu.ch/public`, deleting files that are no longer part of the build.
 
-Levels: `depot` (mission, Halvard Depot), versus arenas `arena_pumphouse`, `arena_warehouse` (raised corner platforms, pillar blocks) and `arena_snowfort` (outdoors, a hut in the middle), `test_room` (sandbox with two guards). Versus in the menu lets you pick the map. The two new arenas are point-symmetric so neither start is better; they were generated with a small script and are plain level JSON.
+Levels: `depot` (mission, Halvard Depot), versus arenas `arena_pumphouse`, `arena_warehouse` (raised corner platforms, pillar blocks) and `arena_snowfort` (outdoors, a hut in the middle), `training` (Training Ground: target practice, see below), `test_room` (sandbox with two guards). Versus in the menu lets you pick the map. The two new arenas are point-symmetric so neither start is better; they were generated with a small script and are plain level JSON.
 
 URL parameters:
 
@@ -33,6 +33,12 @@ URL parameters:
 ```js
 __game.autopilot(0, [[19,26],[19,23],[19,19],[19,15],[22,14],[23,16]], { fight: true })
 ```
+
+## Training
+
+Menu → Training (one or two players). An outdoor range with 17 round targets: close, mid and far lanes (the far ones are for the Heron LR), two moving targets on rails, a couple up on crates, and three small ones hidden behind tall crates that need a grenade lobbed over from close up. Targets tip over when hit (a centre hit is a *Bullseye!*) and stand up again after 2.5 s. You carry every weapon and reserves never run out.
+
+The yellow button on the crate in front of the start runs a timed course: all targets stand up, hit ones stay down, and when the last one falls you get your time and hit rate. The best time is kept in the browser (`localStorage`) and shown on the range and in the Training menu. Targets are level entities (`"type": "target"`, optional `size: "small"`, `elevation`, and `to` + `speed` for a rail); the button is the `start_panel` prop.
 
 ## Weapons
 

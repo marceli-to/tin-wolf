@@ -10,6 +10,7 @@ import { deviceLabel, InputManager, type DeviceId } from '../input/manager';
 import { GameRenderer, type ViewLook } from '../render/gameRenderer';
 import { interactTarget } from '../sim/doors';
 import { zoomFactor } from '../sim/player';
+import { bestTime, formatTime, recordTime } from './records';
 import type { SimEvent, SimEventMap } from '../sim/events';
 import { stepWorld } from '../sim/step';
 import { validateLevel } from '../sim/validate';
@@ -31,6 +32,7 @@ export type GameState = 'menu' | 'lobby' | 'briefing' | 'playing' | 'paused' | '
 
 const MISSION_LEVEL = 'depot';
 const VERSUS_LEVEL = 'arena_pumphouse';
+const TRAINING_LEVEL = 'training';
 /** Seconds between the mission ending and the debrief, so the moment can land. */
 const DEBRIEF_DELAY = 1.8;
 
@@ -224,6 +226,11 @@ export class Game {
           hint: 'Two players, split-screen',
           action: () => this.showMapPicker(),
         },
+        {
+          label: 'Training',
+          hint: 'Target practice with every weapon',
+          action: () => this.showTrainingPicker(),
+        },
         { label: 'Settings', action: () => this.screen.show(this.settingsSpec(() => this.enterMenu())) },
         { label: 'Controls', action: () => this.showControls() },
       ],
@@ -250,6 +257,26 @@ export class Game {
       </div>`,
       items: [{ label: 'Back', action: () => this.enterMenu() }],
     });
+  }
+
+  private showTrainingPicker(): void {
+    this.menuBack = () => this.enterMenu();
+    const best = bestTime(TRAINING_LEVEL);
+    this.screen.show({
+      title: 'TRAINING',
+      subtitle: best !== null ? `Best course time ${formatTime(best)}` : 'Training Ground',
+      items: [
+        { label: 'One player', action: () => this.startTraining(1) },
+        { label: 'Two players', hint: 'Split-screen', action: () => this.startTraining(2) },
+        { label: 'Back', action: () => this.enterMenu() },
+      ],
+      footer: 'Arrows / D-pad to choose · Enter / A to select · Esc / B: back',
+    });
+  }
+
+  private startTraining(players: number): void {
+    this.levelId = TRAINING_LEVEL;
+    this.enterLobby(players);
   }
 
   /** Versus maps: every level with mode 'versus', Pumphouse first. */
@@ -399,6 +426,9 @@ export class Game {
     if (this.input.isAssigned({ kind: 'kbm' })) this.input.kbm.requestLock();
     // Show the objectives briefly at the start of a mission.
     if (this.world.mission) this.objectivesUntil[0] = this.clock + 5;
+    if (this.world.level.mode === 'training') {
+      for (const p of this.world.players) this.notify(p.slot, 'Knock the targets down!<br><small>The yellow button starts a timed course</small>', 5);
+    }
     this.onResize();
   }
 
@@ -639,6 +669,20 @@ export class Game {
       case 'missionEnded':
         w.players.forEach((p) => this.notify(p.slot, e.success ? 'MISSION COMPLETE' : '', 3));
         break;
+      case 'targetHit':
+        if (e.bullseye && e.slot !== null) this.notify(e.slot, 'Bullseye!', 1);
+        break;
+      case 'courseStarted':
+        w.players.forEach((p) => this.notify(p.slot, p.slot === e.slot ? `Go! Knock down all ${e.total} targets` : `P${e.slot + 1} started the course`, 2.5));
+        break;
+      case 'courseDone': {
+        const best = bestTime(w.level.id);
+        const isBest = recordTime(w.level.id, e.time);
+        const line = `${formatTime(e.time)} · ${Math.round(e.accuracy * 100)}% hits`;
+        const sub = isBest ? (best === null ? 'First record!' : 'New record!') : `Record: ${formatTime(best!)}`;
+        w.players.forEach((p) => this.notify(p.slot, `${p.slot === e.slot ? 'Course done!' : `P${e.slot + 1} finished`}<br><small>${line} · ${sub}</small>`, 6));
+        break;
+      }
       case 'died':
         if (e.target.kind === 'player') {
           const victim = e.target.slot;
@@ -666,6 +710,7 @@ export class Game {
       case 'paused': {
         if (!w) return 'menu';
         if (w.match) return w.match.over ? 'none' : 'versus';
+        if (w.level.mode === 'training') return w.course?.running ? 'versus' : 'sneak';
         if (w.mission?.over) return 'none';
         if (w.alarm.raised || w.guards.some((g) => g.state === 'attack')) this.alertUntil = this.clock + 6;
         return this.clock < this.alertUntil ? 'alert' : 'sneak';
@@ -701,7 +746,7 @@ export class Game {
           locked = target.locked;
           const key = target.door.requires ? world.data.items[target.door.requires]?.name : null;
           prompt = locked ? `Locked — needs the ${key ?? 'key'}` : `${this.useKey(i)}  Open door`;
-        } else if (target?.kind === 'prop') prompt = `${this.useKey(i)}  Use`;
+        } else if (target?.kind === 'prop') prompt = `${this.useKey(i)}  ${target.prop.kind === 'start_panel' ? (world.course?.running ? 'Restart the course' : 'Start the course') : 'Use'}`;
         h.update(world, p, {
           notice: n && n.until > this.clock ? n.text : '',
           top: this.hudTop(i),
@@ -733,6 +778,12 @@ export class Game {
   /** Score and timer in versus. */
   private hudTop(slot: number): string {
     const w = this.world;
+    if (w?.level.mode === 'training') {
+      const c = w.course;
+      if (c?.running) return `<span class="score chip p${c.slot + 1}">🎯 ${c.hits} / ${c.total}</span><span class="timer chip">${formatTime(c.time)}</span>`;
+      const best = bestTime(w.level.id);
+      return best !== null ? `<span class="timer chip">Record ${formatTime(best)}</span>` : '';
+    }
     if (!w?.match) return '';
     const scores = w.players.map((p) => `<span class="score chip p${p.slot + 1}${p.slot === slot ? ' me' : ''}">P${p.slot + 1} · ${p.kills}</span>`).join('');
     const t = Math.ceil(w.match.timeLeft);

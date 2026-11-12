@@ -4,6 +4,7 @@ import { DEG } from '../core/math';
 import type { GameData } from '../data';
 import { scaleEnemy, type EnemyDef, type EntityDef, type LevelDef } from '../data/schema';
 import type { Box, Terrain } from './collision';
+import type { CourseState, Target } from './targets';
 import type { ActorRef, SimEvent } from './events';
 import type { BodyShape } from './hitbox';
 import { buildGrid, cellCenter, floorAtWorld, type Grid } from './grid';
@@ -247,6 +248,9 @@ export interface World {
   alarm: { raised: boolean; time: number };
   /** Reinforcements waiting for the alarm (guard entities with `reserve`). */
   reserves: GuardEntity[];
+  /** Training: target boards and the timed course. */
+  targets: Target[];
+  course: CourseState | null;
 }
 
 export type GuardEntity = Extract<EntityDef, { type: 'guard' }>;
@@ -365,6 +369,8 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     match: level.mode === 'versus' && level.match ? createMatch(level.match.killLimit, level.match.timeLimit) : null,
     terrain: { grid, boxes: [] },
     alarm: { raised: false, time: 0 },
+    targets: [],
+    course: null,
     reserves: [],
   };
   const s = grid.size;
@@ -404,6 +410,26 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
           used: false,
           alive: true,
           mat: kind.mat,
+        });
+        break;
+      }
+      case 'target': {
+        const big = e.size === 'big';
+        const baseY = (floorAtWorld(grid, x, z) ?? 0) + e.elevation;
+        const end = e.to ? { x: (e.to[0] + (Number.isInteger(e.to[0]) ? 0.5 : 0)) * s, z: (e.to[1] + (Number.isInteger(e.to[1]) ? 0.5 : 0)) * s } : null;
+        world.targets.push({
+          id: e.id ?? nextId('target'),
+          x,
+          y: baseY + (big ? 1.35 : 1.15),
+          z,
+          baseY,
+          yaw: e.yaw * DEG,
+          radius: big ? 0.45 : 0.26,
+          up: 1,
+          standing: true,
+          timer: 0,
+          rail: end ? { ax: x, az: z, bx: end.x, bz: end.z, speed: e.speed, t: 0, dir: 1 } : null,
+          done: false,
         });
         break;
       }

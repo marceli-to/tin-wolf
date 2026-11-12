@@ -22,6 +22,9 @@ export type SimEvent =
   | { type: 'missionEnded'; success: boolean; reason: string }
   | { type: 'matchEnded'; winner: number | null }
   | { type: 'used'; id: string; slot: number }
+  | { type: 'targetHit'; id: string; x: number; y: number; z: number; bullseye: boolean; slot: number | null }
+  | { type: 'courseStarted'; slot: number; total: number }
+  | { type: 'courseDone'; slot: number; time: number; accuracy: number }
   | { type: 'footstep'; x: number; y: number; z: number; slot: number; loud?: boolean }
   | { type: 'guardStep'; x: number; z: number; running: boolean };
 

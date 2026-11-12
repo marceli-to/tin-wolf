@@ -8,6 +8,7 @@ import { updateMatch } from './match';
 import { updateObjectives } from './objectives';
 import { updatePickups } from './pickups';
 import { updateProjectiles } from './projectiles';
+import { updateTargets } from './targets';
 import { respawnPlayer } from './spawn';
 import { updatePlayerWeapon } from './weapons';
 import { rebuildBoxes, type World } from './world';
@@ -50,6 +51,7 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
   updatePickups(world, DT);
   updateMatch(world, DT);
   updateObjectives(world, DT);
+  updateTargets(world, DT);
   world.tick++;
   world.time += DT;
 }

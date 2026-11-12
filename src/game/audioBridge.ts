@@ -67,6 +67,16 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
     case 'pickup':
       sfx.play('pickup', 0.6);
       break;
+    case 'targetHit':
+      // Not positional: a far target must still ring clearly for the shooter.
+      sfx.play(e.bullseye ? 'bullseye' : 'target_hit', 0.7);
+      break;
+    case 'courseStarted':
+      sfx.play('objective', 0.6);
+      break;
+    case 'courseDone':
+      sfx.play('mission_success', 0.6);
+      break;
     case 'doorOpened':
       at('door', e.x, e.z, 0.7);
       break;

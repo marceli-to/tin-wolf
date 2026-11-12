@@ -5,12 +5,14 @@ import type { WeaponDef } from '../data/schema';
 import type { ActorRef, HitZone } from './events';
 import { humanoidZones, zoneDamage } from './hitbox';
 import { rayBox, rayCylinder, rayGrid, type Ray } from './raycast';
+import { hitTarget, rayTarget, targetHittable } from './targets';
 import { doorBox, emit, type World } from './world';
 
 export type ShotTarget =
   | { kind: 'world' }
   | { kind: 'prop'; index: number }
   | { kind: 'door'; index: number }
+  | { kind: 'target'; index: number; off: number }
   | { kind: 'actor'; ref: ActorRef; zone: HitZone };
 
 export interface ShotResult {
@@ -63,6 +65,11 @@ export function traceShot(world: World, ray: Ray, range: number, ignore: ActorRe
     const h = rayBox(ray, p.box, limit());
     if (h) consider(h.t, h.nx, h.ny, h.nz, { kind: 'prop', index: i });
   });
+  world.targets.forEach((tg, i) => {
+    if (!targetHittable(tg)) return;
+    const h = rayTarget(ray, tg, limit());
+    if (h) consider(h.t, -ray.dx, -ray.dy, -ray.dz, { kind: 'target', index: i, off: h.off });
+  });
   world.doors.forEach((d, i) => {
     if (d.open >= 0.95) return;
     const h = rayBox(ray, doorBox(world, d), limit());
@@ -107,6 +114,9 @@ export function fireHitscan(
   } else if (t.kind === 'prop') {
     emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'prop' });
     damageProp(world, t.index, weapon.damage);
+  } else if (t.kind === 'target') {
+    emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'prop' });
+    hitTarget(world, t.index, shooter.kind === 'player' ? (world.players[shooter.slot] ?? null) : null, t.off);
   } else {
     emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'world' });
   }

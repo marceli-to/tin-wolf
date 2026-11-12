@@ -68,6 +68,18 @@ export const EntitySchema = z.discriminatedUnion('type', [
   }),
   z.object({ type: z.literal('zone'), size: z.tuple([z.number(), z.number()]).default([1, 1]), ...Base, id: z.string() }),
   z.object({ type: z.literal('light'), level: z.number().min(0).max(1), radius: z.number().default(3), ...Base }),
+  /** Training target: a round board on a post that falls when hit. `to` makes it slide back and forth on a rail. */
+  z.object({
+    type: z.literal('target'),
+    /** Direction the board faces (degrees, like guards). */
+    yaw: z.number().default(0),
+    size: z.enum(['big', 'small']).default('big'),
+    /** Metres above the floor the post stands on (e.g. on a crate). */
+    elevation: z.number().default(0),
+    to: CellRef.optional(),
+    speed: z.number().positive().default(2),
+    ...Base,
+  }),
 ]);
 export type EntityDef = z.output<typeof EntitySchema>;
 
@@ -83,7 +95,7 @@ export type ObjectiveDef = z.output<typeof ObjectiveSchema>;
 export const LevelSchema = z.object({
   id: z.string(),
   name: z.string(),
-  mode: z.enum(['mission', 'versus', 'test']).default('test'),
+  mode: z.enum(['mission', 'versus', 'training', 'test']).default('test'),
   cellSize: z.number().positive().default(2),
   fog: z.object({ color: z.string().default('#20242a'), near: z.number().default(8), far: z.number().default(40) }).default({
     color: '#20242a',

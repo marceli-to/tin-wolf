@@ -19,6 +19,7 @@ import { materialColor, PLAYER_COLORS } from './palette';
 import { shadeByNormal, worldUvBox } from './shapes';
 import { computeViewRects, type SplitMode, type ViewRect } from './views';
 import { Effects } from './effects';
+import { buildRail, buildTarget, poseTarget, type TargetVisual } from './targets';
 import { buildModelArmsViewModel, buildPistolViewModel, poseViewModel, type ViewModel } from './viewModel';
 import { buildPickupMesh } from './pickups';
 import { flatMaterial } from './shapes';
@@ -64,6 +65,7 @@ export class GameRenderer {
   art = '';
   private modelLights = new THREE.Group();
   private doorMeshes: THREE.Mesh[] = [];
+  private targetVisuals: TargetVisual[] = [];
   private pickupMeshes: THREE.Group[] = [];
   private projectileMeshes = new Map<number, THREE.Object3D>();
   private time = 0;
@@ -200,6 +202,14 @@ export class GameRenderer {
       );
       this.dynamic.add(m);
       this.doorMeshes.push(m);
+    }
+    for (const t of world.targets) {
+      const v = buildTarget(t);
+      poseTarget(v, t);
+      this.dynamic.add(v.root);
+      this.targetVisuals.push(v);
+      const rail = buildRail(t);
+      if (rail) this.dynamic.add(rail);
     }
     for (const pk of world.pickups) this.addPickup(world, pk);
     this.cameras = world.players.map((p) => {
@@ -376,6 +386,7 @@ export class GameRenderer {
     this.guards = [];
     this.propMeshes = [];
     this.doorMeshes = [];
+    this.targetVisuals = [];
     this.pickupMeshes = [];
     this.projectileMeshes.clear();
     this.players = [];
@@ -569,6 +580,10 @@ export class GameRenderer {
       if (!m) return;
       const b = doorBox(world, d);
       m.position.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, (b.minZ + b.maxZ) / 2);
+    });
+    world.targets.forEach((t, i) => {
+      const v = this.targetVisuals[i];
+      if (v) poseTarget(v, t);
     });
 
     // Reinforcements arrive with the alarm.
