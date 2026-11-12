@@ -76,7 +76,7 @@ export function findMuzzleIn(gun: THREE.Object3D, hand: THREE.Object3D): THREE.V
 export interface SwapOptions {
   /** Name of the gun node the model ships with. */
   builtin?: string;
-  /** Turn the new gun round if its barrel points the other way. */
+  /** Rotate pack axes into the built-in gun's axes (default true). */
   flip?: boolean;
   /**
    * Reference gun from the same pack: scale and centre come from it, so every gun of the pack keeps its
@@ -86,6 +86,12 @@ export interface SwapOptions {
   /** Size relative to the built-in gun instead (e.g. 0.6 for a grenade in the palm). */
   relSize?: number;
 }
+
+/**
+ * Gun-pack axes (barrel +x, up +y) to the Quaternius characters' built-in pistol mesh (barrel -x,
+ * slide up +z, grip toward -z). A plain half-turn about y left every gun lying on its side.
+ */
+const PACK_TO_BUILTIN = new THREE.Matrix4().makeBasis(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
 
 export function swapHeldGun(root: THREE.Object3D, hand: THREE.Object3D, gun: THREE.Object3D, opts: SwapOptions = {}): THREE.Object3D | null {
   const node = root.getObjectByName(opts.builtin ?? 'Pistol');
@@ -114,7 +120,7 @@ export function swapHeldGun(root: THREE.Object3D, hand: THREE.Object3D, gun: THR
   const scale = (Math.max(oldSize.x, oldSize.y, oldSize.z) / Math.max(newSize.x, newSize.y, newSize.z)) * (opts.relSize ?? 1);
   const align = new THREE.Matrix4()
     .makeTranslation(oldBox.getCenter(new THREE.Vector3()))
-    .multiply(new THREE.Matrix4().makeRotationY(opts.flip ?? true ? Math.PI : 0))
+    .multiply(opts.flip ?? true ? PACK_TO_BUILTIN : new THREE.Matrix4())
     .multiply(new THREE.Matrix4().makeScale(scale, scale, scale))
     .multiply(new THREE.Matrix4().makeTranslation(newBox.getCenter(new THREE.Vector3()).negate()));
   const holder = new THREE.Group();
