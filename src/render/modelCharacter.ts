@@ -19,6 +19,8 @@ export interface CharacterProfile {
   hide?: string[];
   /** Material recoloured by a guard's `uniform`. */
   tintMaterial?: string;
+  /** Replacement for the gun the model carries; placed in the built-in gun's pose. */
+  heldGun?: string;
   /** Muzzle position in hand-bone space (metres), for models that carry their own gun. */
   muzzle?: [number, number, number];
 }
@@ -58,6 +60,56 @@ export function findMuzzle(root: THREE.Object3D, hand: THREE.Object3D, gunNode =
   return best;
 }
 
+/**
+ * Replace the gun a character model carries (skinned to its hand) with another gun model, placed in
+ * exactly the same pose: the built-in gun's bind transform gives its placement in hand space, and the
+ * new gun is scaled to the same length and centred on it. `flip` turns the new gun round if its barrel
+ * points the other way. Returns the new gun, or null (built-in gun kept) if the model has no usable gun.
+ */
+/** Barrel tip of an arbitrary (non-skinned) gun object, in hand space. */
+export function findMuzzleIn(gun: THREE.Object3D, hand: THREE.Object3D): THREE.Vector3 | null {
+  const named = gun.name || 'heldGun';
+  gun.name = named;
+  return findMuzzle(gun.parent ?? gun, hand, named);
+}
+
+export function swapHeldGun(root: THREE.Object3D, hand: THREE.Object3D, gun: THREE.Object3D, builtin = 'Pistol', flip = true): THREE.Object3D | null {
+  const node = root.getObjectByName(builtin);
+  if (!node) return null;
+  const skinned: THREE.SkinnedMesh[] = [];
+  node.traverse((o) => {
+    if ((o as THREE.SkinnedMesh).isSkinnedMesh) skinned.push(o as THREE.SkinnedMesh);
+  });
+  const first = skinned[0];
+  if (!first) return null;
+  const bi = first.skeleton.bones.indexOf(hand as THREE.Bone);
+  if (bi < 0) return null;
+  // Hand space ← gun mesh space for a mesh rigidly skinned to the hand bone.
+  const toHand = new THREE.Matrix4().multiplyMatrices(first.skeleton.boneInverses[bi]!, first.bindMatrix);
+  const oldBox = new THREE.Box3();
+  for (const m of skinned) {
+    m.geometry.computeBoundingBox();
+    oldBox.union(m.geometry.boundingBox!);
+  }
+  gun.updateMatrixWorld(true);
+  const newBox = new THREE.Box3().setFromObject(gun);
+  const oldSize = oldBox.getSize(new THREE.Vector3());
+  const newSize = newBox.getSize(new THREE.Vector3());
+  const scale = Math.max(oldSize.x, oldSize.y, oldSize.z) / Math.max(newSize.x, newSize.y, newSize.z);
+  const align = new THREE.Matrix4()
+    .makeTranslation(oldBox.getCenter(new THREE.Vector3()))
+    .multiply(new THREE.Matrix4().makeRotationY(flip ? Math.PI : 0))
+    .multiply(new THREE.Matrix4().makeScale(scale, scale, scale))
+    .multiply(new THREE.Matrix4().makeTranslation(newBox.getCenter(new THREE.Vector3()).negate()));
+  const holder = new THREE.Group();
+  holder.matrixAutoUpdate = false;
+  holder.matrix.multiplyMatrices(toHand, align);
+  holder.add(gun);
+  hand.add(holder);
+  node.visible = false;
+  return holder;
+}
+
 /** Three's glTF loader strips characters such as '.' from node names ('Wrist.R' becomes 'WristR'). */
 export function findNode(root: THREE.Object3D, name: string): THREE.Object3D | null {
   const o = root.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(name)) ?? root.getObjectByName(name);
@@ -68,6 +120,8 @@ export function findNode(root: THREE.Object3D, name: string): THREE.Object3D | n
 export interface ArtSet {
   guard: CharacterProfile;
   officer: CharacterProfile;
+  /** Alternative outfits a guard can wear via `look` (same rig and animations). */
+  looks?: Record<string, CharacterProfile>;
   /** Player bodies (seen by the other player in split-screen); the named material takes the player colour. */
   player?: CharacterProfile & { tintMaterial: string };
   /** First-person gun model and its placement in view-model space (used when there are no view arms). */
@@ -83,11 +137,13 @@ export interface ArtSet {
     tintMaterial: string;
     hand: string;
     muzzle: [number, number, number];
+    heldGun?: string;
   };
 }
 
 // Quaternius characters carry their own skinned pistol that follows every gun animation.
 const Q_MUZZLE: [number, number, number] = [0.02, 0.06, 0.3];
+const Q_GUN = 'quaternius/guns/Pistol_5.glb';
 
 export const PROFILES: Record<string, ArtSet> = {
   quaternius: {
@@ -96,6 +152,7 @@ export const PROFILES: Record<string, ArtSet> = {
       clips: { idle: 'Idle_Gun', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
       hand: 'Wrist.R',
       muzzle: Q_MUZZLE,
+      heldGun: Q_GUN,
       tintMaterial: 'Swat',
     },
     officer: {
@@ -103,12 +160,23 @@ export const PROFILES: Record<string, ArtSet> = {
       clips: { idle: 'Idle', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
       hand: 'Wrist.R',
       muzzle: Q_MUZZLE,
+      heldGun: Q_GUN,
+    },
+    looks: {
+      worker: {
+        model: 'quaternius/Worker.glb',
+        clips: { idle: 'Idle_Gun', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
+        hand: 'Wrist.R',
+        muzzle: Q_MUZZLE,
+        heldGun: Q_GUN,
+      },
     },
     player: {
       model: 'quaternius/Swat.glb',
       clips: { idle: 'Idle_Gun', alert: 'Idle_Gun', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
       hand: 'Wrist.R',
       muzzle: Q_MUZZLE,
+      heldGun: Q_GUN,
       tintMaterial: 'Swat',
     },
     viewGun: { model: 'quaternius/Pistol.glb', scale: 0.25, position: [0.01, -0.03, 0.0], rotation: [0.06, -Math.PI / 2, 0] },
@@ -127,8 +195,8 @@ export const PROFILES: Record<string, ArtSet> = {
 export function profileModels(art: string): string[] {
   const set = PROFILES[art];
   if (!set) return [];
-  const profiles = [set.guard, set.officer, ...(set.player ? [set.player] : [])];
-  return [...profiles.flatMap((p) => [p.model, ...(p.gun ? [p.gun.model] : [])]), ...(set.viewGun ? [set.viewGun.model] : []), ...(set.viewArms ? [set.viewArms.model] : [])];
+  const profiles = [set.guard, set.officer, ...(set.player ? [set.player] : []), ...Object.values(set.looks ?? {})];
+  return [...profiles.flatMap((p) => [p.model, ...(p.gun ? [p.gun.model] : []), ...(p.heldGun ? [p.heldGun] : [])]), ...(set.viewArms?.heldGun ? [set.viewArms.heldGun] : []), ...(set.viewGun ? [set.viewGun.model] : []), ...(set.viewArms ? [set.viewArms.model] : [])];
 }
 
 const FADE = 0.18;
@@ -150,6 +218,7 @@ export class ModelCharacter {
     height: number,
     flashMaterial: THREE.Material,
     gunModel: ModelInstance | null,
+    heldGun: ModelInstance | null = null,
   ) {
     const inner = model.object;
     for (const name of profile.hide ?? []) {
@@ -161,7 +230,7 @@ export class ModelCharacter {
     // glTF characters face +z; the game's figures face -z.
     inner.rotation.y = Math.PI;
     this.root.add(inner);
-    this.materials = [...model.materials, ...(gunModel?.materials ?? [])];
+    this.materials = [...model.materials, ...(gunModel?.materials ?? []), ...(heldGun?.materials ?? [])];
     this.mixer = new THREE.AnimationMixer(inner);
     for (const clip of model.animations) this.actions.set(clip.name, this.mixer.clipAction(clip));
     const die = this.actions.get(profile.clips.die);
@@ -198,11 +267,12 @@ export class ModelCharacter {
       flash.scale.setScalar(1 / profile.gun.scale);
       this.gun.add(flash);
     } else if (profile.muzzle) {
+      const swapped = heldGun ? swapHeldGun(inner, hand, heldGun.object) : null;
       // Pose the gun in the aiming clip once, then pin the flash to the barrel tip in hand space.
       const aim = this.actions.get(profile.clips.aim);
       aim?.play();
       this.mixer.update(0.3);
-      const tip = findMuzzle(inner, hand);
+      const tip = swapped ? findMuzzle(swapped, hand, swapped.name) ?? findMuzzleIn(swapped, hand) : findMuzzle(inner, hand);
       aim?.stop();
       if (tip) {
         flash.position.copy(tip);

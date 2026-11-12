@@ -107,8 +107,9 @@ describe('collision', () => {
     place(w, 0, 3, 3, 90);
     place(w, 1, 11, 3, -90);
     run(w, 120, [intent({ moveZ: 1 }), intent({ moveZ: 1 })]);
-    // The crate (1.2 m wide at x 7) stops player 0; player 1 ends up against player 0 or the crate.
-    expect(a!.x).toBeLessThanOrEqual(7 - 0.6 - a!.radius + 1e-6);
-    expect(b!.x).toBeGreaterThanOrEqual(7 + 0.6 + b!.radius - 1e-6);
+    // The crate stops player 0 on its west side; player 1 ends up against its east side.
+    const box = w.props[0]!.box;
+    expect(a!.x).toBeLessThanOrEqual(box.minX - a!.radius + 1e-6);
+    expect(b!.x).toBeGreaterThanOrEqual(box.maxX + b!.radius - 1e-6);
   });
 });

@@ -35,6 +35,8 @@ export const EntitySchema = z.discriminatedUnion('type', [
     patrol: z.array(CellRef).default([]),
     /** Uniform colour override for the guard's model. */
     uniform: z.string().optional(),
+    /** Outfit name (render-only), e.g. 'worker'. */
+    look: z.string().optional(),
     ...Base,
     id: z.string(),
   }),
@@ -146,6 +148,9 @@ export const ItemSchema = z.object({
   kind: z.enum(['key', 'health', 'ammo', 'armor']),
   amount: z.number().default(0),
   color: z.string(),
+  /** Optional model under /assets; keys are tinted with `color`. */
+  model: z.string().optional(),
+  modelScale: z.number().default(1),
 });
 export type ItemDef = z.output<typeof ItemSchema>;
 export const ItemsSchema = z.record(z.string(), ItemSchema);

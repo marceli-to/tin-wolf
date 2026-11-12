@@ -1,7 +1,38 @@
 {
-  "key_red": { "name": "Red keycard", "kind": "key", "color": "#d33a2c" },
-  "key_blue": { "name": "Blue keycard", "kind": "key", "color": "#3a6bd3" },
-  "medkit": { "name": "Medkit", "kind": "health", "amount": 40, "color": "#e8e8e8" },
-  "ammo_pistol": { "name": "Pistol ammo", "kind": "ammo", "amount": 16, "color": "#c9a23a" },
-  "armor": { "name": "Vest", "kind": "armor", "amount": 50, "color": "#4a6a8a" }
+  "key_red": {
+    "name": "Red keycard",
+    "kind": "key",
+    "color": "#d33a2c",
+    "model": "quaternius/scifi/Prop_KeyCard.glb",
+    "modelScale": 0.7
+  },
+  "key_blue": {
+    "name": "Blue keycard",
+    "kind": "key",
+    "color": "#3a6bd3",
+    "model": "quaternius/scifi/Prop_KeyCard.glb",
+    "modelScale": 0.7
+  },
+  "medkit": {
+    "name": "Medkit",
+    "kind": "health",
+    "amount": 40,
+    "color": "#e8e8e8",
+    "model": "quaternius/scifi/Prop_HealthPack.glb",
+    "modelScale": 0.8
+  },
+  "ammo_pistol": {
+    "name": "Pistol ammo",
+    "kind": "ammo",
+    "amount": 16,
+    "color": "#c9a23a",
+    "model": "quaternius/scifi/Prop_Ammo_Small.glb",
+    "modelScale": 1.0
+  },
+  "armor": {
+    "name": "Vest",
+    "kind": "armor",
+    "amount": 50,
+    "color": "#4a6a8a"
+  }
 }

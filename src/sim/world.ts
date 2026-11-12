@@ -116,6 +116,8 @@ export interface Guard {
   stepDist: number;
   /** Render-only: uniform colour for the model. */
   uniform: string | null;
+  /** Render-only: outfit name. */
+  look: string | null;
 }
 
 export interface Prop {
@@ -413,6 +415,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
           running: false,
           stepDist: 0,
           uniform: e.uniform ?? def.uniform ?? null,
+          look: e.look ?? null,
         });
         break;
       }

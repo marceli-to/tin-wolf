@@ -1,6 +1,10 @@
 # Credits
 
-- Characters (Swat, Suit) from Ultimate Modular Men, and the pistol from the Toon Shooter Game Kit, by Quaternius (quaternius.com), CC0 1.0. Licence in `public/assets/quaternius/`. Trimmed to the animations the game uses with `tools/trim_gltf.py`.
-- Props from Kenney's Furniture Kit, Factory Kit, Space Station Kit, Survival Kit, Car Kit and City Kit (Industrial) (www.kenney.nl), CC0 1.0. Licences in each folder under `public/assets/kenney/`.
+All models are by Quaternius (quaternius.com), CC0 1.0:
 
-Level geometry, textures and all sounds are generated in code.
+- Characters (Swat, Suit, Worker) from Ultimate Modular Men. Licence in `public/assets/quaternius/`. Trimmed to the animations the game uses with `tools/trim_gltf.py`.
+- Held pistol (`guns/Pistol_5.glb`) from the Ultimate Gun Pack; fallback pistol from the Toon Shooter Game Kit.
+- Crates, barrels, lockers, shelves, lab desks, the satellite dish, health pack, ammo box and keycards from the Sci-Fi Essentials Kit (free Standard version). Licence in `public/assets/quaternius/scifi/`.
+- Desks, chairs, beds, tables, bookcase and cabinets from Ultimate Furniture.
+
+OBJ and glTF sources were converted to GLB with the scripts in `tools/`. Level geometry, textures and all sounds are generated in code.

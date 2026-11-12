@@ -186,7 +186,17 @@ export class GameRenderer {
     for (const pk of world.pickups) {
       const item = world.data.items[pk.item];
       const holder = new THREE.Group();
-      if (item) holder.add(buildPickupMesh(item));
+      const inst = item?.model && this.models ? this.models.instance(item.model) : null;
+      if (item && inst) {
+        const o = inst.object;
+        o.scale.setScalar(item.modelScale);
+        // Centre the model on the pickup point so it spins in place.
+        o.updateMatrixWorld(true);
+        const mb = new THREE.Box3().setFromObject(o);
+        o.position.set(-(mb.min.x + mb.max.x) / 2, -(mb.min.y + mb.max.y) / 2, -(mb.min.z + mb.max.z) / 2);
+        if (item.kind === 'key') for (const m of inst.materials) (m.userData.base as THREE.Color).set(item.color), m.color.set(item.color);
+        holder.add(o);
+      } else if (item) holder.add(buildPickupMesh(item));
       holder.position.set(pk.x, pk.y + 0.45, pk.z);
       this.dynamic.add(holder);
       this.pickupMeshes.push(holder);
@@ -204,8 +214,9 @@ export class GameRenderer {
       const inst = prof && this.models ? this.models.instance(prof.model) : null;
       if (prof && inst) {
         const gun = prof.gun ? this.models!.instance(prof.gun.model) : null;
+        const held = prof.heldGun ? this.models!.instance(prof.heldGun) : null;
         for (const m of inst.materials) if (m.name === prof.tintMaterial) (m.userData.base as THREE.Color).multiply(new THREE.Color(color)).multiplyScalar(2.2);
-        const model = new ModelCharacter(inst, prof, p.height, this.flashMat, gun);
+        const model = new ModelCharacter(inst, prof, p.height, this.flashMat, gun, held);
         setLayerDeep(model.root, LAYER.BODY + p.slot);
         this.dynamic.add(model.root);
         return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
@@ -222,14 +233,15 @@ export class GameRenderer {
     this.guards = world.guards.map((g) => {
       const def = world.data.enemies[g.archetype];
       const set = PROFILES[this.art];
-      const profile = set ? (g.archetype === 'guard_officer' ? set.officer : set.guard) : null;
+      const profile = set ? ((g.look && set.looks?.[g.look]) || (g.archetype === 'guard_officer' ? set.officer : set.guard)) : null;
       const inst = profile && this.models ? this.models.instance(profile.model) : null;
       if (profile && inst) {
         const gun = profile.gun ? this.models!.instance(profile.gun.model) : null;
+        const held = profile.heldGun ? this.models!.instance(profile.heldGun) : null;
         if (g.uniform && profile.tintMaterial) {
           for (const m of inst.materials) if (m.name === profile.tintMaterial) (m.userData.base as THREE.Color).set(g.uniform);
         }
-        const model = new ModelCharacter(inst, profile, g.height, this.flashMat, gun);
+        const model = new ModelCharacter(inst, profile, g.height, this.flashMat, gun, held);
         this.dynamic.add(model.root);
         return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
       }
@@ -251,7 +263,8 @@ export class GameRenderer {
       let vm: ViewModel;
       if (va && armsInst) {
         for (const m of armsInst.materials) if (m.name === va.tintMaterial) m.color.multiply(new THREE.Color(PLAYER_COLORS[p.slot] ?? '#888')).multiplyScalar(2.2);
-        vm = buildModelArmsViewModel(armsInst, {
+        const heldInst = va.heldGun ? this.models!.instance(va.heldGun) : null;
+        vm = buildModelArmsViewModel(armsInst, heldInst, {
           clip: va.clip,
           collapse: va.collapse,
           headOffset: va.headOffset,

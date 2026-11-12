@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { flatMaterial, shadedBox } from './shapes';
 import type { ModelInstance } from './models';
-import { findMuzzle, findNode } from './modelCharacter';
+import { findMuzzle, findMuzzleIn, findNode, swapHeldGun } from './modelCharacter';
 
 export interface ViewModel {
   root: THREE.Group;
@@ -25,7 +25,7 @@ export interface ViewArmsSpec {
  * First-person arms from the player's own character model: the whole figure stands at the camera
  * in an aiming pose, with head and other parts that could block the view collapsed to nothing.
  */
-export function buildModelArmsViewModel(arms: ModelInstance, spec: ViewArmsSpec): ViewModel {
+export function buildModelArmsViewModel(arms: ModelInstance, heldGun: ModelInstance | null, spec: ViewArmsSpec): ViewModel {
   const root = new THREE.Group();
   const gun = new THREE.Group();
   root.add(gun);
@@ -67,7 +67,8 @@ export function buildModelArmsViewModel(arms: ModelInstance, spec: ViewArmsSpec)
   f3.rotation.x = Math.PI / 2;
   flash.add(f2, f3);
   flash.visible = false;
-  const tip = findMuzzle(body, hand);
+  const swapped = heldGun ? swapHeldGun(body, hand, heldGun.object) : null;
+  const tip = swapped ? findMuzzleIn(swapped, hand) : findMuzzle(body, hand);
   if (tip) {
     flash.position.copy(tip);
     flash.scale.setScalar(1 / body.scale.x);
