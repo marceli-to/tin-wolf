@@ -9,6 +9,7 @@ import type { LevelDef } from '../data/schema';
 import { deviceLabel, InputManager, type DeviceId } from '../input/manager';
 import { GameRenderer, type ViewLook } from '../render/gameRenderer';
 import { interactTarget } from '../sim/doors';
+import { zoomFactor } from '../sim/player';
 import type { SimEvent, SimEventMap } from '../sim/events';
 import { stepWorld } from '../sim/step';
 import { validateLevel } from '../sim/validate';
@@ -34,6 +35,11 @@ const VERSUS_LEVEL = 'arena_pumphouse';
 const DEBRIEF_DELAY = 1.8;
 
 /** Owns the loop and wires input → sim → render/ui/audio. */
+/** Mouse look not yet applied by the sim, slowed like the sim slows it while scoped in. */
+function scaleLook(l: { yaw: number; pitch: number }, k: number): { yaw: number; pitch: number } {
+  return { yaw: l.yaw * k, pitch: l.pitch * k };
+}
+
 export class Game {
   readonly data: GameData;
   readonly bus = new EventBus<SimEventMap>();
@@ -231,10 +237,13 @@ export class Game {
       wide: true,
       body: `<div class="statgrid">
         <span>Move</span><span>WASD · left stick</span>
+        <span>Sprint</span><span>Shift (hold) · click left stick</span>
+        <span>Jump</span><span>Space · A</span>
         <span>Look</span><span>Mouse · right stick</span>
         <span>Fire</span><span>Left click · RT</span>
+        <span>Scope (Heron LR)</span><span>Right click · LT (hold)</span>
         <span>Reload</span><span>R · X</span>
-        <span>Use / open</span><span>E · A</span>
+        <span>Use / open</span><span>E · A (in front of a door)</span>
         <span>Crouch</span><span>C or Ctrl (hold) · B (toggle)</span>
         <span>Objectives</span><span>Tab · Back</span>
         <span>Pause</span><span>Esc · Start</span>
@@ -362,7 +371,9 @@ export class Game {
 
   private cycleDifficulty(d: number): void {
     const i = DIFFICULTIES.indexOf(this.settings.difficulty);
-    this.settings.difficulty = DIFFICULTIES[Math.max(0, Math.min(DIFFICULTIES.length - 1, i + d))]!;
+    // Wraps round, so clicking (always +1) can get back from Hard to Easy.
+    const n = DIFFICULTIES.length;
+    this.settings.difficulty = DIFFICULTIES[(((i + d) % n) + n) % n]!;
     saveSettings(this.settings);
   }
 
@@ -674,7 +685,7 @@ export class Game {
     const world = this.world;
     if (world && this.state !== 'lobby' && this.state !== 'menu' && this.state !== 'briefing') {
       const looks: ViewLook[] = world.players.map((p) =>
-        this.debugIntents[p.slot] || this.state !== 'playing' ? { yaw: 0, pitch: 0 } : this.input.pendingLook(p.slot),
+        this.debugIntents[p.slot] || this.state !== 'playing' ? { yaw: 0, pitch: 0 } : scaleLook(this.input.pendingLook(p.slot), 1 / zoomFactor(world, p)),
       );
       this.renderer.render(world, this.frozen ? 1 : alpha, looks, frameTime);
       this.huds.forEach((h, i) => {

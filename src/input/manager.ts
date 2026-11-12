@@ -35,6 +35,8 @@ export class InputManager {
   slots: (DeviceId | null)[] = [];
   settings: InputSettings = { ...DEFAULT_INPUT_SETTINGS };
   private padCrouch = new Map<number, boolean>();
+  /** Left-stick click starts a sprint that lasts while the stick stays pushed forward. */
+  private padSprint = new Map<number, boolean>();
   private wheelGap = false;
 
   constructor(target: HTMLElement) {
@@ -91,16 +93,19 @@ export class InputManager {
       intent.lookYaw = m.dx * s.mouseSens;
       intent.lookPitch = -m.dy * s.mouseSens * (s.invertY ? -1 : 1);
       intent.fire = k.mouseDown(0);
+      intent.aim = k.mouseDown(2);
       intent.reload = k.down('KeyR');
       intent.interact = k.down('KeyE') || k.down('KeyF');
-      intent.crouch = k.down('KeyC') || k.down('ControlLeft') || k.down('ShiftLeft');
+      intent.crouch = k.down('KeyC') || k.down('ControlLeft');
+      intent.sprint = k.down('ShiftLeft') || k.down('ShiftRight');
+      intent.jump = k.down('Space');
       // The wheel gives one tick of "pressed" and the sim edge-detects it, so a gap tick is needed
       // between notches: only consume a notch when last tick had no switch request.
       const wheel = this.wheelGap ? 0 : k.consumeWheel();
       this.wheelGap = wheel !== 0;
       intent.weaponNext = k.down('KeyQ') || wheel > 0;
       intent.weaponPrev = wheel < 0;
-      for (let n = 1; n <= 4; n++) if (k.down(`Digit${n}`)) intent.weaponSlot = n;
+      for (let n = 1; n <= 5; n++) if (k.down(`Digit${n}`)) intent.weaponSlot = n;
       return intent;
     }
     const i = dev.index;
@@ -114,12 +119,20 @@ export class InputManager {
     intent.lookPitch = -look.y * PAD_PITCH_RATE * s.padSens * dt * (s.invertY ? -1 : 1);
     intent.aimAssist = s.aimAssist;
     intent.fire = p.down(i, PAD.RT) || p.down(i, PAD.RB);
+    intent.aim = p.down(i, PAD.LT);
     intent.reload = p.down(i, PAD.X);
     intent.interact = p.down(i, PAD.A);
+    intent.jump = p.down(i, PAD.A);
     intent.weaponNext = p.down(i, PAD.Y);
     intent.weaponPrev = p.down(i, PAD.LB);
-    if (p.pressed(i, PAD.B) || p.pressed(i, PAD.LS)) this.padCrouch.set(i, !this.padCrouch.get(i));
+    if (p.pressed(i, PAD.B)) this.padCrouch.set(i, !this.padCrouch.get(i));
+    if (p.pressed(i, PAD.LS)) {
+      this.padSprint.set(i, true);
+      this.padCrouch.set(i, false);
+    }
+    if (intent.moveZ < 0.5) this.padSprint.set(i, false);
     intent.crouch = this.padCrouch.get(i) ?? false;
+    intent.sprint = this.padSprint.get(i) ?? false;
     return intent;
   }
 
@@ -171,5 +184,6 @@ export class InputManager {
   /** Pads keep their own crouch toggle; clear it on respawn or level start. */
   resetToggles(): void {
     this.padCrouch.clear();
+    this.padSprint.clear();
   }
 }

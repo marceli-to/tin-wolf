@@ -7,7 +7,7 @@ A browser first-person shooter in the spirit of late-90s console shooters: steal
 ```sh
 npm install
 npm run dev        # http://localhost:5181 (live reload)
-npm run build      # dist/, served by Herd at https://tin-wolf.test (cd dist && herd link tin-wolf && herd secure tin-wolf)
+npm run build      # dist/ (upload its contents, including .htaccess, to the web root), served by Herd at https://tin-wolf.test (cd dist && herd link tin-wolf && herd secure tin-wolf)
 npm test           # sim + core unit tests (Vitest, Node)
 npm run typecheck
 npm run build
@@ -32,15 +32,18 @@ __game.autopilot(0, [[19,26],[19,23],[19,19],[19,15],[22,14],[23,16]], { fight: 
 
 ## Weapons
 
-Kestrel 9 pistol, Kestrel 9 SD (silenced: guards only hear it within 4 m), Vireo SMG (automatic) and frag grenades (bounce, 2.2 s fuse, blast blocked by walls, hurts the thrower too). Pistols share ammo. Guards drop pistol ammo; rifle guards drop their SMG. The depot starts you with both pistols; the arena with the Kestrel 9, and the rest lies around as pickups. Weapons, items and loadouts are data (`src/data/weapons.json`, `items.json`, a level's `loadout`).
+Kestrel 9 pistol, Kestrel 9 SD (silenced: guards only hear it within 4 m), Vireo SMG (automatic), Heron LR sniper rifle (hold right click / LT to scope in: 4× zoom, no spread, slower look; in every arena, and in the depot yard behind a rock near the start) and frag grenades (bounce, 2.2 s fuse, blast blocked by walls, hurts the thrower too). Pistols share ammo. Guards drop pistol ammo; rifle guards drop their SMG. The depot starts you with both pistols; the arena with the Kestrel 9, and the rest lies around as pickups. Weapons, items and loadouts are data (`src/data/weapons.json`, `items.json`, a level's `loadout`).
 
 ## Controls
 
 | | Keyboard + mouse | Gamepad |
 |---|---|---|
 | Move | WASD | Left stick |
+| Sprint | Shift (hold) | Click left stick (lasts while pushing forward) |
+| Jump | Space | A / Cross (uses a door instead if you face one) |
 | Look | Mouse | Right stick |
 | Fire | Left click | RT |
+| Scope (Heron LR) | Right click (hold) | LT (hold) |
 | Reload | R | X / Square |
 | Next / previous weapon | Q or mouse wheel | Y / Triangle, LB |
 | Weapon by number | 1–4 | |
@@ -49,7 +52,7 @@ Kestrel 9 pistol, Kestrel 9 SD (silenced: guards only hear it within 4 m), Vireo
 | Objectives | Tab | Back / Select |
 | Pause | Esc | Start |
 
-Nintendo controllers (Switch Pro) follow their printed labels: A uses, B crouches, X/Y as in the table, like in Switch games.
+Nintendo controllers (Switch Pro) follow their printed labels: A jumps or uses, B crouches, X/Y as in the table, like in Switch games.
 
 Guards fight smarter: after a burst, or when badly hurt, they may duck behind a crate or a wall corner, crouch for a moment and pop out again (`cover` chance per archetype in `enemies.json`). The first guard to spot you runs for the nearest yellow **alarm panel** (props with `"alarm": true`) instead of shooting — stop him, or shoot the panel first. If he gets there a siren sounds, every guard hunts you, and the level's reinforcements (guard entities with `"reserve": true`) arrive. Guards no longer hit each other.
 

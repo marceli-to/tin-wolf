@@ -350,6 +350,42 @@
     9
    ],
    "yaw": 270
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_sniper",
+   "cell": [
+    4,
+    3
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_sniper",
+   "cell": [
+    17,
+    18
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    10,
+    1
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    11,
+    20
+   ],
+   "respawn": 20
   }
  ]
 }

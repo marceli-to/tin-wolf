@@ -11,6 +11,12 @@ export interface PlayerIntent {
   reload: boolean;
   interact: boolean;
   crouch: boolean;
+  /** Run faster while moving forward (held). */
+  sprint: boolean;
+  /** Jump (edge-triggered by the sim). On a gamepad it shares A with use; using wins. */
+  jump: boolean;
+  /** Aim down the scope (held); only weapons with `zoom` react. */
+  aim: boolean;
   /** Cycle to the next / previous owned weapon (edge-triggered by the sim). */
   weaponNext: boolean;
   weaponPrev: boolean;
@@ -21,5 +27,5 @@ export interface PlayerIntent {
 }
 
 export function emptyIntent(): PlayerIntent {
-  return { moveX: 0, moveZ: 0, lookYaw: 0, lookPitch: 0, fire: false, reload: false, interact: false, crouch: false, weaponNext: false, weaponPrev: false, weaponSlot: 0 };
+  return { moveX: 0, moveZ: 0, lookYaw: 0, lookPitch: 0, fire: false, reload: false, interact: false, crouch: false, sprint: false, jump: false, aim: false, weaponNext: false, weaponPrev: false, weaponSlot: 0 };
 }

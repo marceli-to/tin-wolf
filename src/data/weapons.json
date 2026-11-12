@@ -61,6 +61,28 @@
     "model": "kenney/blasters/blaster-d.glb",
     "hold": "two"
   },
+  "sniper": {
+    "name": "Heron LR",
+    "ammo": "rifle",
+    "damage": 70,
+    "zoneMultiplier": {
+      "head": 3,
+      "torso": 1,
+      "limb": 0.6
+    },
+    "fireInterval": 1.1,
+    "spreadDeg": 6,
+    "magSize": 4,
+    "startReserve": 8,
+    "maxReserve": 20,
+    "reloadTime": 2.4,
+    "range": 150,
+    "noiseRadius": 40,
+    "sfx": "sniper_shot",
+    "model": "kenney/blasters/blaster-e.glb",
+    "hold": "two",
+    "zoom": 4
+  },
   "grenade": {
     "name": "Frag grenade",
     "type": "thrown",

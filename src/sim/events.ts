@@ -22,7 +22,7 @@ export type SimEvent =
   | { type: 'missionEnded'; success: boolean; reason: string }
   | { type: 'matchEnded'; winner: number | null }
   | { type: 'used'; id: string; slot: number }
-  | { type: 'footstep'; x: number; y: number; z: number; slot: number }
+  | { type: 'footstep'; x: number; y: number; z: number; slot: number; loud?: boolean }
   | { type: 'guardStep'; x: number; z: number; running: boolean };
 
 export type HitZone = 'head' | 'torso' | 'limb';

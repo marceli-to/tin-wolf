@@ -16,6 +16,8 @@ const EYE = 1.55;
 /** Guards notice someone this close regardless of facing. */
 const NEAR_SENSE = 1.4;
 const FOOTSTEP_RADIUS = 6;
+/** Sprinting footsteps carry further. */
+const SPRINT_FOOTSTEP_RADIUS = 11;
 const ARRIVE = 0.4;
 /** Eye height of a crouching guard (behind cover). */
 const CROUCH_EYE = 0.95;
@@ -236,7 +238,7 @@ function collectNoises(world: World, from = 0): Noise[] {
         fromSlot: e.owner.kind === 'player' ? e.owner.slot : null,
       });
     } else if (e.type === 'footstep') {
-      out.push({ x: e.x, z: e.z, radius: FOOTSTEP_RADIUS, kind: 'step', fromGuard: null, fromSlot: e.slot });
+      out.push({ x: e.x, z: e.z, radius: e.loud ? SPRINT_FOOTSTEP_RADIUS : FOOTSTEP_RADIUS, kind: 'step', fromGuard: null, fromSlot: e.slot });
     }
   }
   return out;

@@ -131,6 +131,8 @@ export const WeaponSchema = z.object({
   fit: z.enum(['gun', 'hand']).default('gun'),
   /** Held with one hand or two (render-only: picks the characters' arm pose). */
   hold: z.enum(['one', 'two']).default('one'),
+  /** Scope magnification while aiming (1 = no scope). Zoomed, spread drops to nothing and look slows down. */
+  zoom: z.number().min(1).default(1),
 });
 export type WeaponDef = z.output<typeof WeaponSchema>;
 export const WeaponsSchema = z.record(z.string(), WeaponSchema);

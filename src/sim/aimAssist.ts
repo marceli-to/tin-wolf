@@ -2,7 +2,7 @@ import { AIM_ASSIST, PLAYER } from '../config';
 import { angleDiff, clamp, yawTo } from '../core/math';
 import type { PlayerIntent } from '../core/intent';
 import { clearLine } from './los';
-import { playerEyeHeight } from './player';
+import { playerEyeHeight, zoomFactor } from './player';
 import type { Player, World } from './world';
 
 export interface AssistTarget {
@@ -35,7 +35,8 @@ export function assistTarget(world: World, p: Player): AssistTarget | null {
     const pitch = Math.atan2(c.y - ey, flat) - p.pitch;
     const angle = Math.hypot(yaw * Math.cos(p.pitch), pitch);
     // The figure's own width counts: a close target fills more of the view.
-    const cone = AIM_ASSIST.coneDeg * (Math.PI / 180) + Math.atan2(PLAYER.radius * 1.5, flat);
+    // Scoped in, the cone narrows with the view so it covers the same part of the screen.
+    const cone = (AIM_ASSIST.coneDeg * (Math.PI / 180)) / zoomFactor(world, p) + Math.atan2(PLAYER.radius * 1.5, flat);
     if (angle > cone || (best && angle >= best.angle)) continue;
     if (!clearLine(world, ex, ey, ez, c.x, c.y, c.z)) continue;
     best = { yaw, pitch, angle, cone };

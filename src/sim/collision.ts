@@ -148,13 +148,14 @@ export function groundHeight(t: Terrain, body: Body): number {
 /** Gravity, step-up and snapping down slopes and small steps. */
 export function updateVertical(t: Terrain, body: Body, dt: number): void {
   const g = groundHeight(t, body);
-  if (body.y <= g) {
+  // Rising (a jump) leaves the ground; only snap to it while falling or standing.
+  if (body.y <= g && body.vy <= 0) {
     body.y = g;
     body.vy = 0;
     body.grounded = true;
     return;
   }
-  if (body.grounded && body.y - g <= WORLD.stepHeight + 0.05) {
+  if (body.grounded && body.vy <= 0 && body.y - g <= WORLD.stepHeight + 0.05) {
     body.y = g;
     body.vy = 0;
     return;

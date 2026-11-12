@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { PLAYER, RENDER } from '../config';
 import { lerp } from '../core/math';
 import { SWITCH_TIME } from '../sim/weapons';
-import { playerEyeHeight } from '../sim/player';
+import { playerEyeHeight, zoomFactor } from '../sim/player';
 import { doorBox, type Pickup, type World } from '../sim/world';
 import { buildHumanoid, lightHumanoid, poseHumanoid, type Humanoid } from './humanoid';
 import { buildLightField, lampsFromLevel, type LightField } from './lighting';
@@ -47,6 +47,9 @@ const STATE_COLORS: Record<string, string> = {
 };
 
 /** Owns the Three.js scene. Reads world state each frame; never writes to it. */
+/** Degrees of extra field of view at full sprint. */
+const SPRINT_FOV = 7;
+
 export class GameRenderer {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
@@ -78,6 +81,8 @@ export class GameRenderer {
   private vmScene = new THREE.Scene();
   private viewModels: ViewModel[] = [];
   private bob: number[] = [];
+  /** Extra field of view per player, eased in while sprinting. */
+  private fovKick: number[] = [];
   readonly effects = new Effects();
   private flashMat = new THREE.MeshBasicMaterial({ color: '#ffd27a', blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false });
 
@@ -257,6 +262,7 @@ export class GameRenderer {
       return vm;
     });
     this.bob = world.players.map(() => 0);
+    this.fovKick = world.players.map(() => 0);
     if (debug) this.buildDebug(world);
     this.resize();
   }
@@ -664,6 +670,11 @@ export class GameRenderer {
       cam.position.set(x, y + eye, z);
       cam.rotation.y = -(p.yaw + look.yaw);
       cam.rotation.x = Math.max(-1.5, Math.min(1.5, p.pitch + look.pitch));
+      const kick = (this.fovKick[i] ?? 0) + ((p.sprinting && p.alive ? SPRINT_FOV : 0) - (this.fovKick[i] ?? 0)) * Math.min(1, frameTime * 8);
+      this.fovKick[i] = kick;
+      // A scope narrows the view by its magnification.
+      const mag = zoomFactor(world, p);
+      cam.fov = (2 * Math.atan(Math.tan(((RENDER.fov + kick) * Math.PI) / 360) / mag) * 180) / Math.PI;
       if (!p.alive) {
         // Death camera: slump to the floor.
         const t = Math.min(1, (PLAYER.respawnDelay - p.deadTimer) * 2);
@@ -674,6 +685,8 @@ export class GameRenderer {
       }
       const holder = vm?.root.parent;
       if (holder) {
+        // Scoped in, the HUD's scope replaces the gun in hand.
+        holder.visible = p.zoom < 0.35;
         cam.updateMatrixWorld();
         holder.position.copy(cam.position);
         holder.quaternion.copy(cam.quaternion);

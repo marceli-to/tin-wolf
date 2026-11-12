@@ -65,5 +65,23 @@
     "color": "#4a5a3a",
     "model": "kenney/blasters/grenade-a.glb",
     "modelScale": 1.4
+  },
+  "weapon_sniper": {
+    "name": "Heron LR",
+    "kind": "weapon",
+    "weapon": "sniper",
+    "amount": 8,
+    "color": "#3a3d42",
+    "model": "kenney/blasters/blaster-e.glb",
+    "modelScale": 0.6
+  },
+  "ammo_rifle": {
+    "name": "Rifle rounds",
+    "kind": "ammo",
+    "ammo": "rifle",
+    "amount": 8,
+    "color": "#5a7a9a",
+    "model": "kenney/blasters/clip-small.glb",
+    "modelScale": 1.6
   }
 }

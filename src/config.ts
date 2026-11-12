@@ -10,6 +10,9 @@ export const PLAYER = {
   crouchEyeHeight: 1.0,
   walkSpeed: 5.0,
   crouchSpeed: 2.2,
+  sprintSpeed: 7.5,
+  /** Jump apex in metres; with the 0.4 m step-up a jump reaches ledges up to 1.25 m (crates, barrels, desks). */
+  jumpHeight: 0.85,
   accel: 40,
   maxHp: 100,
   respawnDelay: 2.5,

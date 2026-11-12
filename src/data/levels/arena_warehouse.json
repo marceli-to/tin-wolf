@@ -415,6 +415,42 @@
    ],
    "level": 0.2,
    "radius": 5
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_sniper",
+   "cell": [
+    3,
+    2
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_sniper",
+   "cell": [
+    18,
+    15
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    10,
+    1
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    11,
+    16
+   ],
+   "respawn": 20
   }
  ]
 }

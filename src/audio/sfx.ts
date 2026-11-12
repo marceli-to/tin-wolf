@@ -3,6 +3,7 @@ export type SfxName =
   | 'pistol_shot'
   | 'silenced_shot'
   | 'smg_shot'
+  | 'sniper_shot'
   | 'throw'
   | 'bounce'
   | 'switch'
@@ -91,6 +92,12 @@ export class Sfx {
         this.noiseBurst(out, t, 0.09, 'lowpass', 3800, 0.75, 1.0);
         this.noiseBurst(out, t, 0.03, 'highpass', 5000, 0.4, 1.0);
         this.tone(out, t, 'sine', 170, 60, 0.07, 0.6);
+        break;
+      case 'sniper_shot':
+        // A big crack with a long, low tail.
+        this.noiseBurst(out, t, 0.32, 'lowpass', 2400, 1.0, 1.0);
+        this.noiseBurst(out, t, 0.05, 'highpass', 3500, 0.7, 1.0);
+        this.tone(out, t, 'sine', 110, 32, 0.3, 1.0);
         break;
       case 'throw':
         this.noiseBurst(out, t, 0.18, 'bandpass', 900, 0.35, 0.8);

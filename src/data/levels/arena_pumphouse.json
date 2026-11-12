@@ -185,15 +185,6 @@
   },
   {
    "type": "pickup",
-   "item": "medkit",
-   "cell": [
-    9.5,
-    9.5
-   ],
-   "respawn": 30
-  },
-  {
-   "type": "pickup",
    "item": "ammo_pistol",
    "cell": [
     10,
@@ -395,6 +386,33 @@
    "cell": [
     18,
     18
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_sniper",
+   "cell": [
+    9.5,
+    9.5
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    1,
+    9
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    18,
+    10
    ],
    "respawn": 20
   }

@@ -1372,6 +1372,22 @@
    ],
    "yaw": 180,
    "reserve": true
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_sniper",
+   "cell": [
+    13,
+    34
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    30,
+    8
+   ]
   }
  ],
  "objectives": [

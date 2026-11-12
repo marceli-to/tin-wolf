@@ -59,7 +59,7 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
       sfx.play('dry', 0.6);
       break;
     case 'footstep':
-      at('footstep', e.x, e.z, 0.35);
+      at('footstep', e.x, e.z, e.loud ? 0.5 : 0.35);
       break;
     case 'guardStep':
       at('guard_step', e.x, e.z, e.running ? 0.5 : 0.3);

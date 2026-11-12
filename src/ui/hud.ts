@@ -22,6 +22,7 @@ const HEART =
 export class PlayerHud {
   readonly root = el('div', 'hud');
   private crosshair = el('div', 'crosshair');
+  private scope = el('div', 'scope');
   private lockHint = el('div', 'lock-hint chip', 'Click to play');
   private center = el('div', 'center-msg outlined');
   private notice = el('div', 'notice chip');
@@ -34,7 +35,7 @@ export class PlayerHud {
   private last = '';
 
   constructor(parent: HTMLElement) {
-    this.root.append(this.hurt, this.crosshair, this.top, this.objectives, this.notice, this.center, this.prompt, this.health, this.ammo, this.lockHint);
+    this.root.append(this.hurt, this.scope, this.crosshair, this.top, this.objectives, this.notice, this.center, this.prompt, this.health, this.ammo, this.lockHint);
     parent.appendChild(this.root);
   }
 
@@ -50,7 +51,9 @@ export class PlayerHud {
   update(world: World, p: Player, x: HudExtras): void {
     const def = world.data.weapons[p.weapon.id];
     this.hurt.style.opacity = String(Math.min(0.55, p.hurtTimer * 1.6) + (p.alive ? 0 : 0.25));
-    this.crosshair.style.display = p.alive ? 'block' : 'none';
+    const scoped = p.alive && (def?.zoom ?? 1) > 1 && p.zoom > 0.35;
+    this.scope.classList.toggle('on', scoped);
+    this.crosshair.style.display = p.alive && !scoped ? 'block' : 'none';
     this.lockHint.style.display = x.needsLock ? 'block' : 'none';
     const reloading = p.weapon.reloadTimer > 0;
     // Only touch the DOM when something visible changed.

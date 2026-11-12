@@ -57,6 +57,11 @@ export interface Player {
   /** Seconds since the last shot, for recoil animation. */
   sinceShot: number;
   stepDist: number;
+  /** Running forward with sprint held (faster, louder footsteps). */
+  sprinting: boolean;
+  jumpPrev: boolean;
+  /** 0 hip .. 1 fully scoped in (weapons with `zoom`). */
+  zoom: number;
   kills: number;
   deaths: number;
   shotsFired: number;
@@ -288,6 +293,9 @@ export function createPlayer(slot: number, loadout: readonly string[], data: Gam
     reloadPrev: false,
     sinceShot: 10,
     stepDist: 0,
+    sprinting: false,
+    jumpPrev: false,
+    zoom: 0,
     kills: 0,
     deaths: 0,
     shotsFired: 0,
