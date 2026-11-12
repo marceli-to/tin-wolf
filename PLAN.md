@@ -4,6 +4,20 @@ Working title so far: "Retro FPS". The game's name is **Tin Wolf**; use it for t
 
 Planning document for the executing model. Work through it top to bottom. Check off tasks as they are done and record every deviation in the log at the end.
 
+## Status (2026-11-12)
+
+M0–M6 are done and committed (65 unit tests, typecheck and build pass). M7 is not started: the plan says to ask first.
+
+Verified by script in the browser: movement and collision, split-screen, weapons and damage, full versus match → results → rematch, every guard state transition in the test room, the depot's stealth route and loud route end to end (debug autopilot), mission fail → debrief → retry, settings surviving a reload, draw calls.
+
+Still needs a human:
+
+- Mouse-look feel with pointer lock, and sensitivity defaults
+- A real gamepad as player 2 (dead zones, look curve, button mapping); none was available to the executor
+- The sound mix (all SFX are synthesised; the executor cannot hear them)
+- 60 fps on a laptop with integrated graphics, and Firefox / Safari
+- Playing the depot by hand: is the corridor timing on the stealth route fair, are guards too sharp or too dull
+
 ## 0. Decisions and assumptions
 
 Decided by Marcel:
