@@ -5,7 +5,7 @@ export interface GameParams {
   /** Skip the lobby (debug/testing): slot 0 gets keyboard+mouse, others the first free gamepads. */
   autostart: boolean;
   seed: number;
-  /** 'kenney' turns on the glTF model art trial. */
+  /** Model art set: '' (default, Kenney), 'kenney', 'quaternius' or 'none' (code-built figures). */
   art: string;
 }
 

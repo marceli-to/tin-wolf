@@ -17,8 +17,8 @@ function fail(err: unknown): void {
 
 async function boot(): Promise<void> {
   const game = new Game(app, readParams(location.search));
-  // Quaternius characters are the default look; ?art=kenney tries the Kenney kits; ?art=none keeps the code-built figures.
-  const art = game.params.art || 'quaternius';
+  // Kenney kits are the default look; ?art=quaternius keeps the earlier models; ?art=none the code-built figures.
+  const art = game.params.art || 'kenney';
   if (art in PROFILES) {
     // Art trial: load every model the data refers to before the first level starts.
     applyArtOverrides(PROFILES[art]!, game.data);
