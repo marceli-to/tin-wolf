@@ -15,19 +15,22 @@ export interface HudExtras {
   needsLock: boolean;
 }
 
+const HEART =
+  '<svg class="heart" viewBox="0 0 32 30" aria-hidden="true"><path d="M16 27.5 4.6 16.4C1 12.9 1.4 7.1 5.6 4.6c3.2-1.9 7.2-1 9.4 1.9l1 1.3 1-1.3c2.2-2.9 6.2-3.8 9.4-1.9 4.2 2.5 4.6 8.3 1 11.8Z" fill="#e9453a" stroke="#1f2a44" stroke-width="3" stroke-linejoin="round"/><path d="M8 9.5c.6-1.6 2-2.5 3.6-2.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".8"/></svg>';
+
 /** One absolutely positioned DOM layer per player view. */
 export class PlayerHud {
   readonly root = el('div', 'hud');
   private crosshair = el('div', 'crosshair');
-  private lockHint = el('div', 'lock-hint', 'Click to capture mouse');
-  private center = el('div', 'center-msg');
-  private notice = el('div', 'notice');
+  private lockHint = el('div', 'lock-hint chip', 'Click to play');
+  private center = el('div', 'center-msg outlined');
+  private notice = el('div', 'notice chip');
   private top = el('div', 'hud-top');
   private hurt = el('div', 'hurt');
-  private health = el('div', 'hud-health');
-  private ammo = el('div', 'hud-ammo');
-  private objectives = el('div', 'hud-objectives');
-  private prompt = el('div', 'prompt');
+  private health = el('div', 'hud-health chip');
+  private ammo = el('div', 'hud-ammo chip');
+  private objectives = el('div', 'hud-objectives chip');
+  private prompt = el('div', 'prompt chip');
   private last = '';
 
   constructor(parent: HTMLElement) {
@@ -72,27 +75,27 @@ export class PlayerHud {
     this.last = key;
     const hpPct = Math.max(0, Math.min(100, p.hp));
     const armPct = Math.max(0, Math.min(100, p.armor));
-    this.health.innerHTML = `
-      <div class="bar"><div class="fill hp" style="width:${hpPct}%"></div></div>
-      ${p.armor > 0 ? `<div class="bar"><div class="fill armor" style="width:${armPct}%"></div></div>` : ''}
-      <div class="label">${Math.ceil(p.hp)}</div>`;
+    this.health.innerHTML = `${HEART}<span class="num">${Math.max(0, Math.ceil(p.hp))}</span>
+      <span class="bars"><span class="bar"><span class="fill hp${hpPct <= 30 ? ' low' : ''}" style="display:block;width:${hpPct}%"></span></span>
+      ${p.armor > 0 ? `<span class="bar armor"><span class="fill armor" style="display:block;width:${armPct}%"></span></span>` : ''}</span>`;
     const pool = def ? p.ammo[def.ammo] ?? 0 : 0;
     const rounds = !def ? '' : def.type === 'thrown' ? `<b>${pool}</b>` : `<b>${p.weapon.mag}</b> / ${pool}`;
-    const status = !def || p.switchTimer > 0 || def.type === 'thrown' ? '' : reloading ? 'RELOADING' : p.weapon.mag === 0 ? 'EMPTY' : '';
+    const status = !def || p.switchTimer > 0 || def.type === 'thrown' ? '' : reloading ? 'Reloading…' : p.weapon.mag === 0 ? 'Empty!' : '';
     this.ammo.innerHTML = def
-      ? `<div class="wname">${esc(def.name)}</div><div class="rounds">${rounds}</div>${status ? `<div class="reloading">${status}</div>` : ''}`
+      ? `<div class="wname">${esc(def.name)}</div><div class="rounds">${rounds}</div>${status ? `<div class="reloading${reloading ? '' : ' empty'}">${status}</div>` : ''}`
       : '';
     if (!p.alive) {
       this.center.innerHTML =
-        world.level.mode === 'mission' ? 'YOU ARE DOWN' : `YOU ARE DOWN<br><small>back in ${Math.max(0, Math.ceil(p.deadTimer))}</small>`;
+        world.level.mode === 'mission' ? 'Knocked out!' : `Knocked out!<small>back in ${Math.max(0, Math.ceil(p.deadTimer))}</small>`;
     } else {
-      this.center.innerHTML = p.protect > 0 ? '<small>spawn protection</small>' : '';
+      this.center.innerHTML = p.protect > 0 ? '<small>Spawn shield</small>' : '';
     }
     this.notice.innerHTML = x.notice;
     this.top.innerHTML = x.top;
     this.objectives.innerHTML = x.objectives;
     this.objectives.classList.toggle('show', !!x.objectives);
-    this.prompt.textContent = p.alive ? x.prompt : '';
+    // A leading "[E]" becomes a key cap.
+    this.prompt.innerHTML = p.alive ? esc(x.prompt).replace(/^\[(\w+)\]\s*/, '<kbd>$1</kbd>') : '';
     this.prompt.classList.toggle('locked', x.promptLocked);
   }
 

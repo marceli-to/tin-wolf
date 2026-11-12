@@ -6,23 +6,25 @@ Planning document for the executing model. Work through it top to bottom. Check 
 
 ## Status (2026-11-12)
 
-M0–M6 are done and committed. M7: "More weapons" is done (asked for by Marcel); the other M7 items are not started and need asking first. 75 unit tests, typecheck and build pass.
+M0–M6 are done. M7 is done except 4-player split-screen: more weapons, gamepad aim assist, difficulty levels, guard cover and alarm panels, two more arenas with a map picker, and synthesised music (all asked for by Marcel). Everything is on `master` and pushed (last commit `fe6ef28`). 97 unit tests, typecheck and build pass. `npm run build` updates `dist/`, which Herd serves at https://tin-wolf.test (linked and secured; see README).
 
-Verified by script in the browser: movement and collision, split-screen, weapons and damage, full versus match → results → rematch, every guard state transition in the test room, the depot's stealth route and loud route end to end (debug autopilot), mission fail → debrief → retry, settings surviving a reload, draw calls.
+Verified by script in the browser (headless Chrome via a throwaway playwright-core script outside the repo; the in-app preview cannot capture the WebGL canvas): movement and collision, split-screen, weapons and damage, full versus match → results → rematch, every guard state transition in the test room, the depot's stealth route and loud route end to end (debug autopilot), mission fail → debrief → retry, settings surviving a reload, draw calls.
 
 Art direction changed after M6 (see deviation log, "Art" rows): the default look is Kenney CC0 (Mini Characters, Blaster Kit, furniture and prop kits) with flat level textures; the earlier Quaternius set stays behind `?art=quaternius`. Smooth rendering by default.
 
 Repository: https://github.com/marceli-to/tin-wolf (`master`).
 
-Next (ask first): the remaining M7 items. Candidates raised with Marcel: guards using cover and alarm panels, difficulty levels, more arena maps, music, gamepad aim assist, 4-player split-screen. Optional polish: a two-handed pose or lower placement for the first-person SMG (it uses the pistol aim pose); smaller kit textures (~12 MB of models).
+Audience: Marcel plays this with his kids, so the look is deliberately toy-like (Kenney) and Easy difficulty exists for them.
+
+Next (ask first): 4-player split-screen is the only open M7 item. Other ideas not yet raised: difficulty adding objectives (the M7 item only tunes guard values so far), a second mission, a proper roof on the Snowfort hut (its walls rise to the 7 m sky ceiling), first-person SMG held two-handed (third-person figures already use the two-handed pose), removing the Quaternius set (12 MB) once Marcel is sure about Kenney.
 
 Still needs a human:
 
 - Mouse-look feel with pointer lock, and sensitivity defaults
-- A real gamepad as player 2 (dead zones, look curve, button mapping); none was available to the executor
-- The sound mix (all SFX are synthesised; the executor cannot hear them)
+- A real gamepad as player 2 (dead zones, look curve, button mapping). Marcel uses a Switch Pro Controller on a MacBook; A/B and X/Y now follow its labels. Aim-assist strength (`AIM_ASSIST` in `src/config.ts`) has not been felt on a real pad yet
+- The sound mix and the music (all synthesised; the executor cannot hear them). Music levels are per voice in `src/audio/music.ts`
 - 60 fps on a laptop with integrated graphics, and Firefox / Safari
-- Playing the depot by hand: is the corridor timing on the stealth route fair, are guards too sharp or too dull
+- Playing the depot by hand: is the corridor timing on the stealth route fair, are guards too sharp or too dull per difficulty (`src/data/difficulty.json`), is the alarm runner too punishing, does cover feel natural
 - Weapon feel: SMG recoil and spread, grenade arc, bounce and blast radius (all in `src/data/weapons.json`)
 
 ## 0. Decisions and assumptions
@@ -256,12 +258,12 @@ Each milestone ends playable. Each task is testable alone. Run `npm test` and th
 
 ### M7 – Extensions (optional, ask before starting)
 - [x] More weapons (silenced pistol, automatic rifle, something thrown), also as arena pickups
-- [ ] More arena maps
-- [ ] Difficulty levels that add objectives and tune guard values
+- [x] More arena maps (Warehouse, Snowfort; map picker under Versus)
+- [x] Difficulty levels that tune guard values (Easy / Normal / Hard; no extra objectives yet)
 - [ ] 4-player split-screen
-- [ ] Gamepad aim assist
-- [ ] Guards use cover; alarm panels that guards run to
-- [ ] Music (synthesized, original)
+- [x] Gamepad aim assist
+- [x] Guards use cover; alarm panels that guards run to
+- [x] Music (synthesized, original)
 
 ## 5. Risks and open questions
 
@@ -377,3 +379,9 @@ PLAN.md  README.md
 | 2026-11-12 | M7 | Grenades update before guards in the tick so the AI hears an explosion the same tick | Found by test: explosions after `updateGuards` were never heard |
 | 2026-11-12 | M7 | `swapHeldGun` maps gun-pack axes (barrel +x, up +y) onto the built-in pistol mesh (barrel -x, up +z) with a fixed basis instead of a half-turn about y | Every swapped gun lay on its side; Marcel spotted it once the SMG made it obvious |
 | 2026-11-12 | M7 | Guards: cover (after a burst with archetype `cover` chance, or below half health: nearest spot behind a ≥0.8 m prop or a wall edge that hides a crouching body from the target; crouch 1.2–2.6 s, then fight on) and alarm panels (first alerted guard runs to the nearest intact panel within 30 m; reaching it raises the alarm: all guards hunt, `reserve` guards spawn). Guard shots pass through other guards. Depot: five panels, three reserves | Requested by Marcel; friendly fire killed guards once the alarm made them converge |
+| 2026-11-12 | Input | Nintendo pads (browser id contains Nintendo / Pro Controller / Joy-Con / 057e) get A/B and X/Y swapped in `Gamepads.poll`, so the printed labels match the game's buttons | Browsers report face buttons by position; Marcel's Switch Pro Controller had A and B the wrong way round |
+| 2026-11-12 | M7 | Gamepad aim assist runs in the sim (`sim/aimAssist.ts`) on intents with `aimAssist` (set by the gamepad device, toggle in Settings): look slowed to 45 % over a visible target in a 6° cone (+ target width), pull up to 0.9 rad/s toward it only while moving or turning | Deterministic and testable; never aims for an idle player |
+| 2026-11-12 | M7 | Difficulty: `data/difficulty.json` multipliers applied to every enemy archetype at world creation (`World.enemies`, read by `guardDef`); picked with left/right on the briefing or in Settings. Briefing body max-height raised to 60vh so the difficulty line and objectives fit | Plan item; no extra objectives per difficulty yet |
+| 2026-11-12 | M7 | Arenas `arena_warehouse` and `arena_snowfort`, point-symmetric (generated by a throwaway script, committed as plain JSON); Versus in the main menu lists every `mode: versus` level, Esc / B backs out | Plan item |
+| 2026-11-12 | M7 | Music: `audio/music.ts`, a Web Audio step sequencer sharing the SFX context; moods menu / sneak / alert / versus, alert while any guard attacks or the alarm is up (held 6 s), changes at bar lines; separate music volume | Plan item; original tunes, nothing from Bond / GoldenEye |
+| 2026-11-12 | UI | Menus and HUD restyled to match the Kenney toy look: Fredoka (OFL, self-hosted in `public/assets/fonts/`), cream cards with navy outlines, pill buttons, sky backdrop; HUD as chips (heart + health bar, ammo card, key-cap prompts, P1 blue / P2 red score badges, ring crosshair); "Knocked out!" instead of "YOU ARE DOWN". Settings rows show their value inline; menus with more than six items get a compact layout | The dark Courier panels no longer fitted the bright Kenney art. Kenney Fonts could not be fetched (kenney.nl gates zips); Fredoka can be swapped for it if Marcel downloads the pack |

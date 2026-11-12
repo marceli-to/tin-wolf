@@ -102,7 +102,7 @@ export class ScreenView {
         <h1>${s.title}</h1>
         ${s.subtitle ? `<h2>${s.subtitle}</h2>` : ''}
         ${s.body ? `<div class="body">${s.body}</div>` : ''}
-        ${items ? `<ul class="menu">${items}</ul>` : ''}
+        ${items ? `<ul class="menu${s.items.length > 6 ? ' dense' : ''}">${items}</ul>` : ''}
         ${s.footer ? `<p class="hint">${s.footer}</p>` : ''}
       </div>`;
   }

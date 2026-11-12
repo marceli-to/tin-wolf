@@ -126,7 +126,7 @@ export class Game {
       const i = RESOLUTIONS.indexOf(s.resolution);
       s.resolution = RESOLUTIONS[(i + d + RESOLUTIONS.length) % RESOLUTIONS.length]!;
     };
-    const row = (name: string, value: string): string => `${name}<small>◂ ${value} ▸</small>`;
+    const row = (name: string, value: string): string => `${name}<span class="val">◂ ${value} ▸</span>`;
     return {
       title: 'SETTINGS',
       overlay: this.state === 'paused',
@@ -203,7 +203,7 @@ export class Game {
     const depot = this.tryLoad(MISSION_LEVEL);
     this.screen.show({
       title: 'TIN WOLF',
-      body: '<p class="title-art">a field agent · a snowed-in depot · a pistol</p>',
+      body: '<p class="title-art">a field agent · a snowed-in depot · a blaster</p>',
       items: [
         {
           label: 'Mission',
@@ -723,10 +723,10 @@ export class Game {
   private hudTop(slot: number): string {
     const w = this.world;
     if (!w?.match) return '';
-    const scores = w.players.map((p) => `<span class="${p.slot === slot ? 'me' : ''}">P${p.slot + 1} ${p.kills}</span>`).join(' &nbsp; ');
+    const scores = w.players.map((p) => `<span class="score chip p${p.slot + 1}${p.slot === slot ? ' me' : ''}">P${p.slot + 1} · ${p.kills}</span>`).join('');
     const t = Math.ceil(w.match.timeLeft);
     const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
-    return `<span class="score">${scores}<span class="timer">${clock}</span></span>`;
+    return `${scores}<span class="timer chip">${clock}</span>`;
   }
 
   private onResize(): void {
