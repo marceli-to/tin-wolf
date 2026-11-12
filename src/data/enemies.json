@@ -1,0 +1,18 @@
+{
+  "guard_basic": {
+    "name": "Depot guard",
+    "hp": 60,
+    "weapon": "pistol",
+    "walkSpeed": 1.6,
+    "runSpeed": 3.6,
+    "visionRange": 22,
+    "visionFovDeg": 110,
+    "noticeTime": 0.5,
+    "hearingScale": 1.0,
+    "reactionTime": 0.6,
+    "aimSpreadDeg": 5,
+    "burstPause": [0.7, 1.5],
+    "searchTime": 8,
+    "color": "#5a6b4a"
+  }
+}

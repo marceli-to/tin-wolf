@@ -158,22 +158,22 @@ Same level format with `"mode": "versus"` (mission levels use `"mode": "mission"
 Each milestone ends playable. Each task is testable alone. Run `npm test` and the browser check before ticking a milestone off.
 
 ### M0 – Setup
-- [ ] Vite + TypeScript strict + Three.js + zod + Vitest; scripts `dev`, `build`, `test`, `typecheck`.
-- [ ] Folder structure from section 6, with the import rule from section 2 written into `README.md`.
-- [ ] Fixed-timestep loop (60 Hz sim, interpolated render) and typed event bus, both with unit tests.
-- [ ] Debug hooks from section 6 (`?level=`, `?players=`, `?debug=1`, `window.__game`).
+- [x] Vite + TypeScript strict + Three.js + zod + Vitest; scripts `dev`, `build`, `test`, `typecheck`.
+- [x] Folder structure from section 6, with the import rule from section 2 written into `README.md`.
+- [x] Fixed-timestep loop (60 Hz sim, interpolated render) and typed event bus, both with unit tests.
+- [x] Debug hooks from section 6 (`?level=`, `?players=`, `?debug=1`, `window.__game`).
 
 **Done when:** `npm run dev` shows a spinning cube; `npm test` and `npm run typecheck` pass.
 
 ### M1 – Foundation (two players in a test room)
-- [ ] Level schema + loader; load `test_room.json`. Invalid data produces a readable error naming the field.
-- [ ] Level mesh builder: floors, ceilings, walls and ramps from the grid, merged into one mesh per material.
-- [ ] `sim/collision`: circle-vs-grid movement with wall sliding, step-up ≤ 0.4 m, ramps, gravity. Unit tests: cannot pass through walls at any angle or at 4× normal speed; slides along walls; climbs a ramp; does not climb a 1 m ledge.
-- [ ] Player controller: walk, strafe, crouch. No jumping.
-- [ ] Input: keyboard + mouse with Pointer Lock; gamepad with dead zones and look-sensitivity curve; both map to `PlayerIntent`.
-- [ ] Lobby screen: "press a key / press a button to join", assigns devices to slots 0 and 1.
-- [ ] Split-screen renderer: two cameras, two view rectangles; `players=1` gives one full view.
-- [ ] Each player sees the other as a placeholder actor.
+- [x] Level schema + loader; load `test_room.json`. Invalid data produces a readable error naming the field.
+- [x] Level mesh builder: floors, ceilings, walls and ramps from the grid, merged into one mesh per material.
+- [x] `sim/collision`: circle-vs-grid movement with wall sliding, step-up ≤ 0.4 m, ramps, gravity. Unit tests: cannot pass through walls at any angle or at 4× normal speed; slides along walls; climbs a ramp; does not climb a 1 m ledge.
+- [x] Player controller: walk, strafe, crouch. No jumping.
+- [x] Input: keyboard + mouse with Pointer Lock; gamepad with dead zones and look-sensitivity curve; both map to `PlayerIntent`.
+- [x] Lobby screen: "press a key / press a button to join", assigns devices to slots 0 and 1.
+- [x] Split-screen renderer: two cameras, two view rectangles; `players=1` gives one full view.
+- [x] Each player sees the other as a placeholder actor.
 
 **Done when:** two people walk around the test room at the same time, one on mouse+keyboard and one on gamepad, each in their own view, cannot leave the level, and see each other move. Holds 60 fps on a laptop with integrated graphics.
 
@@ -302,4 +302,11 @@ PLAN.md  README.md
 ## Deviation log
 | Date | Milestone | Deviation | Reason |
 |---|---|---|---|
-| | | | |
+| 2026-11-12 | M0 | Pinned latest stable: TypeScript 7.0.2 (native compiler), Vite 8.3.8, Vitest 5.1.0, zod 4.6.7, Three.js 0.187.0 | "Install the latest stable versions" |
+| 2026-11-12 | M0 | One commit per milestone step group instead of strictly one per task | Tasks within M0/M1 are tightly coupled; history stays readable |
+| 2026-11-12 | M1 | `PlayerIntent` look is a per-tick delta (`lookYaw`, `lookPitch`, radians) instead of absolute `look: {yaw, pitch}`; move is `moveX`/`moveZ` | Mouse and stick both produce deltas; the sim owns the absolute angles |
+| 2026-11-12 | M1 | Added `?autostart=1` (skips the lobby) and debug hooks `freeze`, `teleport`, `look`, `player` next to `setIntent`/`step` | Deterministic browser checks without devices |
+| 2026-11-12 | M1 | Level format additions: cell `sky`, `light`, `ceilMat`; level `fog`; entity `light`; `ramp` is the direction of ascent with `floor` = low end, `floorTo` = high end | Needed for outdoor areas and M6 lighting; plan example left ramp semantics open |
+| 2026-11-12 | M1 | New data files `items.json` and `props.json` (prop sizes, materials, hp; item kinds) | Keeps content values out of code, as the plan requires |
+| 2026-11-12 | M1 | Doors are thin slabs that slide up (collision boxes), not cell blockers | Players can stand right at a door; also how it renders |
+| 2026-11-12 | M1 | Gamepad crouch is a toggle kept in the input layer; the sim only sees `crouch: boolean` | Keeps the sim free of device-specific state |

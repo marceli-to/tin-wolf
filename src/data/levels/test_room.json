@@ -1,0 +1,35 @@
+{
+  "id": "test_room",
+  "name": "Test Room",
+  "mode": "test",
+  "cellSize": 2,
+  "legend": {
+    "#": { "solid": true, "wall": "concrete" },
+    ".": { "floor": 0, "ceil": 3.5, "floorMat": "tile", "wall": "concrete" },
+    "+": { "floor": 1.2, "ceil": 4.5, "floorMat": "metal", "wall": "panel" },
+    "^": { "ramp": "e", "floor": 0, "floorTo": 1.2, "ceil": 4.5, "floorMat": "metal", "wall": "panel" },
+    "_": { "floor": 0.3, "ceil": 3.5, "floorMat": "metal", "wall": "concrete" },
+    "=": { "floor": 0, "ceil": 1.5, "floorMat": "concrete", "wall": "concrete" }
+  },
+  "map": [
+    "##################",
+    "#........#.......#",
+    "#........#.......#",
+    "#..##....#..++++.#",
+    "#..##.......++++.#",
+    "#.......__.^++++.#",
+    "#.......__..++++.#",
+    "#................#",
+    "####===####......#",
+    "#.........#......#",
+    "#.........#......#",
+    "##################"
+  ],
+  "entities": [
+    { "type": "playerStart", "slot": 0, "cell": [2, 6], "yaw": 90 },
+    { "type": "playerStart", "slot": 1, "cell": [15, 9], "yaw": 0 },
+    { "type": "prop", "kind": "crate", "cell": [6, 2] },
+    { "type": "prop", "kind": "crate_tall", "cell": [7, 1.6] },
+    { "type": "prop", "kind": "barrel", "cell": [14.3, 1.3] }
+  ]
+}

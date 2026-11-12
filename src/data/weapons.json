@@ -1,0 +1,18 @@
+{
+  "pistol": {
+    "name": "Kestrel 9",
+    "type": "hitscan",
+    "damage": 25,
+    "zoneMultiplier": { "head": 4, "torso": 1, "limb": 0.5 },
+    "fireInterval": 0.22,
+    "auto": false,
+    "spreadDeg": 0.8,
+    "magSize": 8,
+    "startReserve": 32,
+    "maxReserve": 64,
+    "reloadTime": 1.4,
+    "range": 60,
+    "noiseRadius": 25,
+    "sfx": "pistol_shot"
+  }
+}
