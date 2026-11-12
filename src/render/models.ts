@@ -49,7 +49,8 @@ export class ModelLibrary {
         return c;
       });
       mesh.material = Array.isArray(mesh.material) ? cloned : cloned[0]!;
-      mesh.frustumCulled = false;
+      // Skinned meshes move away from their bind-pose bounds, so never cull them; static props can be culled.
+      if ((mesh as THREE.SkinnedMesh).isSkinnedMesh) mesh.frustumCulled = false;
     });
     return { object, animations: gltf.animations, materials };
   }

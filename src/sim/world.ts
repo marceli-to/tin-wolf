@@ -114,6 +114,8 @@ export interface Guard {
   lastProgress: { x: number; z: number };
   running: boolean;
   stepDist: number;
+  /** Render-only: uniform colour for the model. */
+  uniform: string | null;
 }
 
 export interface Prop {
@@ -410,6 +412,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
           lastProgress: { x, z },
           running: false,
           stepDist: 0,
+          uniform: e.uniform ?? def.uniform ?? null,
         });
         break;
       }

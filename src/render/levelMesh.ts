@@ -156,8 +156,9 @@ export function buildLevelMesh(grid: Grid, light: LightField): THREE.Group {
           );
         };
         if (!nb || nb.solid) {
-          // Solid cells take the look of the room they face unless they set their own.
-          wall(nb?.wallExplicit ? nb.wallMat : cell.wallMat, fa, fb, cell.ceil, cell.ceil);
+          // Solid cells take the look of the room they face; an explicit wall look only shows outdoors,
+          // so a brick exterior does not leak into the rooms behind it.
+          wall(nb?.wallExplicit && cell.sky ? nb.wallMat : cell.wallMat, fa, fb, cell.ceil, cell.ceil);
           continue;
         }
         const nfa = floorAt(grid, nb, ncx, ncz, ax, az);
@@ -170,7 +171,7 @@ export function buildLevelMesh(grid: Grid, light: LightField): THREE.Group {
   return mb.build();
 }
 
-/** Step faces belong to the higher cell visually, so use its wall material. */
+/** Step faces belong to the higher cell visually, so use its step look. */
 function stepMat(higher: Cell, _lower: Cell): string {
-  return higher.wallMat;
+  return higher.stepMat;
 }

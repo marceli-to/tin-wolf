@@ -75,8 +75,9 @@
    "floor": 0.8,
    "ceil": 5,
    "floorMat": "metal",
-   "wall": "hazard",
-   "light": 1.0
+   "wall": "panel",
+   "light": 1.0,
+   "step": "hazard"
   },
   "^": {
    "ramp": "n",
@@ -84,8 +85,9 @@
    "floorTo": 0.8,
    "ceil": 5,
    "floorMat": "metal",
-   "wall": "hazard",
-   "light": 1.0
+   "wall": "panel",
+   "light": 1.0,
+   "step": "hazard"
   },
   "G": {
    "floor": 0,
@@ -246,7 +248,8 @@
      29,
      27
     ]
-   ]
+   ],
+   "uniform": "#c9d1d8"
   },
   {
    "type": "guard",
@@ -257,7 +260,8 @@
     27
    ],
    "yaw": 180,
-   "patrol": []
+   "patrol": [],
+   "uniform": "#c9d1d8"
   },
   {
    "type": "guard",
@@ -416,7 +420,8 @@
      32,
      5
     ]
-   ]
+   ],
+   "uniform": "#c9d1d8"
   },
   {
    "type": "pickup",
@@ -875,6 +880,706 @@
    ],
    "yaw": 0,
    "elevation": 2.54
+  },
+  {
+   "type": "prop",
+   "kind": "container_ship",
+   "cell": [
+    12.5,
+    35.2
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "container_ship_b",
+   "cell": [
+    27.4,
+    36.0
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "container_ship",
+   "cell": [
+    35.2,
+    32.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "tank_large",
+   "cell": [
+    36.0,
+    28.8
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "suv",
+   "cell": [
+    21.6,
+    35.0
+   ],
+   "yaw": 80,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "oil_barrel",
+   "cell": [
+    34.6,
+    35.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "oil_barrel",
+   "cell": [
+    35.3,
+    36.2
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "supply_box",
+   "cell": [
+    9.0,
+    32.0
+   ],
+   "yaw": 20,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "cone",
+   "cell": [
+    30.3,
+    25.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "cone",
+   "cell": [
+    31.7,
+    25.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "rock",
+   "cell": [
+    6.0,
+    31.0
+   ],
+   "yaw": 30,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "rock",
+   "cell": [
+    19.2,
+    33.6
+   ],
+   "yaw": 200,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "rock",
+   "cell": [
+    30.4,
+    37.3
+   ],
+   "yaw": 95,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "rock",
+   "cell": [
+    2.6,
+    33.0
+   ],
+   "yaw": 140,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "fence",
+   "cell": [
+    6.0,
+    38.45
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "fence",
+   "cell": [
+    8.0,
+    38.45
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "fence",
+   "cell": [
+    10.0,
+    38.45
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "fence",
+   "cell": [
+    24.0,
+    38.45
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "fence",
+   "cell": [
+    26.0,
+    38.45
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "locker",
+   "cell": [
+    14.5,
+    18.3
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "locker",
+   "cell": [
+    15.1,
+    18.3
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "locker",
+   "cell": [
+    24.5,
+    18.3
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "bench",
+   "cell": [
+    15.6,
+    23.75
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "bench",
+   "cell": [
+    23.4,
+    23.75
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "bunk_bed",
+   "cell": [
+    8.5,
+    18.35
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "bunk_bed",
+   "cell": [
+    10.5,
+    18.35
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "bunk_bed",
+   "cell": [
+    8.6,
+    23.65
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "bunk_bed",
+   "cell": [
+    10.6,
+    23.65
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "locker",
+   "cell": [
+    7.25,
+    20.6
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "locker",
+   "cell": [
+    7.25,
+    21.15
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "mess_table",
+   "cell": [
+    9.2,
+    20.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "chair",
+   "cell": [
+    8.8,
+    20.25
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "chair",
+   "cell": [
+    9.6,
+    20.25
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "chair",
+   "cell": [
+    8.8,
+    20.95
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "chair",
+   "cell": [
+    9.6,
+    20.95
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "tank_large",
+   "cell": [
+    11.0,
+    15.85
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "tank_small",
+   "cell": [
+    14.4,
+    15.9
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "tank_round",
+   "cell": [
+    16.6,
+    15.7
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "tank_round",
+   "cell": [
+    9.4,
+    12.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "tank_small",
+   "cell": [
+    15.6,
+    12.5
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "pipe_run",
+   "cell": [
+    10.3,
+    12.2
+   ],
+   "yaw": 0,
+   "elevation": 3.4
+  },
+  {
+   "type": "prop",
+   "kind": "pipe_run",
+   "cell": [
+    10.9,
+    12.2
+   ],
+   "yaw": 0,
+   "elevation": 3.4
+  },
+  {
+   "type": "prop",
+   "kind": "pipe_run",
+   "cell": [
+    11.5,
+    12.2
+   ],
+   "yaw": 0,
+   "elevation": 3.4
+  },
+  {
+   "type": "prop",
+   "kind": "pipe_run",
+   "cell": [
+    12.1,
+    12.2
+   ],
+   "yaw": 0,
+   "elevation": 3.4
+  },
+  {
+   "type": "prop",
+   "kind": "pipe_run",
+   "cell": [
+    12.7,
+    12.2
+   ],
+   "yaw": 0,
+   "elevation": 3.4
+  },
+  {
+   "type": "prop",
+   "kind": "pipe_run",
+   "cell": [
+    13.3,
+    12.2
+   ],
+   "yaw": 0,
+   "elevation": 3.4
+  },
+  {
+   "type": "prop",
+   "kind": "pipe_run",
+   "cell": [
+    13.9,
+    12.2
+   ],
+   "yaw": 0,
+   "elevation": 3.4
+  },
+  {
+   "type": "prop",
+   "kind": "lab_table",
+   "cell": [
+    16.5,
+    6.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "lab_terminal",
+   "cell": [
+    16.5,
+    6.45
+   ],
+   "yaw": 0,
+   "elevation": 0.76
+  },
+  {
+   "type": "prop",
+   "kind": "lab_table",
+   "cell": [
+    23.6,
+    6.7
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "lab_terminal",
+   "cell": [
+    23.6,
+    6.55
+   ],
+   "yaw": 0,
+   "elevation": 0.76
+  },
+  {
+   "type": "prop",
+   "kind": "robot_arm",
+   "cell": [
+    22.3,
+    7.5
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "lab_scanner",
+   "cell": [
+    26.6,
+    4.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "lab_cabinet",
+   "cell": [
+    13.35,
+    4.35
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "lab_cabinet",
+   "cell": [
+    16.65,
+    4.35
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "lab_crate",
+   "cell": [
+    25.6,
+    4.3
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "lab_computer",
+   "cell": [
+    15.2,
+    9.45
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "lab_computer",
+   "cell": [
+    17.0,
+    9.45
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "lab_computer",
+   "cell": [
+    24.0,
+    9.45
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "hanging_screen",
+   "cell": [
+    20.0,
+    6.4
+   ],
+   "yaw": 0,
+   "elevation": 3.6
+  },
+  {
+   "type": "prop",
+   "kind": "truck",
+   "cell": [
+    29.7,
+    17.0
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "van",
+   "cell": [
+    29.7,
+    9.5
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "workbench",
+   "cell": [
+    33.35,
+    19.8
+   ],
+   "yaw": 270,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "grinder_bench",
+   "cell": [
+    33.4,
+    21.4
+   ],
+   "yaw": 270,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "oil_barrel",
+   "cell": [
+    33.5,
+    8.9
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "oil_barrel",
+   "cell": [
+    33.5,
+    8.2
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "supply_box",
+   "cell": [
+    32.6,
+    22.6
+   ],
+   "yaw": 90,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "factory_box",
+   "cell": [
+    29.6,
+    22.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "cone",
+   "cell": [
+    30.4,
+    4.45
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "cone",
+   "cell": [
+    32.6,
+    4.45
+   ],
+   "yaw": 0,
+   "elevation": 0
   }
  ],
  "objectives": [

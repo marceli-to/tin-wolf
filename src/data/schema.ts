@@ -16,6 +16,8 @@ export const CellDefSchema = z.object({
   ceilMat: z.string().default('ceiling'),
   /** Wall look. On a solid cell it overrides the look of the room it faces. */
   wall: z.string().optional(),
+  /** Look of the step face where this cell is higher than its neighbour (default: wall). */
+  step: z.string().optional(),
   /** 0..1 baked light level for the cell (M6). */
   light: z.number().min(0).max(1).default(0.8),
 });
@@ -31,6 +33,8 @@ export const EntitySchema = z.discriminatedUnion('type', [
     archetype: z.string(),
     yaw: z.number().default(0),
     patrol: z.array(CellRef).default([]),
+    /** Uniform colour override for the guard's model. */
+    uniform: z.string().optional(),
     ...Base,
     id: z.string(),
   }),
@@ -131,6 +135,8 @@ export const EnemySchema = z.object({
   burst: z.tuple([z.number().int().positive(), z.number().int().positive()]).default([2, 3]),
   color: z.string(),
   legs: z.string().default('#2e2e30'),
+  /** Uniform colour for the character model (archetype default). */
+  uniform: z.string().optional(),
 });
 export type EnemyDef = z.output<typeof EnemySchema>;
 export const EnemiesSchema = z.record(z.string(), EnemySchema);

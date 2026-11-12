@@ -32,9 +32,10 @@
    "floor": 1.2,
    "ceil": 4.5,
    "floorMat": "metal",
-   "wall": "hazard",
+   "wall": "brick",
    "ceilMat": "ceiling",
-   "light": 0.95
+   "light": 0.95,
+   "step": "hazard"
   },
   "a": {
    "ramp": "e",
@@ -42,8 +43,9 @@
    "floorTo": 1.2,
    "ceil": 4.5,
    "floorMat": "metal",
-   "wall": "hazard",
-   "light": 0.9
+   "wall": "brick",
+   "light": 0.9,
+   "step": "hazard"
   },
   "b": {
    "ramp": "w",
@@ -51,8 +53,9 @@
    "floorTo": 1.2,
    "ceil": 4.5,
    "floorMat": "metal",
-   "wall": "hazard",
-   "light": 0.9
+   "wall": "brick",
+   "light": 0.9,
+   "step": "hazard"
   },
   "c": {
    "ramp": "s",
@@ -60,8 +63,9 @@
    "floorTo": 1.2,
    "ceil": 4.5,
    "floorMat": "metal",
-   "wall": "hazard",
-   "light": 0.9
+   "wall": "brick",
+   "light": 0.9,
+   "step": "hazard"
   },
   "d": {
    "ramp": "n",
@@ -69,8 +73,9 @@
    "floorTo": 1.2,
    "ceil": 4.5,
    "floorMat": "metal",
-   "wall": "hazard",
-   "light": 0.9
+   "wall": "brick",
+   "light": 0.9,
+   "step": "hazard"
   }
  },
  "map": [

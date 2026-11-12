@@ -9,6 +9,9 @@ import { setTextureSmoothing, texturedMaterial } from './textures';
 import { Snow } from './snow';
 import { tintModel, type ModelLibrary } from './models';
 import { ModelCharacter, PROFILES } from './modelCharacter';
+import { StaticBatch } from './staticBatch';
+import { rayGrid } from '../sim/raycast';
+import type { Grid } from '../sim/grid';
 import { configureCameraLayers, LAYER, setLayerDeep } from './layers';
 import { buildLevelMesh } from './levelMesh';
 import { materialColor, PLAYER_COLORS } from './palette';
@@ -118,6 +121,8 @@ export class GameRenderer {
       this.modelLights.add(sun);
       this.scene.add(this.modelLights);
     }
+    this.grid = world.grid;
+    const batch = new StaticBatch();
     for (const p of world.props) {
       const b = p.box;
       const kind = world.data.props[p.kind];
@@ -125,9 +130,14 @@ export class GameRenderer {
       if (model) {
         const o = model.object;
         o.scale.setScalar(kind!.modelScale);
-        o.position.set((b.minX + b.maxX) / 2, b.minY, (b.minZ + b.maxZ) / 2);
-        // Kenney furniture faces +z; prop yaw follows the level convention (0 = north / -z).
+        // Kenney models face +z; prop yaw follows the level convention (0 = north / -z).
         o.rotation.y = Math.PI - p.yaw;
+        // Origins differ between kits (corner vs. centre), so centre each model on its collision
+        // box and stand it on the box's floor.
+        o.position.set(0, 0, 0);
+        o.updateMatrixWorld(true);
+        const mb = new THREE.Box3().setFromObject(o);
+        o.position.set((b.minX + b.maxX) / 2 - (mb.min.x + mb.max.x) / 2, b.minY - mb.min.y, (b.minZ + b.maxZ) / 2 - (mb.min.z + mb.max.z) / 2);
         // Kenney's palette is bright and toy-like; pull it a third of the way toward grey.
         for (const m of model.materials) {
           const c = m.userData.base as THREE.Color;
@@ -135,6 +145,12 @@ export class GameRenderer {
           c.lerp(new THREE.Color(l, l, l), 0.35);
         }
         tintModel(model.materials, Math.min(1.1, this.light(o.position.x, o.position.z) + 0.15));
+        if (!p.destructible) {
+          // Static: merged with every other static prop below; nothing to update per frame.
+          batch.add(o);
+          this.propMeshes.push(new THREE.Object3D());
+          continue;
+        }
         this.dynamic.add(o);
         this.propMeshes.push(o);
         continue;
@@ -157,6 +173,7 @@ export class GameRenderer {
       this.dynamic.add(m);
       this.propMeshes.push(m);
     }
+    this.dynamic.add(batch.build());
     for (const d of world.doors) {
       const b = doorBox(world, d);
       const m = new THREE.Mesh(
@@ -209,6 +226,9 @@ export class GameRenderer {
       const inst = profile && this.models ? this.models.instance(profile.model) : null;
       if (profile && inst) {
         const gun = profile.gun ? this.models!.instance(profile.gun.model) : null;
+        if (g.uniform && profile.tintMaterial) {
+          for (const m of inst.materials) if (m.name === profile.tintMaterial) (m.userData.base as THREE.Color).set(g.uniform);
+        }
         const model = new ModelCharacter(inst, profile, g.height, this.flashMat, gun);
         this.dynamic.add(model.root);
         return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
@@ -385,6 +405,47 @@ export class GameRenderer {
     col.needsUpdate = true;
   }
 
+  private grid: Grid | null = null;
+  private frustum = new THREE.Frustum();
+  private projView = new THREE.Matrix4();
+  private sphere = new THREE.Sphere();
+
+  /**
+   * Skinned characters cannot use three's per-mesh culling (their bounds are in bind pose), so cull
+   * each figure as a whole with a sphere around it, separately for every view.
+   */
+  private cullActors(cam: THREE.PerspectiveCamera): void {
+    cam.updateMatrixWorld();
+    this.projView.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+    this.frustum.setFromProjectionMatrix(this.projView);
+    const test = (o: THREE.Object3D, wanted: boolean): void => {
+      if (!wanted) {
+        o.visible = false;
+        return;
+      }
+      this.sphere.center.set(o.position.x, o.position.y + 0.9, o.position.z);
+      this.sphere.radius = 1.3;
+      o.visible = this.frustum.intersectsSphere(this.sphere) && !this.hiddenByWalls(cam.position, o.position);
+    };
+    for (const v of this.guards) if (v.model) test(v.model.root, true);
+    for (const v of this.players) if (v.model) test(v.model.root, true);
+  }
+
+  /** True when level walls block the view of both a figure's head and its feet. */
+  private hiddenByWalls(from: THREE.Vector3, at: THREE.Vector3): boolean {
+    const grid = this.grid;
+    if (!grid) return false;
+    const blocked = (y: number): boolean => {
+      const dx = at.x - from.x;
+      const dy = y - from.y;
+      const dz = at.z - from.z;
+      const d = Math.hypot(dx, dy, dz);
+      if (d < 0.5) return false;
+      return rayGrid(grid, { ox: from.x, oy: from.y, oz: from.z, dx: dx / d, dy: dy / d, dz: dz / d }, d - 0.4) !== null;
+    };
+    return blocked(at.y + 1.6) && blocked(at.y + 0.3) && blocked(at.y + 1.0);
+  }
+
   onSimEvent(e: SimEvent): void {
     // Blood on a player would burst right in front of their own camera; the hurt overlay covers it.
     if (e.type === 'impact' && !(e.onPlayer && this.cameras.length === 1)) this.effects.impact(e.x, e.y, e.z, e.nx, e.ny, e.nz, e.surface);
@@ -539,6 +600,7 @@ export class GameRenderer {
       const y = fullH - Math.round(rect.y * k) - h0;
       r.setViewport(x0, y, w0, h0);
       r.setScissor(x0, y, w0, h0);
+      this.cullActors(cam);
       r.render(this.scene, cam);
       r.autoClear = false;
       r.clearDepth();

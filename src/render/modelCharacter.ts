@@ -17,6 +17,8 @@ export interface CharacterProfile {
   boxGun?: { position: [number, number, number] };
   /** Meshes in the model file to hide (e.g. a prop it ships with). */
   hide?: string[];
+  /** Material recoloured by a guard's `uniform`. */
+  tintMaterial?: string;
   /** Muzzle position in hand-bone space (metres), for models that carry their own gun. */
   muzzle?: [number, number, number];
 }
@@ -94,6 +96,7 @@ export const PROFILES: Record<string, ArtSet> = {
       clips: { idle: 'Idle_Gun', alert: 'Idle_Gun_Pointing', walk: 'Walk', run: 'Run', aim: 'Idle_Gun_Pointing', shoot: 'Idle_Gun_Shoot', die: 'Death' },
       hand: 'Wrist.R',
       muzzle: Q_MUZZLE,
+      tintMaterial: 'Swat',
     },
     officer: {
       model: 'quaternius/Suit.glb',
