@@ -55,7 +55,7 @@ describe('weapons: ammo and reload', () => {
     expect(p.weapon.mag).toBe(pistol.magSize - 1);
     run(w, 3, [intent({})]);
     expect(p.weapon.mag).toBe(pistol.magSize);
-    expect(p.weapon.reserve).toBe(pistol.startReserve - 1);
+    expect(p.ammo.pistol).toBe(pistol.startReserve - 1);
   });
 
   it('cannot fire while reloading; empty mag dry-fires and auto-reloads', () => {
@@ -75,7 +75,7 @@ describe('weapons: ammo and reload', () => {
     const w = makeWorld(OPEN);
     const p = w.players[0]!;
     p.weapon.mag = 2;
-    p.weapon.reserve = 0;
+    p.ammo.pistol = 0;
     run(w, 1, [intent({ reload: true })]);
     expect(p.weapon.reloadTimer).toBe(0);
   });

@@ -1,18 +1,79 @@
 {
   "pistol": {
     "name": "Kestrel 9",
-    "type": "hitscan",
+    "ammo": "pistol",
     "damage": 25,
-    "zoneMultiplier": { "head": 4, "torso": 1, "limb": 0.5 },
+    "zoneMultiplier": {
+      "head": 4,
+      "torso": 1,
+      "limb": 0.5
+    },
     "fireInterval": 0.22,
-    "auto": false,
     "spreadDeg": 0.8,
     "magSize": 8,
     "startReserve": 32,
-    "maxReserve": 64,
+    "maxReserve": 96,
     "reloadTime": 1.4,
     "range": 60,
     "noiseRadius": 25,
-    "sfx": "pistol_shot"
+    "sfx": "pistol_shot",
+    "model": "quaternius/guns/Pistol_5.glb"
+  },
+  "pistol_sd": {
+    "name": "Kestrel 9 SD",
+    "ammo": "pistol",
+    "damage": 22,
+    "zoneMultiplier": {
+      "head": 4,
+      "torso": 1,
+      "limb": 0.5
+    },
+    "fireInterval": 0.26,
+    "spreadDeg": 0.9,
+    "magSize": 8,
+    "startReserve": 24,
+    "maxReserve": 96,
+    "reloadTime": 1.5,
+    "range": 50,
+    "noiseRadius": 4,
+    "sfx": "silenced_shot",
+    "model": "quaternius/guns/Pistol_SD.glb"
+  },
+  "smg": {
+    "name": "Vireo SMG",
+    "ammo": "smg",
+    "damage": 14,
+    "zoneMultiplier": {
+      "head": 3,
+      "torso": 1,
+      "limb": 0.6
+    },
+    "fireInterval": 0.085,
+    "auto": true,
+    "spreadDeg": 2.2,
+    "magSize": 30,
+    "startReserve": 60,
+    "maxReserve": 180,
+    "reloadTime": 1.9,
+    "range": 50,
+    "noiseRadius": 30,
+    "sfx": "smg_shot",
+    "model": "quaternius/guns/SubmachineGun_1.glb"
+  },
+  "grenade": {
+    "name": "Frag grenade",
+    "type": "thrown",
+    "ammo": "grenade",
+    "fireInterval": 0.9,
+    "startReserve": 2,
+    "maxReserve": 6,
+    "noiseRadius": 35,
+    "sfx": "throw",
+    "throwSpeed": 13,
+    "fuse": 2.2,
+    "blastRadius": 4.5,
+    "blastDamage": 150,
+    "model": "quaternius/scifi/Prop_Grenade.glb",
+    "fit": "hand"
   }
 }

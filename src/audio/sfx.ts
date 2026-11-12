@@ -1,6 +1,11 @@
 /** Synthesised sound effects. No sample files: everything is built from oscillators and noise. */
 export type SfxName =
   | 'pistol_shot'
+  | 'silenced_shot'
+  | 'smg_shot'
+  | 'throw'
+  | 'bounce'
+  | 'switch'
   | 'reload_out'
   | 'reload_in'
   | 'dry'
@@ -70,6 +75,28 @@ export class Sfx {
         this.noiseBurst(out, t, 0.16, 'lowpass', 3200, 0.9, 1.0);
         this.noiseBurst(out, t, 0.04, 'highpass', 4000, 0.5, 1.0);
         this.tone(out, t, 'sine', 140, 45, 0.12, 0.9);
+        break;
+      case 'silenced_shot':
+        // A cough, not a bang: short, low-passed, no boom.
+        this.noiseBurst(out, t, 0.07, 'bandpass', 1400, 0.6, 1.2);
+        this.click(out, t + 0.03, 2600, 0.35);
+        break;
+      case 'smg_shot':
+        this.noiseBurst(out, t, 0.09, 'lowpass', 3800, 0.75, 1.0);
+        this.noiseBurst(out, t, 0.03, 'highpass', 5000, 0.4, 1.0);
+        this.tone(out, t, 'sine', 170, 60, 0.07, 0.6);
+        break;
+      case 'throw':
+        this.noiseBurst(out, t, 0.18, 'bandpass', 900, 0.35, 0.8);
+        this.click(out, t, 3200, 0.3);
+        break;
+      case 'bounce':
+        this.tone(out, t, 'triangle', 620, 380, 0.08, 0.35);
+        this.click(out, t, 1600, 0.4);
+        break;
+      case 'switch':
+        this.click(out, t, 1400, 0.4);
+        this.click(out, t + 0.18, 2400, 0.45);
         break;
       case 'reload_out':
         this.click(out, t, 1800, 0.5);

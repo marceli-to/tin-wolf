@@ -27,12 +27,49 @@
     "amount": 16,
     "color": "#c9a23a",
     "model": "quaternius/scifi/Prop_Ammo_Small.glb",
-    "modelScale": 1.0
+    "modelScale": 1.0,
+    "ammo": "pistol"
   },
   "armor": {
     "name": "Vest",
     "kind": "armor",
     "amount": 50,
     "color": "#4a6a8a"
+  },
+  "ammo_smg": {
+    "name": "SMG magazines",
+    "kind": "ammo",
+    "ammo": "smg",
+    "amount": 30,
+    "color": "#8a9a5a",
+    "model": "quaternius/scifi/Prop_Ammo.glb",
+    "modelScale": 0.8
+  },
+  "weapon_smg": {
+    "name": "Vireo SMG",
+    "kind": "weapon",
+    "weapon": "smg",
+    "amount": 30,
+    "color": "#3a3d42",
+    "model": "quaternius/guns/SubmachineGun_1.glb",
+    "modelScale": 0.22
+  },
+  "weapon_pistol_sd": {
+    "name": "Kestrel 9 SD",
+    "kind": "weapon",
+    "weapon": "pistol_sd",
+    "amount": 8,
+    "color": "#3a3d42",
+    "model": "quaternius/guns/Pistol_SD.glb",
+    "modelScale": 0.22
+  },
+  "grenades": {
+    "name": "Frag grenades",
+    "kind": "weapon",
+    "weapon": "grenade",
+    "amount": 2,
+    "color": "#4a5a3a",
+    "model": "quaternius/scifi/Prop_Grenade.glb",
+    "modelScale": 1.0
   }
 }

@@ -176,5 +176,14 @@ export function applyDamage(world: World, target: ActorRef, amount: number, zone
       if (s) s.kills++;
     }
     emit(world, { type: 'died', target, killer: shooter, x: g.x, z: g.z });
+    dropLoot(world, g.archetype, g.id, g.x, g.y, g.z);
   }
+}
+
+/** A fallen guard leaves its archetype's drop (ammo, or its gun) where it fell. */
+function dropLoot(world: World, archetype: string, id: string, x: number, y: number, z: number): void {
+  const def = world.data.enemies[archetype];
+  const item = def?.drop ? world.data.items[def.drop] : null;
+  if (!def?.drop || !item) return;
+  world.pickups.push({ id: `drop_${id}`, item: def.drop, amount: def.dropAmount ?? item.amount, x, y, z, respawn: null, timer: 0, active: true });
 }

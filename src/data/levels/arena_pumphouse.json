@@ -343,6 +343,60 @@
     18.5,
     18.5
    ]
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_smg",
+   "cell": [
+    4,
+    9
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_smg",
+   "cell": [
+    15,
+    10
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "grenades",
+   "cell": [
+    9,
+    1
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "grenades",
+   "cell": [
+    10,
+    18
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_smg",
+   "cell": [
+    1,
+    1
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_smg",
+   "cell": [
+    18,
+    18
+   ],
+   "respawn": 20
   }
  ],
  "match": {

@@ -38,6 +38,9 @@ export class Effects {
     depthWrite: false,
   });
   private mats = new Map<string, THREE.MeshBasicMaterial>();
+  /** Expanding fireballs: one material each so they can fade independently. */
+  private balls: { mesh: THREE.Mesh; life: number; max: number; radius: number }[] = [];
+  private ballGeo = new THREE.IcosahedronGeometry(1, 2);
 
   private mat(color: string): THREE.MeshBasicMaterial {
     let m = this.mats.get(color);
@@ -67,6 +70,24 @@ export class Effects {
       const s = speed * (0.4 + Math.random() * 0.6);
       this.spawn(x, y, z, Math.cos(a) * r * s, Math.abs(u) * s + 1, Math.sin(a) * r * s, 0.6 + Math.random() * 0.5, 0.08 + Math.random() * 0.1, color);
     }
+  }
+
+  /** Grenade blast: a fireball that swells and fades, sparks, and grey debris. */
+  explosion(x: number, y: number, z: number, radius: number): void {
+    let b = this.balls.find((o) => o.life <= 0);
+    if (!b) {
+      const mat = new THREE.MeshBasicMaterial({ color: '#ffb347', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+      b = { mesh: new THREE.Mesh(this.ballGeo, mat), life: 0, max: 0, radius: 0 };
+      this.balls.push(b);
+      this.group.add(b.mesh);
+    }
+    b.mesh.position.set(x, y, z);
+    b.mesh.visible = true;
+    b.life = b.max = 0.45;
+    b.radius = radius * 0.45;
+    this.burst(x, y, z, '#ffd27a', 22, 9);
+    this.burst(x, y, z, '#ff7a2a', 14, 6);
+    this.burst(x, y, z, '#5a5650', 18, 5);
   }
 
   private spawn(x: number, y: number, z: number, vx: number, vy: number, vz: number, life: number, size: number, color: string): void {
@@ -102,6 +123,14 @@ export class Effects {
   }
 
   update(dt: number): void {
+    for (const b of this.balls) {
+      if (b.life <= 0) continue;
+      b.life -= dt;
+      const t = 1 - Math.max(0, b.life) / b.max;
+      b.mesh.scale.setScalar(b.radius * (0.3 + 0.7 * Math.sqrt(t)));
+      (b.mesh.material as THREE.MeshBasicMaterial).opacity = (1 - t) * 0.9;
+      if (b.life <= 0) b.mesh.visible = false;
+    }
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i]!;
       p.life -= dt;
@@ -121,6 +150,10 @@ export class Effects {
   }
 
   clear(): void {
+    for (const b of this.balls) {
+      b.life = 0;
+      b.mesh.visible = false;
+    }
     for (const p of this.particles) p.mesh.visible = false;
     this.free.push(...this.particles);
     this.particles = [];

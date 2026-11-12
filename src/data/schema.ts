@@ -93,25 +93,40 @@ export const LevelSchema = z.object({
   entities: z.array(EntitySchema).default([]),
   objectives: z.array(ObjectiveSchema).default([]),
   briefing: z.string().default(''),
+  /** Weapons players start (and respawn) with; the first is drawn. */
+  loadout: z.array(z.string()).min(1).default(['pistol']),
   match: z.object({ killLimit: z.number().int().positive(), timeLimit: z.number().positive() }).optional(),
 });
 export type LevelDef = z.output<typeof LevelSchema>;
 
 export const WeaponSchema = z.object({
   name: z.string(),
-  type: z.literal('hitscan'),
-  damage: z.number(),
-  zoneMultiplier: z.object({ head: z.number(), torso: z.number(), limb: z.number() }),
+  /** Hitscan fires rays; thrown weapons launch a projectile that explodes after `fuse` seconds. */
+  type: z.enum(['hitscan', 'thrown']).default('hitscan'),
+  /** Ammo pool the weapon draws from; weapons sharing a pool share reserve rounds. */
+  ammo: z.string(),
+  damage: z.number().default(0),
+  zoneMultiplier: z.object({ head: z.number(), torso: z.number(), limb: z.number() }).default({ head: 1, torso: 1, limb: 1 }),
   fireInterval: z.number().positive(),
-  auto: z.boolean(),
-  spreadDeg: z.number().min(0),
-  magSize: z.number().int().positive(),
+  auto: z.boolean().default(false),
+  spreadDeg: z.number().min(0).default(0),
+  /** Rounds per magazine; thrown weapons have no magazine and use the pool directly. */
+  magSize: z.number().int().min(0).default(0),
+  /** Reserve rounds given with the weapon (start loadout or first pickup). */
   startReserve: z.number().int().min(0),
   maxReserve: z.number().int().min(0),
-  reloadTime: z.number().positive(),
-  range: z.number().positive(),
+  reloadTime: z.number().positive().default(1),
+  range: z.number().positive().default(60),
   noiseRadius: z.number().min(0),
   sfx: z.string(),
+  /** Thrown: launch speed (m/s), fuse (s), blast radius (m) and damage at the centre. */
+  throwSpeed: z.number().default(12),
+  fuse: z.number().default(2.2),
+  blastRadius: z.number().default(0),
+  blastDamage: z.number().default(0),
+  /** Model held in hand (render-only). `fit: 'gun'` keeps the gun pack's scale relative to the pistol. */
+  model: z.string().optional(),
+  fit: z.enum(['gun', 'hand']).default('gun'),
 });
 export type WeaponDef = z.output<typeof WeaponSchema>;
 export const WeaponsSchema = z.record(z.string(), WeaponSchema);
@@ -139,14 +154,21 @@ export const EnemySchema = z.object({
   legs: z.string().default('#2e2e30'),
   /** Uniform colour for the character model (archetype default). */
   uniform: z.string().optional(),
+  /** Item left where the guard falls. */
+  drop: z.string().optional(),
+  dropAmount: z.number().optional(),
 });
 export type EnemyDef = z.output<typeof EnemySchema>;
 export const EnemiesSchema = z.record(z.string(), EnemySchema);
 
 export const ItemSchema = z.object({
   name: z.string(),
-  kind: z.enum(['key', 'health', 'ammo', 'armor']),
+  kind: z.enum(['key', 'health', 'ammo', 'armor', 'weapon']),
   amount: z.number().default(0),
+  /** Weapon given by a `weapon` item; `amount` is the ammo that comes with it. */
+  weapon: z.string().optional(),
+  /** Ammo pool an `ammo` item refills. */
+  ammo: z.string().optional(),
   color: z.string(),
   /** Optional model under /assets; keys are tinted with `color`. */
   model: z.string().optional(),

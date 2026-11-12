@@ -97,10 +97,10 @@ describe('pickups', () => {
       { type: 'pickup', item: 'key_red', cell: [5, 1] },
     ]);
     const p = w.players[0]!;
-    p.weapon.reserve = 60;
+    p.ammo.pistol = 90;
     place(w, 0, 7, 3);
     run(w, 1, [intent()]);
-    expect(p.weapon.reserve).toBe(64);
+    expect(p.ammo.pistol).toBe(96);
     place(w, 0, 11, 3);
     run(w, 1, [intent()]);
     expect(p.inventory).toContain('key_red');

@@ -6,7 +6,7 @@ Planning document for the executing model. Work through it top to bottom. Check 
 
 ## Status (2026-11-12)
 
-M0–M6 are done and committed (65 unit tests, typecheck and build pass). M7 is not started: the plan says to ask first.
+M0–M6 are done and committed. M7: "More weapons" is done (asked for by Marcel); the other M7 items are not started and need asking first. 75 unit tests, typecheck and build pass.
 
 Verified by script in the browser: movement and collision, split-screen, weapons and damage, full versus match → results → rematch, every guard state transition in the test room, the depot's stealth route and loud route end to end (debug autopilot), mission fail → debrief → retry, settings surviving a reload, draw calls.
 
@@ -250,7 +250,7 @@ Each milestone ends playable. Each task is testable alone. Run `npm test` and th
 **Done when:** the game reads as a late-90s console shooter at first glance, has sound for every action, and settings survive a reload.
 
 ### M7 – Extensions (optional, ask before starting)
-- [ ] More weapons (silenced pistol, automatic rifle, something thrown), also as arena pickups
+- [x] More weapons (silenced pistol, automatic rifle, something thrown), also as arena pickups
 - [ ] More arena maps
 - [ ] Difficulty levels that add objectives and tune guard values
 - [ ] 4-player split-screen
@@ -363,3 +363,7 @@ PLAN.md  README.md
 | 2026-11-12 | Art | Static props are merged into one mesh per material at load (`render/staticBatch.ts`); characters are culled per view by frustum and by grid rays (hidden when walls block head, waist and feet). Worst draw calls across 60 random depot views: 107 (was 438) | Without occlusion culling, everything behind the building walls was drawn |
 | 2026-11-12 | Art | Model props are centred on their collision box and stood on its floor automatically; collision sizes come from the measured model bounds (`tools/glb_bounds.py`) | Kits use different origins (corner vs. centre) |
 | 2026-11-12 | Art | All Kenney props replaced with Quaternius (Sci-Fi Essentials Kit, Ultimate Furniture): crates, barrels, lockers, shelves, lab desks, satellite dish, beds, tables, chairs; pickups use the kit's health pack, ammo box and keycard. Vehicles, containers and tanks became tarp-covered cargo; props with no counterpart (monitors, plants, lamps, cones, rocks, fences, pipes) were dropped (140 → 107 entities). Guards hold the Ultimate Gun Pack pistol (`swapHeldGun`, also in first person); depot staff (`look: "worker"`) wear the Worker outfit. Kit textures are shared PNGs (`tools/gltf_pack.py --shared-tex`). Worst view ≈ 154 draw calls (was 107) | Marcel disliked the Kenney/Quaternius style mix; one author keeps the look consistent. Both depot routes re-checked with the autopilot |
+| 2026-11-12 | Art | Model props get metalness capped at 0.15 and a little more baked light | glTF defaults metalness to 1; without an environment map the kit props rendered near-black |
+| 2026-11-12 | M7 | **More weapons** (asked for by Marcel): Kestrel 9 SD (silenced, 4 m noise), Vireo SMG (automatic) and frag grenades (projectile with bounces, rolling drag, fuse, line-of-sight blast, self-damage, alerts guards like a shot). Players own several weapons with shared ammo pools (`ammo` per weapon); switch with Q / wheel / 1–4 / pad Y and LB (0.4 s, no firing). Levels set a `loadout` (depot: both pistols). Items gain `weapon` and `ammo` kinds; a new gun is drawn on pickup. Guards drop loot (`drop` on archetypes); new `guard_rifle` archetype with the SMG guards the yard and garage | Plan item; the SMG is a submachine gun rather than a rifle because the pose is one-handed |
+| 2026-11-12 | M7 | Held weapons: every pack gun is placed with `swapHeldGun` relative to the reference pistol (`ref`), so sizes stay true; the silenced pistol is Pistol_5 with the pack's short silencer merged in. Grenades in hand are scaled to the palm (`fit: 'hand'`) | One rig, one pose, several guns |
+| 2026-11-12 | M7 | Grenades update before guards in the tick so the AI hears an explosion the same tick | Found by test: explosions after `updateGuards` were never heard |

@@ -46,6 +46,15 @@ function collectNoises(world: World, from = 0): Noise[] {
         fromGuard: e.shooter.kind === 'guard' ? e.shooter.index : null,
         fromSlot: e.shooter.kind === 'player' ? e.shooter.slot : null,
       });
+    } else if (e.type === 'explosion') {
+      out.push({
+        x: e.x,
+        z: e.z,
+        radius: e.noise,
+        kind: 'shot',
+        fromGuard: null,
+        fromSlot: e.owner.kind === 'player' ? e.owner.slot : null,
+      });
     } else if (e.type === 'footstep') {
       out.push({ x: e.x, z: e.z, radius: FOOTSTEP_RADIUS, kind: 'step', fromGuard: null, fromSlot: e.slot });
     }

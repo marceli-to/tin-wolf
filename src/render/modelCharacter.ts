@@ -73,8 +73,22 @@ export function findMuzzleIn(gun: THREE.Object3D, hand: THREE.Object3D): THREE.V
   return findMuzzle(gun.parent ?? gun, hand, named);
 }
 
-export function swapHeldGun(root: THREE.Object3D, hand: THREE.Object3D, gun: THREE.Object3D, builtin = 'Pistol', flip = true): THREE.Object3D | null {
-  const node = root.getObjectByName(builtin);
+export interface SwapOptions {
+  /** Name of the gun node the model ships with. */
+  builtin?: string;
+  /** Turn the new gun round if its barrel points the other way. */
+  flip?: boolean;
+  /**
+   * Reference gun from the same pack: scale and centre come from it, so every gun of the pack keeps its
+   * real size relative to the reference (an SMG is longer than the pistol) and its grip in the hand.
+   */
+  ref?: THREE.Object3D;
+  /** Size relative to the built-in gun instead (e.g. 0.6 for a grenade in the palm). */
+  relSize?: number;
+}
+
+export function swapHeldGun(root: THREE.Object3D, hand: THREE.Object3D, gun: THREE.Object3D, opts: SwapOptions = {}): THREE.Object3D | null {
+  const node = root.getObjectByName(opts.builtin ?? 'Pistol');
   if (!node) return null;
   const skinned: THREE.SkinnedMesh[] = [];
   node.traverse((o) => {
@@ -92,13 +106,15 @@ export function swapHeldGun(root: THREE.Object3D, hand: THREE.Object3D, gun: THR
     oldBox.union(m.geometry.boundingBox!);
   }
   gun.updateMatrixWorld(true);
-  const newBox = new THREE.Box3().setFromObject(gun);
+  const basis = opts.ref && !opts.relSize ? opts.ref : gun;
+  basis.updateMatrixWorld(true);
+  const newBox = new THREE.Box3().setFromObject(basis);
   const oldSize = oldBox.getSize(new THREE.Vector3());
   const newSize = newBox.getSize(new THREE.Vector3());
-  const scale = Math.max(oldSize.x, oldSize.y, oldSize.z) / Math.max(newSize.x, newSize.y, newSize.z);
+  const scale = (Math.max(oldSize.x, oldSize.y, oldSize.z) / Math.max(newSize.x, newSize.y, newSize.z)) * (opts.relSize ?? 1);
   const align = new THREE.Matrix4()
     .makeTranslation(oldBox.getCenter(new THREE.Vector3()))
-    .multiply(new THREE.Matrix4().makeRotationY(flip ? Math.PI : 0))
+    .multiply(new THREE.Matrix4().makeRotationY(opts.flip ?? true ? Math.PI : 0))
     .multiply(new THREE.Matrix4().makeScale(scale, scale, scale))
     .multiply(new THREE.Matrix4().makeTranslation(newBox.getCenter(new THREE.Vector3()).negate()));
   const holder = new THREE.Group();
@@ -108,6 +124,13 @@ export function swapHeldGun(root: THREE.Object3D, hand: THREE.Object3D, gun: THR
   hand.add(holder);
   node.visible = false;
   return holder;
+}
+
+/** One held weapon per weapon id, all placed in the hand; only the drawn one is visible. */
+export interface HeldGun {
+  id: string;
+  model: ModelInstance;
+  fit: 'gun' | 'hand';
 }
 
 /** Three's glTF loader strips characters such as '.' from node names ('Wrist.R' becomes 'WristR'). */
@@ -143,7 +166,8 @@ export interface ArtSet {
 
 // Quaternius characters carry their own skinned pistol that follows every gun animation.
 const Q_MUZZLE: [number, number, number] = [0.02, 0.06, 0.3];
-const Q_GUN = 'quaternius/guns/Pistol_5.glb';
+/** Reference gun of the Ultimate Gun Pack: every pack gun is scaled relative to it. */
+export const Q_GUN = 'quaternius/guns/Pistol_5.glb';
 
 export const PROFILES: Record<string, ArtSet> = {
   quaternius: {
@@ -211,14 +235,22 @@ export class ModelCharacter {
   private actions = new Map<string, THREE.AnimationAction>();
   private current: CharacterAnim | null = null;
   private materials: THREE.MeshStandardMaterial[];
+  /** Held weapons by id, with the barrel tip in hand space (null for thrown weapons). */
+  private held = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null }>();
+  private weaponId = '';
 
+  /**
+   * `held` lists the weapons this character can draw (one for guards, every weapon for players);
+   * `ref` is the pack's reference gun, so all pack guns keep their sizes relative to it.
+   */
   constructor(
     model: ModelInstance,
     private profile: CharacterProfile,
     height: number,
     flashMaterial: THREE.Material,
     gunModel: ModelInstance | null,
-    heldGun: ModelInstance | null = null,
+    held: HeldGun[] = [],
+    ref: THREE.Object3D | null = null,
   ) {
     const inner = model.object;
     for (const name of profile.hide ?? []) {
@@ -230,7 +262,7 @@ export class ModelCharacter {
     // glTF characters face +z; the game's figures face -z.
     inner.rotation.y = Math.PI;
     this.root.add(inner);
-    this.materials = [...model.materials, ...(gunModel?.materials ?? []), ...(heldGun?.materials ?? [])];
+    this.materials = [...model.materials, ...(gunModel?.materials ?? []), ...held.flatMap((h) => h.model.materials)];
     this.mixer = new THREE.AnimationMixer(inner);
     for (const clip of model.animations) this.actions.set(clip.name, this.mixer.clipAction(clip));
     const die = this.actions.get(profile.clips.die);
@@ -267,19 +299,25 @@ export class ModelCharacter {
       flash.scale.setScalar(1 / profile.gun.scale);
       this.gun.add(flash);
     } else if (profile.muzzle) {
-      const swapped = heldGun ? swapHeldGun(inner, hand, heldGun.object) : null;
-      // Pose the gun in the aiming clip once, then pin the flash to the barrel tip in hand space.
+      // Pose the gun in the aiming clip once, then pin the flash to each barrel tip in hand space.
       const aim = this.actions.get(profile.clips.aim);
       aim?.play();
       this.mixer.update(0.3);
-      const tip = swapped ? findMuzzle(swapped, hand, swapped.name) ?? findMuzzleIn(swapped, hand) : findMuzzle(inner, hand);
+      for (const h of held) {
+        const holder = swapHeldGun(inner, hand, h.model.object, h.fit === 'hand' ? { relSize: 0.35 } : { ref: ref ?? undefined });
+        if (!holder) continue;
+        const tip = h.fit === 'hand' ? null : findMuzzleIn(holder, hand);
+        holder.visible = false;
+        this.held.set(h.id, { holder, tip });
+      }
+      const tip = this.held.size ? null : findMuzzle(inner, hand);
       aim?.stop();
-      if (tip) {
-        flash.position.copy(tip);
-        flash.scale.setScalar(1 / inner.scale.x);
-        hand.add(flash);
-      } else {
+      flash.scale.setScalar(1 / inner.scale.x);
+      hand.add(flash);
+      if (tip) flash.position.copy(tip);
+      else if (!this.held.size) {
         flash.position.set(...profile.muzzle);
+        flash.scale.setScalar(1);
         holder.add(flash);
       }
     } else {
@@ -287,7 +325,23 @@ export class ModelCharacter {
       holder.add(flash);
     }
     this.flash = flash;
+    const first = held[0];
+    if (first) this.setWeapon(first.id);
     this.play('idle');
+  }
+
+  /** Shows the held model for a weapon and moves the muzzle flash to its barrel. */
+  setWeapon(id: string): void {
+    if (id === this.weaponId || !this.held.has(id)) return;
+    this.weaponId = id;
+    for (const [k, h] of this.held) h.holder.visible = k === id;
+    const tip = this.held.get(id)!.tip;
+    if (tip) this.flash.position.copy(tip);
+  }
+
+  /** Thrown weapons have no muzzle; the flash stays hidden. */
+  get hasMuzzle(): boolean {
+    return !this.held.size || !!this.held.get(this.weaponId)?.tip;
   }
 
   play(name: CharacterAnim): void {

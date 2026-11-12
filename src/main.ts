@@ -21,8 +21,8 @@ async function boot(): Promise<void> {
   if (art in PROFILES) {
     // Art trial: load every model the data refers to before the first level starts.
     const lib = new ModelLibrary(`${import.meta.env.BASE_URL}assets/`);
-    const paths = [...Object.values(game.data.props), ...Object.values(game.data.items)].flatMap((k) => (k.model ? [k.model] : []));
-    await lib.load([...paths, ...profileModels(art)]);
+    const paths = [...Object.values(game.data.props), ...Object.values(game.data.items), ...Object.values(game.data.weapons)].flatMap((k) => (k.model ? [k.model] : []));
+    await lib.load([...new Set([...paths, ...profileModels(art)])]);
     game.renderer.models = lib;
     game.renderer.art = art;
   }

@@ -54,8 +54,10 @@ export class PlayerHud {
     const key = [
       Math.ceil(p.hp),
       Math.ceil(p.armor),
+      p.weapon.id,
       p.weapon.mag,
-      p.weapon.reserve,
+      def ? p.ammo[def.ammo] ?? 0 : 0,
+      p.switchTimer > 0,
       reloading,
       p.alive,
       Math.ceil(p.deadTimer),
@@ -74,10 +76,11 @@ export class PlayerHud {
       <div class="bar"><div class="fill hp" style="width:${hpPct}%"></div></div>
       ${p.armor > 0 ? `<div class="bar"><div class="fill armor" style="width:${armPct}%"></div></div>` : ''}
       <div class="label">${Math.ceil(p.hp)}</div>`;
+    const pool = def ? p.ammo[def.ammo] ?? 0 : 0;
+    const rounds = !def ? '' : def.type === 'thrown' ? `<b>${pool}</b>` : `<b>${p.weapon.mag}</b> / ${pool}`;
+    const status = !def || p.switchTimer > 0 || def.type === 'thrown' ? '' : reloading ? 'RELOADING' : p.weapon.mag === 0 ? 'EMPTY' : '';
     this.ammo.innerHTML = def
-      ? `<div class="wname">${esc(def.name)}</div><div class="rounds"><b>${p.weapon.mag}</b> / ${p.weapon.reserve}</div>${
-          reloading ? '<div class="reloading">RELOADING</div>' : p.weapon.mag === 0 ? '<div class="reloading">EMPTY</div>' : ''
-        }`
+      ? `<div class="wname">${esc(def.name)}</div><div class="rounds">${rounds}</div>${status ? `<div class="reloading">${status}</div>` : ''}`
       : '';
     if (!p.alive) {
       this.center.innerHTML =

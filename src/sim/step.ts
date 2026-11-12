@@ -7,6 +7,7 @@ import { updateDoors, updateInteraction } from './doors';
 import { updateMatch } from './match';
 import { updateObjectives } from './objectives';
 import { updatePickups } from './pickups';
+import { updateProjectiles } from './projectiles';
 import { respawnPlayer } from './spawn';
 import { updatePlayerWeapon } from './weapons';
 import { rebuildBoxes, type World } from './world';
@@ -37,6 +38,8 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
       if (p.deadTimer <= 0 && world.level.mode !== 'mission') respawnPlayer(world, p);
     }
   }
+  // Before guards, so they hear this tick's explosions.
+  updateProjectiles(world, DT);
   updateGuards(world, DT);
   // Push overlapping living bodies apart (players and guards alike).
   const bodies = [...world.players.filter((p) => p.alive), ...world.guards.filter((g) => g.state !== 'dead')];

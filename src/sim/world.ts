@@ -11,8 +11,8 @@ import { createMission, type MissionState } from './objectives';
 
 export interface WeaponState {
   id: string;
+  /** Rounds in the magazine (unused by thrown weapons, which draw from the pool). */
   mag: number;
-  reserve: number;
   cooldown: number;
   /** > 0 while reloading; counts down. */
   reloadTimer: number;
@@ -40,7 +40,15 @@ export interface Player {
   deadTimer: number;
   protect: number;
   hurtTimer: number;
+  /** The weapon in hand; always one of `weapons`. */
   weapon: WeaponState;
+  /** Owned weapons, in pickup order. */
+  weapons: WeaponState[];
+  /** Reserve rounds per ammo pool. */
+  ammo: Record<string, number>;
+  /** > 0 while lowering one weapon and raising the next. */
+  switchTimer: number;
+  switchPrev: boolean;
   inventory: string[];
   firePrev: boolean;
   interactPrev: boolean;
@@ -163,6 +171,21 @@ export interface Pickup {
   active: boolean;
 }
 
+/** A thrown grenade in flight. */
+export interface Projectile {
+  id: number;
+  weapon: string;
+  owner: ActorRef;
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  fuse: number;
+  prev: { x: number; y: number; z: number };
+}
+
 export interface Zone {
   id: string;
   minX: number;
@@ -189,6 +212,8 @@ export interface World {
   props: Prop[];
   doors: Door[];
   pickups: Pickup[];
+  projectiles: Projectile[];
+  nextProjectile: number;
   zones: Zone[];
   spawns: SpawnPoint[];
   starts: SpawnPoint[];
@@ -206,10 +231,8 @@ export interface WorldOptions {
   seed?: number;
 }
 
-export function createPlayer(slot: number, weaponId: string, data: GameData): Player {
-  const w = data.weapons[weaponId];
-  if (!w) throw new Error(`Unknown weapon '${weaponId}'`);
-  return {
+export function createPlayer(slot: number, loadout: readonly string[], data: GameData): Player {
+  const p: Player = {
     slot,
     x: 0,
     y: 0,
@@ -230,7 +253,11 @@ export function createPlayer(slot: number, weaponId: string, data: GameData): Pl
     deadTimer: 0,
     protect: 0,
     hurtTimer: 0,
-    weapon: { id: weaponId, mag: w.magSize, reserve: w.startReserve, cooldown: 0, reloadTimer: 0 },
+    weapon: { id: '', mag: 0, cooldown: 0, reloadTimer: 0 },
+    weapons: [],
+    ammo: {},
+    switchTimer: 0,
+    switchPrev: false,
     inventory: [],
     firePrev: false,
     interactPrev: false,
@@ -242,6 +269,23 @@ export function createPlayer(slot: number, weaponId: string, data: GameData): Pl
     shotsFired: 0,
     shotsHit: 0,
   };
+  giveLoadout(p, loadout, data);
+  return p;
+}
+
+/** Replaces a player's weapons and ammo with a fresh loadout; the first weapon is drawn. */
+export function giveLoadout(p: Player, loadout: readonly string[], data: GameData): void {
+  p.weapons = [];
+  p.ammo = {};
+  for (const id of loadout) {
+    const def = data.weapons[id];
+    if (!def) throw new Error(`Unknown weapon '${id}'`);
+    if (p.weapons.some((w) => w.id === id)) continue;
+    p.weapons.push({ id, mag: def.magSize, cooldown: 0, reloadTimer: 0 });
+    p.ammo[def.ammo] = Math.min(def.maxReserve, (p.ammo[def.ammo] ?? 0) + def.startReserve);
+  }
+  p.weapon = p.weapons[0]!;
+  p.switchTimer = 0;
 }
 
 export function placePlayer(world: World, p: Player, sp: SpawnPoint): void {
@@ -270,6 +314,8 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     props: [],
     doors: [],
     pickups: [],
+    projectiles: [],
+    nextProjectile: 1,
     zones: [],
     spawns: [],
     starts: [],
@@ -425,7 +471,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     }
   }
   for (let slot = 0; slot < opts.players; slot++) {
-    const p = createPlayer(slot, 'pistol', data);
+    const p = createPlayer(slot, level.loadout, data);
     const sp = world.starts[slot] ?? world.spawns[slot] ?? world.starts[0] ?? { ...cellCenter(grid, 1, 1), yaw: 0 };
     placePlayer(world, p, sp);
     world.players.push(p);

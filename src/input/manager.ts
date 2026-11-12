@@ -35,6 +35,7 @@ export class InputManager {
   slots: (DeviceId | null)[] = [];
   settings: InputSettings = { ...DEFAULT_INPUT_SETTINGS };
   private padCrouch = new Map<number, boolean>();
+  private wheelGap = false;
 
   constructor(target: HTMLElement) {
     this.kbm = new KeyboardMouse(target);
@@ -93,6 +94,13 @@ export class InputManager {
       intent.reload = k.down('KeyR');
       intent.interact = k.down('KeyE') || k.down('KeyF');
       intent.crouch = k.down('KeyC') || k.down('ControlLeft') || k.down('ShiftLeft');
+      // The wheel gives one tick of "pressed" and the sim edge-detects it, so a gap tick is needed
+      // between notches: only consume a notch when last tick had no switch request.
+      const wheel = this.wheelGap ? 0 : k.consumeWheel();
+      this.wheelGap = wheel !== 0;
+      intent.weaponNext = k.down('KeyQ') || wheel > 0;
+      intent.weaponPrev = wheel < 0;
+      for (let n = 1; n <= 4; n++) if (k.down(`Digit${n}`)) intent.weaponSlot = n;
       return intent;
     }
     const i = dev.index;
@@ -107,6 +115,8 @@ export class InputManager {
     intent.fire = p.down(i, PAD.RT) || p.down(i, PAD.RB);
     intent.reload = p.down(i, PAD.X);
     intent.interact = p.down(i, PAD.A);
+    intent.weaponNext = p.down(i, PAD.Y);
+    intent.weaponPrev = p.down(i, PAD.LB);
     if (p.pressed(i, PAD.B) || p.pressed(i, PAD.LS)) this.padCrouch.set(i, !this.padCrouch.get(i));
     intent.crouch = this.padCrouch.get(i) ?? false;
     return intent;

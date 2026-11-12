@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { flatMaterial, shadedBox } from './shapes';
 import type { ModelInstance } from './models';
-import { findMuzzle, findMuzzleIn, findNode, swapHeldGun } from './modelCharacter';
+import { findMuzzle, findMuzzleIn, findNode, swapHeldGun, type HeldGun } from './modelCharacter';
 
 export interface ViewModel {
   root: THREE.Group;
@@ -9,6 +9,10 @@ export interface ViewModel {
   flash: THREE.Object3D;
   /** Drives the arms' pose when the view model is a skinned character. */
   mixer?: THREE.AnimationMixer;
+  /** Shows the model for a weapon id (view models with several held weapons). */
+  setWeapon?: (id: string) => void;
+  /** False while a weapon without a muzzle (a grenade) is drawn. */
+  muzzle: boolean;
 }
 
 export interface ViewArmsSpec {
@@ -25,7 +29,7 @@ export interface ViewArmsSpec {
  * First-person arms from the player's own character model: the whole figure stands at the camera
  * in an aiming pose, with head and other parts that could block the view collapsed to nothing.
  */
-export function buildModelArmsViewModel(arms: ModelInstance, heldGun: ModelInstance | null, spec: ViewArmsSpec): ViewModel {
+export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], ref: THREE.Object3D | null, spec: ViewArmsSpec): ViewModel {
   const root = new THREE.Group();
   const gun = new THREE.Group();
   root.add(gun);
@@ -67,17 +71,36 @@ export function buildModelArmsViewModel(arms: ModelInstance, heldGun: ModelInsta
   f3.rotation.x = Math.PI / 2;
   flash.add(f2, f3);
   flash.visible = false;
-  const swapped = heldGun ? swapHeldGun(body, hand, heldGun.object) : null;
-  const tip = swapped ? findMuzzleIn(swapped, hand) : findMuzzle(body, hand);
-  if (tip) {
-    flash.position.copy(tip);
-    flash.scale.setScalar(1 / body.scale.x);
+  const guns = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null }>();
+  for (const h of held) {
+    const holder = swapHeldGun(body, hand, h.model.object, h.fit === 'hand' ? { relSize: 0.35 } : { ref: ref ?? undefined });
+    if (!holder) continue;
+    holder.visible = false;
+    guns.set(h.id, { holder, tip: h.fit === 'hand' ? null : findMuzzleIn(holder, hand) });
+  }
+  const tip = guns.size ? null : findMuzzle(body, hand);
+  flash.scale.setScalar(1 / body.scale.x);
+  if (tip || guns.size) {
+    if (tip) flash.position.copy(tip);
     hand.add(flash);
   } else {
     flash.position.set(...spec.muzzle);
+    flash.scale.setScalar(1);
     holder.add(flash);
   }
-  return { root, gun, flash, mixer };
+  const vm: ViewModel = { root, gun, flash, mixer, muzzle: true };
+  let current = '';
+  vm.setWeapon = (id: string): void => {
+    const g = guns.get(id);
+    if (!g || id === current) return;
+    current = id;
+    for (const [k, v] of guns) v.holder.visible = k === id;
+    vm.muzzle = !!g.tip;
+    if (g.tip) flash.position.copy(g.tip);
+  };
+  const first = held[0];
+  if (first) vm.setWeapon(first.id);
+  return vm;
 }
 
 /** First-person pistol and sleeve, built from boxes, in camera space (-z forward). */
@@ -143,7 +166,7 @@ export function buildPistolViewModel(sleeve: string, gunModel: ModelInstance | n
 
   root.position.set(0.15, -0.15, -0.36);
   root.scale.setScalar(0.72);
-  return { root, gun, flash };
+  return { root, gun, flash, muzzle: true };
 }
 
 export interface ViewModelPose {
@@ -153,16 +176,19 @@ export interface ViewModelPose {
   bobPhase: number;
   bobAmount: number;
   alive: boolean;
+  /** 0..1 progress through a weapon switch (lower, then raise), or -1. */
+  switching?: number;
 }
 
 export function poseViewModel(vm: ViewModel, p: ViewModelPose): void {
   const kick = Math.exp(-p.sinceShot * 16);
   const dip = p.reload >= 0 ? Math.sin(Math.PI * p.reload) : 0;
+  const drop = p.switching !== undefined && p.switching >= 0 ? Math.sin(Math.PI * p.switching) : 0;
   const bx = Math.sin(p.bobPhase) * 0.012 * p.bobAmount;
   const by = -Math.abs(Math.cos(p.bobPhase)) * 0.012 * p.bobAmount;
-  vm.gun.position.set(bx, by - dip * 0.16, kick * 0.05);
-  vm.gun.rotation.set(kick * 0.22 - dip * 0.7, 0, dip * 0.5);
-  vm.flash.visible = p.sinceShot < 0.05;
+  vm.gun.position.set(bx, by - dip * 0.16 - drop * 0.35, kick * 0.05);
+  vm.gun.rotation.set(kick * 0.22 - dip * 0.7 - drop * 0.6, 0, dip * 0.5);
+  vm.flash.visible = vm.muzzle && p.sinceShot < 0.05;
   vm.flash.rotation.z = p.sinceShot * 40;
   vm.root.visible = p.alive;
 }

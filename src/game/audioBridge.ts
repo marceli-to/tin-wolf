@@ -43,6 +43,18 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
       if (def) sfx.play('reload_in', 0.6, 0, def.reloadTime * 0.75);
       break;
     }
+    case 'thrown':
+      at('throw', e.x, e.z, 0.7);
+      break;
+    case 'bounce':
+      at('bounce', e.x, e.z, 0.6);
+      break;
+    case 'explosion':
+      at('explosion', e.x, e.z, 1.4);
+      break;
+    case 'weaponSwitched':
+      sfx.play('switch', 0.5);
+      break;
     case 'dryFire':
       sfx.play('dry', 0.6);
       break;

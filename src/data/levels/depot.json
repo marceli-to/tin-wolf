@@ -233,7 +233,7 @@
   {
    "type": "guard",
    "id": "y1",
-   "archetype": "guard_basic",
+   "archetype": "guard_rifle",
    "cell": [
     9,
     27
@@ -254,7 +254,7 @@
   {
    "type": "guard",
    "id": "y2",
-   "archetype": "guard_basic",
+   "archetype": "guard_rifle",
    "cell": [
     33,
     27
@@ -407,7 +407,7 @@
   {
    "type": "guard",
    "id": "r1",
-   "archetype": "guard_basic",
+   "archetype": "guard_rifle",
    "cell": [
     31,
     20
@@ -1252,6 +1252,22 @@
    ],
    "yaw": 200,
    "elevation": 0
+  },
+  {
+   "type": "pickup",
+   "item": "grenades",
+   "cell": [
+    33.4,
+    13.0
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_smg",
+   "cell": [
+    9.0,
+    30.4
+   ]
   }
  ],
  "objectives": [
@@ -1278,5 +1294,9 @@
    ]
   }
  ],
- "briefing": "Halvard Depot is a weather station high in the Ostfjell range, cut off by snow since October. Its new owners are not studying the weather: they are testing a guidance unit for long-range drones, and the prototype console sits in the depot lab.\n\nThe lab is sealed with a red keycard kept in the security office. Get the card, destroy the console, and get out through the vehicle tunnel north-east of the garage.\n\nThe front door is quickest and best guarded. A maintenance duct runs up the west side of the building into the generator room \u2014 dark, tight, and quiet."
+ "briefing": "Halvard Depot is a weather station high in the Ostfjell range, cut off by snow since October. Its new owners are not studying the weather: they are testing a guidance unit for long-range drones, and the prototype console sits in the depot lab.\n\nThe lab is sealed with a red keycard kept in the security office. Get the card, destroy the console, and get out through the vehicle tunnel north-east of the garage.\n\nThe front door is quickest and best guarded. A maintenance duct runs up the west side of the building into the generator room \u2014 dark, tight, and quiet.",
+ "loadout": [
+  "pistol_sd",
+  "pistol"
+ ]
 }

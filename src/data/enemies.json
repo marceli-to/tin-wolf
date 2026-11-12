@@ -22,7 +22,9 @@
     "searchTime": 9,
     "damageScale": 0.45,
     "color": "#56663f",
-    "legs": "#3a3f30"
+    "legs": "#3a3f30",
+    "drop": "ammo_pistol",
+    "dropAmount": 8
   },
   "guard_officer": {
     "name": "Officer",
@@ -47,6 +49,35 @@
     "searchTime": 14,
     "damageScale": 0.55,
     "color": "#3c4a5c",
-    "legs": "#24282e"
+    "legs": "#24282e",
+    "drop": "ammo_pistol",
+    "dropAmount": 12
+  },
+  "guard_rifle": {
+    "name": "Rifle guard",
+    "hp": 70,
+    "weapon": "smg",
+    "walkSpeed": 1.6,
+    "runSpeed": 3.8,
+    "visionRange": 22,
+    "visionFovDeg": 110,
+    "noticeTime": 0.9,
+    "hearingScale": 1.0,
+    "reactionTime": 0.8,
+    "aimSpreadDeg": 6.5,
+    "burstPause": [
+      1.0,
+      1.8
+    ],
+    "burst": [
+      3,
+      6
+    ],
+    "searchTime": 9,
+    "damageScale": 0.4,
+    "color": "#56663f",
+    "legs": "#3a3f30",
+    "drop": "weapon_smg",
+    "dropAmount": 20
   }
 }

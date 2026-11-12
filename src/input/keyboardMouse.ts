@@ -6,6 +6,8 @@ export class KeyboardMouse {
   private clickedThisFrame = false;
   mouseDX = 0;
   mouseDY = 0;
+  /** Wheel notches since last consumed (+ = down / next). */
+  private wheel = 0;
   /** Any key or click since the last `endFrame`, for lobby joins. */
   anyInput = false;
 
@@ -17,6 +19,7 @@ export class KeyboardMouse {
     window.addEventListener('mousemove', this.onMouseMove);
     window.addEventListener('blur', this.onBlur);
     window.addEventListener('contextmenu', this.onContextMenu);
+    window.addEventListener('wheel', this.onWheel, { passive: true });
   }
 
   dispose(): void {
@@ -27,6 +30,7 @@ export class KeyboardMouse {
     window.removeEventListener('mousemove', this.onMouseMove);
     window.removeEventListener('blur', this.onBlur);
     window.removeEventListener('contextmenu', this.onContextMenu);
+    window.removeEventListener('wheel', this.onWheel);
   }
 
   get locked(): boolean {
@@ -67,6 +71,14 @@ export class KeyboardMouse {
     return r;
   }
 
+  /** -1, 0 or 1: one weapon step per call while notches remain. */
+  consumeWheel(): number {
+    if (this.wheel === 0) return 0;
+    const d = Math.sign(this.wheel);
+    this.wheel -= d;
+    return d;
+  }
+
   endFrame(): void {
     this.pressedThisFrame.clear();
     this.clickedThisFrame = false;
@@ -98,6 +110,12 @@ export class KeyboardMouse {
     if (!this.locked) return;
     this.mouseDX += e.movementX;
     this.mouseDY += e.movementY;
+  };
+
+  private onWheel = (e: WheelEvent): void => {
+    if (!this.locked || e.deltaY === 0) return;
+    // Cap queued notches so a fast spin does not cycle for seconds.
+    this.wheel = Math.max(-2, Math.min(2, this.wheel + Math.sign(e.deltaY)));
   };
 
   private onBlur = (): void => {

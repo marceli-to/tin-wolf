@@ -29,6 +29,10 @@ URL parameters:
 __game.autopilot(0, [[19,26],[19,23],[19,19],[19,15],[22,14],[23,16]], { fight: true })
 ```
 
+## Weapons
+
+Kestrel 9 pistol, Kestrel 9 SD (silenced: guards only hear it within 4 m), Vireo SMG (automatic) and frag grenades (bounce, 2.2 s fuse, blast blocked by walls, hurts the thrower too). Pistols share ammo. Guards drop pistol ammo; rifle guards drop their SMG. The depot starts you with both pistols; the arena with the Kestrel 9, and the rest lies around as pickups. Weapons, items and loadouts are data (`src/data/weapons.json`, `items.json`, a level's `loadout`).
+
 ## Controls
 
 | | Keyboard + mouse | Gamepad |
@@ -37,6 +41,8 @@ __game.autopilot(0, [[19,26],[19,23],[19,19],[19,15],[22,14],[23,16]], { fight: 
 | Look | Mouse | Right stick |
 | Fire | Left click | RT |
 | Reload | R | X / Square |
+| Next / previous weapon | Q or mouse wheel | Y / Triangle, LB |
+| Weapon by number | 1–4 | |
 | Use | E | A / Cross |
 | Crouch | C or Ctrl (hold) | B / Circle (toggle) |
 | Objectives | Tab | Back / Select |
@@ -44,7 +50,7 @@ __game.autopilot(0, [[19,26],[19,23],[19,19],[19,15],[22,14],[23,16]], { fight: 
 
 Settings (menu or pause): mouse / gamepad sensitivity, invert look, split direction, volume, graphics (Smooth, or Retro 480–180p pixels). Saved in `localStorage`.
 
-Third-party models are CC0 (Quaternius, Kenney); see `CREDITS.md`. To trim a new glTF to the animations you need: `python3 tools/trim_gltf.py in.gltf out.glb Idle Walk Run`.
+Third-party models are CC0 (Quaternius); see `CREDITS.md`. To trim a new glTF to the animations you need: `python3 tools/trim_gltf.py in.gltf out.glb Idle Walk Run`.
 
 Only one mouse can be pointer-locked in a browser, so in split-screen player 1 uses keyboard + mouse and player 2 a gamepad (or both use gamepads).
 

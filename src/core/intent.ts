@@ -11,8 +11,13 @@ export interface PlayerIntent {
   reload: boolean;
   interact: boolean;
   crouch: boolean;
+  /** Cycle to the next / previous owned weapon (edge-triggered by the sim). */
+  weaponNext: boolean;
+  weaponPrev: boolean;
+  /** Select owned weapon by number, 1-based; 0 = no request. */
+  weaponSlot: number;
 }
 
 export function emptyIntent(): PlayerIntent {
-  return { moveX: 0, moveZ: 0, lookYaw: 0, lookPitch: 0, fire: false, reload: false, interact: false, crouch: false };
+  return { moveX: 0, moveZ: 0, lookYaw: 0, lookPitch: 0, fire: false, reload: false, interact: false, crouch: false, weaponNext: false, weaponPrev: false, weaponSlot: 0 };
 }

@@ -1,6 +1,6 @@
 import { PLAYER } from '../config';
 import { rayGrid } from './raycast';
-import { placePlayer, type Player, type SpawnPoint, type World } from './world';
+import { giveLoadout, placePlayer, type Player, type SpawnPoint, type World } from './world';
 
 function spawnCandidates(world: World): SpawnPoint[] {
   return world.spawns.length ? world.spawns : world.starts.filter(Boolean);
@@ -42,7 +42,6 @@ export function chooseSpawn(world: World, p: Player): SpawnPoint {
 }
 
 export function respawnPlayer(world: World, p: Player): void {
-  const def = world.data.weapons[p.weapon.id];
   placePlayer(world, p, chooseSpawn(world, p));
   p.alive = true;
   p.hp = PLAYER.maxHp;
@@ -50,11 +49,6 @@ export function respawnPlayer(world: World, p: Player): void {
   p.protect = PLAYER.spawnProtection;
   p.hurtTimer = 0;
   p.inventory = [];
-  if (def) {
-    p.weapon.mag = def.magSize;
-    p.weapon.reserve = def.startReserve;
-  }
-  p.weapon.cooldown = 0;
-  p.weapon.reloadTimer = 0;
+  giveLoadout(p, world.level.loadout, world.data);
   world.events.push({ type: 'spawned', slot: p.slot });
 }

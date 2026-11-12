@@ -1,4 +1,5 @@
 import { PLAYER } from '../config';
+import { giveWeapon } from './weapons';
 import { emit, type Pickup, type Player, type World } from './world';
 
 const REACH = 0.9;
@@ -17,11 +18,16 @@ function apply(world: World, p: Player, pk: Pickup): boolean {
       p.armor = Math.min(100, p.armor + pk.amount);
       return true;
     case 'ammo': {
-      const def = world.data.weapons[p.weapon.id];
-      if (!def || p.weapon.reserve >= def.maxReserve) return false;
-      p.weapon.reserve = Math.min(def.maxReserve, p.weapon.reserve + pk.amount);
+      // Fills its pool up to the largest reserve any weapon using that pool allows.
+      const pool = item.ammo ?? '';
+      const max = Math.max(0, ...Object.values(world.data.weapons).filter((w) => w.ammo === pool).map((w) => w.maxReserve));
+      const have = p.ammo[pool] ?? 0;
+      if (have >= max) return false;
+      p.ammo[pool] = Math.min(max, have + pk.amount);
       return true;
     }
+    case 'weapon':
+      return giveWeapon(world, p, item.weapon ?? '', pk.amount);
     case 'key':
       if (!p.inventory.includes(pk.item)) p.inventory.push(pk.item);
       return true;

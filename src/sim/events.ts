@@ -6,6 +6,10 @@ export type SimEvent =
   | { type: 'died'; target: ActorRef; killer: ActorRef | null; x?: number; z?: number }
   | { type: 'spawned'; slot: number }
   | { type: 'reloadStart'; slot: number }
+  | { type: 'weaponSwitched'; slot: number; weapon: string }
+  | { type: 'thrown'; shooter: ActorRef; x: number; y: number; z: number; weapon: string }
+  | { type: 'bounce'; x: number; y: number; z: number }
+  | { type: 'explosion'; owner: ActorRef; x: number; y: number; z: number; radius: number; noise: number }
   | { type: 'dryFire'; slot: number }
   | { type: 'pickup'; slot: number; item: string; x: number; y: number; z: number }
   | { type: 'doorOpened'; id: string; x: number; y: number; z: number }

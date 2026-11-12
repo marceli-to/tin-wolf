@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import { PLAYER, RENDER } from '../config';
 import { lerp } from '../core/math';
+import { SWITCH_TIME } from '../sim/weapons';
 import { playerEyeHeight } from '../sim/player';
-import { doorBox, type World } from '../sim/world';
+import { doorBox, type Pickup, type World } from '../sim/world';
 import { buildHumanoid, lightHumanoid, poseHumanoid, type Humanoid } from './humanoid';
 import { buildLightField, lampsFromLevel, type LightField } from './lighting';
 import { setTextureSmoothing, texturedMaterial } from './textures';
 import { Snow } from './snow';
 import { tintModel, type ModelLibrary } from './models';
-import { ModelCharacter, PROFILES } from './modelCharacter';
+import { ModelCharacter, PROFILES, Q_GUN, type HeldGun } from './modelCharacter';
 import { StaticBatch } from './staticBatch';
 import { rayGrid } from '../sim/raycast';
 import type { Grid } from '../sim/grid';
@@ -20,6 +21,7 @@ import { computeViewRects, type SplitMode, type ViewRect } from './views';
 import { Effects } from './effects';
 import { buildModelArmsViewModel, buildPistolViewModel, poseViewModel, type ViewModel } from './viewModel';
 import { buildPickupMesh } from './pickups';
+import { flatMaterial } from './shapes';
 import type { SimEvent } from '../sim/events';
 
 export interface ViewLook {
@@ -60,6 +62,7 @@ export class GameRenderer {
   private modelLights = new THREE.Group();
   private doorMeshes: THREE.Mesh[] = [];
   private pickupMeshes: THREE.Group[] = [];
+  private projectileMeshes = new Map<number, THREE.Object3D>();
   private time = 0;
   private light: LightField = () => 1;
   /** Internal render height in pixels (0 = native resolution). */
@@ -183,25 +186,7 @@ export class GameRenderer {
       this.dynamic.add(m);
       this.doorMeshes.push(m);
     }
-    for (const pk of world.pickups) {
-      const item = world.data.items[pk.item];
-      const holder = new THREE.Group();
-      const inst = item?.model && this.models ? this.models.instance(item.model) : null;
-      if (item && inst) {
-        const o = inst.object;
-        o.scale.setScalar(item.modelScale);
-        // Centre the model on the pickup point so it spins in place.
-        o.updateMatrixWorld(true);
-        const mb = new THREE.Box3().setFromObject(o);
-        o.position.set(-(mb.min.x + mb.max.x) / 2, -(mb.min.y + mb.max.y) / 2, -(mb.min.z + mb.max.z) / 2);
-        for (const m of inst.materials) m.metalness = Math.min(m.metalness, 0.15);
-        if (item.kind === 'key') for (const m of inst.materials) (m.userData.base as THREE.Color).set(item.color), m.color.set(item.color);
-        holder.add(o);
-      } else if (item) holder.add(buildPickupMesh(item));
-      holder.position.set(pk.x, pk.y + 0.45, pk.z);
-      this.dynamic.add(holder);
-      this.pickupMeshes.push(holder);
-    }
+    for (const pk of world.pickups) this.addPickup(world, pk);
     this.cameras = world.players.map((p) => {
       const cam = new THREE.PerspectiveCamera(RENDER.fov, 1, 0.05, 200);
       cam.rotation.order = 'YXZ';
@@ -215,9 +200,8 @@ export class GameRenderer {
       const inst = prof && this.models ? this.models.instance(prof.model) : null;
       if (prof && inst) {
         const gun = prof.gun ? this.models!.instance(prof.gun.model) : null;
-        const held = prof.heldGun ? this.models!.instance(prof.heldGun) : null;
         for (const m of inst.materials) if (m.name === prof.tintMaterial) (m.userData.base as THREE.Color).multiply(new THREE.Color(color)).multiplyScalar(2.2);
-        const model = new ModelCharacter(inst, prof, p.height, this.flashMat, gun, held);
+        const model = new ModelCharacter(inst, prof, p.height, this.flashMat, gun, this.heldGuns(world, Object.keys(world.data.weapons)), this.gunRef());
         setLayerDeep(model.root, LAYER.BODY + p.slot);
         this.dynamic.add(model.root);
         return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
@@ -238,11 +222,10 @@ export class GameRenderer {
       const inst = profile && this.models ? this.models.instance(profile.model) : null;
       if (profile && inst) {
         const gun = profile.gun ? this.models!.instance(profile.gun.model) : null;
-        const held = profile.heldGun ? this.models!.instance(profile.heldGun) : null;
         if (g.uniform && profile.tintMaterial) {
           for (const m of inst.materials) if (m.name === profile.tintMaterial) (m.userData.base as THREE.Color).set(g.uniform);
         }
-        const model = new ModelCharacter(inst, profile, g.height, this.flashMat, gun, held);
+        const model = new ModelCharacter(inst, profile, g.height, this.flashMat, gun, this.heldGuns(world, def ? [def.weapon] : []), this.gunRef());
         this.dynamic.add(model.root);
         return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
       }
@@ -264,8 +247,7 @@ export class GameRenderer {
       let vm: ViewModel;
       if (va && armsInst) {
         for (const m of armsInst.materials) if (m.name === va.tintMaterial) m.color.multiply(new THREE.Color(PLAYER_COLORS[p.slot] ?? '#888')).multiplyScalar(2.2);
-        const heldInst = va.heldGun ? this.models!.instance(va.heldGun) : null;
-        vm = buildModelArmsViewModel(armsInst, heldInst, {
+        vm = buildModelArmsViewModel(armsInst, this.heldGuns(world, Object.keys(world.data.weapons)), this.gunRef(), {
           clip: va.clip,
           collapse: va.collapse,
           headOffset: va.headOffset,
@@ -288,6 +270,63 @@ export class GameRenderer {
     this.bob = world.players.map(() => 0);
     if (debug) this.buildDebug(world);
     this.resize();
+  }
+
+  /** Fresh model instances for the weapons that have one (falls back to the model's own gun). */
+  private heldGuns(world: World, ids: string[]): HeldGun[] {
+    if (!this.models) return [];
+    const out: HeldGun[] = [];
+    for (const id of ids) {
+      const def = world.data.weapons[id];
+      const inst = def?.model ? this.models.instance(def.model) : null;
+      if (def && inst) out.push({ id, model: inst, fit: def.fit });
+    }
+    return out;
+  }
+
+  private gunRef(): THREE.Object3D | null {
+    return this.models?.instance(Q_GUN)?.object ?? null;
+  }
+
+  /** Spinning pickup: the item's model if it has one, else the code-built shape. */
+  private addPickup(world: World, pk: Pickup): void {
+    const item = world.data.items[pk.item];
+    const holder = new THREE.Group();
+    const inst = item?.model && this.models ? this.models.instance(item.model) : null;
+    if (item && inst) {
+      const o = inst.object;
+      o.scale.setScalar(item.modelScale);
+      // Centre the model on the pickup point so it spins in place.
+      o.updateMatrixWorld(true);
+      const mb = new THREE.Box3().setFromObject(o);
+      o.position.set(-(mb.min.x + mb.max.x) / 2, -(mb.min.y + mb.max.y) / 2, -(mb.min.z + mb.max.z) / 2);
+      for (const m of inst.materials) m.metalness = Math.min(m.metalness, 0.15);
+      if (item.kind === 'key') for (const m of inst.materials) (m.userData.base as THREE.Color).set(item.color), m.color.set(item.color);
+      holder.add(o);
+    } else if (item) holder.add(buildPickupMesh(item));
+    holder.position.set(pk.x, pk.y + 0.45, pk.z);
+    this.dynamic.add(holder);
+    this.pickupMeshes.push(holder);
+  }
+
+  /** Grenade in flight: the weapon's model, or a small dark ball. */
+  private projectileMesh(world: World, weapon: string): THREE.Object3D {
+    const def = world.data.weapons[weapon];
+    const inst = def?.model && this.models ? this.models.instance(def.model) : null;
+    if (inst) {
+      for (const m of inst.materials) m.metalness = Math.min(m.metalness, 0.15);
+      const g = new THREE.Group();
+      inst.object.updateMatrixWorld(true);
+      const mb = new THREE.Box3().setFromObject(inst.object);
+      const size = mb.getSize(new THREE.Vector3());
+      inst.object.scale.setScalar(0.14 / Math.max(size.x, size.y, size.z, 1e-3));
+      inst.object.updateMatrixWorld(true);
+      const c = new THREE.Box3().setFromObject(inst.object).getCenter(new THREE.Vector3());
+      inst.object.position.sub(c);
+      g.add(inst.object);
+      return g;
+    }
+    return new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), flatMaterial('#3a4030'));
   }
 
   private buildDebug(world: World): void {
@@ -327,6 +366,7 @@ export class GameRenderer {
     this.propMeshes = [];
     this.doorMeshes = [];
     this.pickupMeshes = [];
+    this.projectileMeshes.clear();
     this.players = [];
     this.cameras = [];
   }
@@ -460,10 +500,33 @@ export class GameRenderer {
     return blocked(at.y + 1.6) && blocked(at.y + 0.3) && blocked(at.y + 1.0);
   }
 
+  private updateProjectiles(world: World, alpha: number): void {
+    const alive = new Set<number>();
+    for (const pr of world.projectiles) {
+      alive.add(pr.id);
+      let m = this.projectileMeshes.get(pr.id);
+      if (!m) {
+        m = this.projectileMesh(world, pr.weapon);
+        this.projectileMeshes.set(pr.id, m);
+        this.dynamic.add(m);
+      }
+      m.position.set(lerp(pr.prev.x, pr.x, alpha), lerp(pr.prev.y, pr.y, alpha), lerp(pr.prev.z, pr.z, alpha));
+      const spin = Math.hypot(pr.vx, pr.vz);
+      m.rotation.x += spin * 0.02;
+      m.rotation.y += spin * 0.01;
+    }
+    for (const [id, m] of this.projectileMeshes) {
+      if (alive.has(id)) continue;
+      this.dynamic.remove(m);
+      this.projectileMeshes.delete(id);
+    }
+  }
+
   onSimEvent(e: SimEvent): void {
     // Blood on a player would burst right in front of their own camera; the hurt overlay covers it.
     if (e.type === 'impact' && !(e.onPlayer && this.cameras.length === 1)) this.effects.impact(e.x, e.y, e.z, e.nx, e.ny, e.nz, e.surface);
     else if (e.type === 'propDestroyed') this.effects.burst(e.x, e.y, e.z, '#6a6a6a', 24, 5);
+    else if (e.type === 'explosion') this.effects.explosion(e.x, e.y + 0.2, e.z, e.radius);
   }
 
   render(world: World, alpha: number, looks: ViewLook[], frameTime: number): void {
@@ -471,6 +534,9 @@ export class GameRenderer {
     this.time += frameTime;
     const p0 = world.players[0];
     if (this.snow && p0) this.snow.update(Math.min(frameTime, 0.05), p0.x, p0.z, this.time);
+    // Guards drop loot mid-level; build meshes for pickups that appeared since the last frame.
+    for (let i = this.pickupMeshes.length; i < world.pickups.length; i++) this.addPickup(world, world.pickups[i]!);
+    this.updateProjectiles(world, alpha);
     world.pickups.forEach((pk, i) => {
       const m = this.pickupMeshes[i];
       if (!m) return;
@@ -551,21 +617,25 @@ export class GameRenderer {
         else m.play('idle');
         m.update(Math.min(frameTime, 0.05), speed > 3 ? speed / 5 : speed / 1.6);
         m.light(Math.min(1.1, this.light(x, z) + 0.15));
-        v.flash.visible = p.alive && p.sinceShot < 0.06;
+        m.setWeapon(p.weapon.id);
       }
       v.h.root.visible = p.alive && !v.model;
       v.h.root.position.set(x, y, z);
       lightHumanoid(v.h, Math.min(1.15, this.light(x, z) + 0.1));
       v.h.root.rotation.y = -p.yaw;
       poseHumanoid(v.h, { phase: v.phase, stride: Math.min(1, speed / 4), crouch, aim: 1, pitch: p.pitch });
-      v.flash.visible = p.sinceShot < 0.06;
+      v.flash.visible = p.alive && p.sinceShot < 0.06 && (v.model?.hasMuzzle ?? true);
 
       const vm = this.viewModels[i];
       if (vm) {
         this.bob[i] = (this.bob[i] ?? 0) + speed * frameTime * 2.2;
         const def = world.data.weapons[p.weapon.id];
         vm.mixer?.update(Math.min(frameTime, 0.05));
+        // Swap models at the bottom of the switch, while the hand is out of view.
+        const switching = p.switchTimer > 0 ? 1 - p.switchTimer / SWITCH_TIME : -1;
+        if (switching < 0 || switching >= 0.5) vm.setWeapon?.(p.weapon.id);
         poseViewModel(vm, {
+          switching,
           sinceShot: p.sinceShot,
           reload: p.weapon.reloadTimer > 0 && def ? 1 - p.weapon.reloadTimer / def.reloadTime : -1,
           bobPhase: this.bob[i]!,
