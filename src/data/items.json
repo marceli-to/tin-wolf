@@ -2,32 +2,26 @@
   "key_red": {
     "name": "Red keycard",
     "kind": "key",
-    "color": "#d33a2c",
-    "model": "quaternius/scifi/Prop_KeyCard.glb",
-    "modelScale": 0.7
+    "color": "#d33a2c"
   },
   "key_blue": {
     "name": "Blue keycard",
     "kind": "key",
-    "color": "#3a6bd3",
-    "model": "quaternius/scifi/Prop_KeyCard.glb",
-    "modelScale": 0.7
+    "color": "#3a6bd3"
   },
   "medkit": {
     "name": "Medkit",
     "kind": "health",
     "amount": 40,
-    "color": "#e8e8e8",
-    "model": "quaternius/scifi/Prop_HealthPack.glb",
-    "modelScale": 0.8
+    "color": "#e8e8e8"
   },
   "ammo_pistol": {
     "name": "Pistol ammo",
     "kind": "ammo",
     "amount": 16,
     "color": "#c9a23a",
-    "model": "quaternius/scifi/Prop_Ammo_Small.glb",
-    "modelScale": 1.0,
+    "model": "kenney/blasters/clip-small.glb",
+    "modelScale": 1.6,
     "ammo": "pistol"
   },
   "armor": {
@@ -42,8 +36,8 @@
     "ammo": "smg",
     "amount": 30,
     "color": "#8a9a5a",
-    "model": "quaternius/scifi/Prop_Ammo.glb",
-    "modelScale": 0.8
+    "model": "kenney/blasters/clip-large.glb",
+    "modelScale": 1.6
   },
   "weapon_smg": {
     "name": "Vireo SMG",
@@ -51,8 +45,8 @@
     "weapon": "smg",
     "amount": 30,
     "color": "#3a3d42",
-    "model": "quaternius/guns/SubmachineGun_1.glb",
-    "modelScale": 0.22
+    "model": "kenney/blasters/blaster-d.glb",
+    "modelScale": 0.6
   },
   "weapon_pistol_sd": {
     "name": "Kestrel 9 SD",
@@ -60,8 +54,8 @@
     "weapon": "pistol_sd",
     "amount": 8,
     "color": "#3a3d42",
-    "model": "quaternius/guns/Pistol_SD.glb",
-    "modelScale": 0.22
+    "model": "kenney/blasters/blaster-h.glb",
+    "modelScale": 0.6
   },
   "grenades": {
     "name": "Frag grenades",
@@ -69,7 +63,7 @@
     "weapon": "grenade",
     "amount": 2,
     "color": "#4a5a3a",
-    "model": "quaternius/scifi/Prop_Grenade.glb",
-    "modelScale": 1.0
+    "model": "kenney/blasters/grenade-a.glb",
+    "modelScale": 1.4
   }
 }

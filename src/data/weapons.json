@@ -17,7 +17,7 @@
     "range": 60,
     "noiseRadius": 25,
     "sfx": "pistol_shot",
-    "model": "quaternius/guns/Pistol_5.glb"
+    "model": "kenney/blasters/blaster-k.glb"
   },
   "pistol_sd": {
     "name": "Kestrel 9 SD",
@@ -37,7 +37,7 @@
     "range": 50,
     "noiseRadius": 4,
     "sfx": "silenced_shot",
-    "model": "quaternius/guns/Pistol_SD.glb"
+    "model": "kenney/blasters/blaster-h.glb"
   },
   "smg": {
     "name": "Vireo SMG",
@@ -58,7 +58,7 @@
     "range": 50,
     "noiseRadius": 30,
     "sfx": "smg_shot",
-    "model": "quaternius/guns/SubmachineGun_1.glb",
+    "model": "kenney/blasters/blaster-d.glb",
     "hold": "two"
   },
   "grenade": {
@@ -74,7 +74,7 @@
     "fuse": 2.2,
     "blastRadius": 4.5,
     "blastDamage": 150,
-    "model": "quaternius/scifi/Prop_Grenade.glb",
+    "model": "kenney/blasters/grenade-a.glb",
     "fit": "hand"
   }
 }

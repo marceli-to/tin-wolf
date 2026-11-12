@@ -22,7 +22,7 @@ export class LobbyView {
       .join('');
     this.root.innerHTML = `
       <div class="panel">
-        <h1>TIN WOLF</h1>
+        <h1>TIN FOX</h1>
         <h2>${esc(title)}</h2>
         <ul class="slots">${rows}</ul>
         <p class="hint">${hint}</p>

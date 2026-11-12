@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { flatMaterial, shadedBox } from './shapes';
 import type { ModelInstance } from './models';
-import { attachHeldGun, findMuzzle, findMuzzleIn, findNode, swapHeldGun, type GripSpec, type HeldGun } from './modelCharacter';
+import { attachHeldGun, findMuzzle, findMuzzleIn, findNode, type GripSpec, type HeldGun } from './modelCharacter';
 
 export interface ViewModel {
   root: THREE.Group;
@@ -35,7 +35,7 @@ export interface ViewArmsSpec {
  * First-person arms from the player's own character model: the whole figure stands at the camera
  * in an aiming pose, with head and other parts that could block the view collapsed to nothing.
  */
-export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], ref: THREE.Object3D | null, spec: ViewArmsSpec): ViewModel {
+export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], spec: ViewArmsSpec): ViewModel {
   const root = new THREE.Group();
   const gun = new THREE.Group();
   root.add(gun);
@@ -82,10 +82,8 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], re
   flash.visible = false;
   const guns = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null }>();
   for (const h of held) {
-    const holder = spec.grip
-      ? attachHeldGun(hand, h.model.object, spec.grip, h.fit === 'hand' ? 0.45 : undefined)
-      : swapHeldGun(body, hand, h.model.object, h.fit === 'hand' ? { relSize: 0.35 } : { ref: ref ?? undefined });
-    if (!holder) continue;
+    if (!spec.grip) continue;
+    const holder = attachHeldGun(hand, h.model.object, spec.grip, h.fit === 'hand' ? 0.45 : undefined);
     holder.visible = false;
     guns.set(h.id, { holder, tip: h.fit === 'hand' ? null : findMuzzleIn(holder, hand) });
   }
@@ -115,13 +113,7 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], re
 }
 
 /** First-person pistol and sleeve, built from boxes, in camera space (-z forward). */
-export interface ViewGunPlacement {
-  scale: number;
-  position: [number, number, number];
-  rotation: [number, number, number];
-}
-
-export function buildPistolViewModel(sleeve: string, gunModel: ModelInstance | null = null, place?: ViewGunPlacement): ViewModel {
+export function buildPistolViewModel(sleeve: string): ViewModel {
   const root = new THREE.Group();
   const gun = new THREE.Group();
   root.add(gun);
@@ -144,16 +136,7 @@ export function buildPistolViewModel(sleeve: string, gunModel: ModelInstance | n
   const arm = new THREE.Mesh(shadedBox(0.09, 0.09, 0.4), cloth);
   arm.position.set(0.02, -0.1, 0.24);
   arm.rotation.x = 0.12;
-  if (gunModel && place) {
-    // A real pistol model replaces the box slide, frame, grip and sight.
-    const g = gunModel.object;
-    g.scale.setScalar(place.scale);
-    g.position.set(...place.position);
-    g.rotation.set(...place.rotation);
-    gun.add(g, hand, arm);
-  } else {
-    gun.add(slide, frame, grip, sight, hand, arm);
-  }
+  gun.add(slide, frame, grip, sight, hand, arm);
 
   const flashMat = new THREE.MeshBasicMaterial({
     color: '#ffd27a',

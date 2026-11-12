@@ -23,6 +23,7 @@ export const DIFFICULTIES = ['easy', 'normal', 'hard'];
 
 /** 0 = smooth native rendering; the others are retro pixel heights. */
 export const RESOLUTIONS = [0, 480, 360, 240, 180];
+// Old name kept so saved settings survive the rename to Tin Fox.
 const KEY = 'tin-wolf.settings.v2';
 
 /** localStorage can be missing or throw (private mode, blocked storage); settings then just do not persist. */

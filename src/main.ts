@@ -3,7 +3,7 @@ import { Game } from './game/game';
 import { readParams } from './game/params';
 import { ModelLibrary } from './render/models';
 import { useFlatTextures } from './render/textures';
-import { applyArtOverrides, profileModels, PROFILES } from './render/modelCharacter';
+import { profileModels, PROFILES } from './render/modelCharacter';
 
 const app = document.getElementById('app')!;
 
@@ -17,12 +17,11 @@ function fail(err: unknown): void {
 
 async function boot(): Promise<void> {
   const game = new Game(app, readParams(location.search));
-  // Kenney kits are the default look; ?art=quaternius keeps the earlier models; ?art=none the code-built figures.
+  // Kenney kits are the look; ?art=none shows the code-built figures and shapes instead.
   const art = game.params.art || 'kenney';
   game.params.art = art;
   if (art in PROFILES) {
-    // Art trial: load every model the data refers to before the first level starts.
-    applyArtOverrides(PROFILES[art]!, game.data);
+    // Load every model the data refers to before the first level starts.
     useFlatTextures(!!PROFILES[art]!.flatTextures);
     const lib = new ModelLibrary(`${import.meta.env.BASE_URL}assets/`);
     const paths = [...Object.values(game.data.props), ...Object.values(game.data.items), ...Object.values(game.data.weapons)].flatMap((k) => (k.model ? [k.model] : []));

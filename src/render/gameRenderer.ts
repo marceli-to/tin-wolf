@@ -57,7 +57,7 @@ export class GameRenderer {
   private propMeshes: THREE.Object3D[] = [];
   /** Set to use glTF models for props and guards (art trial). */
   models: ModelLibrary | null = null;
-  /** Which character set to use with models (a key of PROFILES, e.g. 'quaternius'). */
+  /** Which character set to use with models (a key of PROFILES, e.g. 'kenney'). */
   art = '';
   private modelLights = new THREE.Group();
   private doorMeshes: THREE.Mesh[] = [];
@@ -210,9 +210,7 @@ export class GameRenderer {
       const file = set?.playerModels?.[p.slot % set.playerModels.length] ?? prof?.model;
       const inst = prof && file && this.models ? this.models.instance(file) : null;
       if (prof && inst) {
-        const gun = prof.gun ? this.models!.instance(prof.gun.model) : null;
-        if (prof.tintMaterial) for (const m of inst.materials) if (m.name === prof.tintMaterial) (m.userData.base as THREE.Color).multiply(new THREE.Color(color)).multiplyScalar(2.2);
-        const model = new ModelCharacter(inst, prof, p.height, this.flashMat, gun, this.heldGuns(world, Object.keys(world.data.weapons)), this.gunRef());
+        const model = new ModelCharacter(inst, prof, p.height, this.flashMat, this.heldGuns(world, Object.keys(world.data.weapons)));
         setLayerDeep(model.root, LAYER.BODY + p.slot);
         this.dynamic.add(model.root);
         return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
@@ -237,8 +235,7 @@ export class GameRenderer {
       const armsInst = va && this.models ? this.models.instance(va.model) : null;
       let vm: ViewModel;
       if (va && armsInst) {
-        if (va.tintMaterial) for (const m of armsInst.materials) if (m.name === va.tintMaterial) m.color.multiply(new THREE.Color(PLAYER_COLORS[p.slot] ?? '#888')).multiplyScalar(2.2);
-        vm = buildModelArmsViewModel(armsInst, this.heldGuns(world, Object.keys(world.data.weapons)), this.gunRef(), {
+        vm = buildModelArmsViewModel(armsInst, this.heldGuns(world, Object.keys(world.data.weapons)), {
           clip: va.clip,
           collapse: va.collapse,
           headOffset: va.headOffset,
@@ -250,9 +247,7 @@ export class GameRenderer {
           gunOnly: va.gunOnly,
         });
       } else {
-        const vg = set?.viewGun;
-        const vgModel = vg && this.models ? this.models.instance(vg.model) : null;
-        vm = buildPistolViewModel(PLAYER_COLORS[p.slot] ?? '#555', vgModel, vg);
+        vm = buildPistolViewModel(PLAYER_COLORS[p.slot] ?? '#555');
       }
       setLayerDeep(vm.root, LAYER.VIEWMODEL + p.slot);
       const holder = new THREE.Group();
@@ -273,11 +268,7 @@ export class GameRenderer {
     const profile = set ? ((g.look && set.looks?.[g.look]) || (g.archetype === 'guard_officer' ? set.officer : set.guard)) : null;
     const inst = profile && this.models ? this.models.instance(profile.model) : null;
     if (profile && inst) {
-      const gun = profile.gun ? this.models!.instance(profile.gun.model) : null;
-      if (g.uniform && profile.tintMaterial) {
-        for (const m of inst.materials) if (m.name === profile.tintMaterial) (m.userData.base as THREE.Color).set(g.uniform);
-      }
-      const model = new ModelCharacter(inst, profile, g.height, this.flashMat, gun, this.heldGuns(world, def ? [def.weapon] : []), this.gunRef());
+      const model = new ModelCharacter(inst, profile, g.height, this.flashMat, this.heldGuns(world, def ? [def.weapon] : []));
       this.dynamic.add(model.root);
       return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
     }
@@ -300,11 +291,6 @@ export class GameRenderer {
       if (def && inst) out.push({ id, model: inst, fit: def.fit, hold: def.hold });
     }
     return out;
-  }
-
-  private gunRef(): THREE.Object3D | null {
-    const ref = PROFILES[this.art]?.gunRef;
-    return ref ? (this.models?.instance(ref)?.object ?? null) : null;
   }
 
   /** Spinning pickup: the item's model if it has one, else the code-built shape. */

@@ -6,7 +6,9 @@
       0.7
     ],
     "mat": "console",
-    "hp": 60
+    "hp": 60,
+    "model": "kenney/space-station/computer-wide.glb",
+    "modelFit": "stretch"
   },
   "terminal": {
     "size": [
@@ -15,7 +17,9 @@
       0.6
     ],
     "mat": "console",
-    "usable": true
+    "usable": true,
+    "model": "kenney/space-station/computer-system.glb",
+    "modelFit": "stretch"
   },
   "pillar": {
     "size": [
@@ -32,8 +36,9 @@
       0.93
     ],
     "mat": "crate",
-    "model": "quaternius/scifi/Prop_Crate.glb",
-    "modelScale": 0.62
+    "model": "kenney/survival/box.glb",
+    "modelScale": 0.62,
+    "modelFit": "stretch"
   },
   "crate_tall": {
     "size": [
@@ -42,8 +47,9 @@
       1.54
     ],
     "mat": "crate",
-    "model": "quaternius/scifi/Prop_Crate_Tarp.glb",
-    "modelScale": 0.9
+    "model": "kenney/factory/box-large.glb",
+    "modelScale": 0.9,
+    "modelFit": "stretch"
   },
   "crate_large": {
     "size": [
@@ -52,8 +58,9 @@
       0.93
     ],
     "mat": "crate",
-    "model": "quaternius/scifi/Prop_Crate_Large.glb",
-    "modelScale": 0.62
+    "model": "kenney/factory/box-long.glb",
+    "modelScale": 0.62,
+    "modelFit": "stretch"
   },
   "cargo": {
     "size": [
@@ -62,8 +69,9 @@
       1.55
     ],
     "mat": "crate",
-    "model": "quaternius/scifi/Prop_Crate_Tarp_Large.glb",
-    "modelScale": 0.9
+    "model": "kenney/factory/box-wide.glb",
+    "modelScale": 0.9,
+    "modelFit": "stretch"
   },
   "barrel": {
     "size": [
@@ -72,8 +80,9 @@
       0.62
     ],
     "mat": "barrel",
-    "model": "quaternius/scifi/Prop_Barrel1.glb",
-    "modelScale": 0.95
+    "model": "kenney/survival/barrel.glb",
+    "modelScale": 0.95,
+    "modelFit": "stretch"
   },
   "barrel_small": {
     "size": [
@@ -82,8 +91,9 @@
       0.65
     ],
     "mat": "barrel",
-    "model": "quaternius/scifi/Prop_Barrel2_Closed.glb",
-    "modelScale": 1.2
+    "model": "kenney/survival/barrel.glb",
+    "modelScale": 1.2,
+    "modelFit": "stretch"
   },
   "chest": {
     "size": [
@@ -92,8 +102,9 @@
       0.59
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Chest.glb",
-    "modelScale": 0.6
+    "model": "kenney/survival/chest.glb",
+    "modelScale": 0.6,
+    "modelFit": "stretch"
   },
   "ammo_crate": {
     "size": [
@@ -102,9 +113,10 @@
       0.72
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Ammo.glb",
+    "model": "kenney/blasters/crate-small.glb",
     "modelScale": 1.0,
-    "solid": false
+    "solid": false,
+    "modelFit": "footprint"
   },
   "locker": {
     "size": [
@@ -113,8 +125,9 @@
       0.36
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Locker.glb",
-    "modelScale": 0.72
+    "model": "kenney/furniture/bookcaseClosedDoors.glb",
+    "modelScale": 0.72,
+    "modelFit": "stretch"
   },
   "shelf": {
     "size": [
@@ -123,8 +136,9 @@
       0.41
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Shelves_ThinTall.glb",
-    "modelScale": 0.75
+    "model": "kenney/furniture/bookcaseOpen.glb",
+    "modelScale": 0.75,
+    "modelFit": "stretch"
   },
   "shelf_wide": {
     "size": [
@@ -133,8 +147,9 @@
       0.41
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Shelves_WideTall.glb",
-    "modelScale": 0.75
+    "model": "kenney/furniture/bookcaseClosedWide.glb",
+    "modelScale": 0.75,
+    "modelFit": "stretch"
   },
   "shelf_low": {
     "size": [
@@ -143,8 +158,9 @@
       0.41
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Shelves_WideShort.glb",
-    "modelScale": 0.75
+    "model": "kenney/furniture/bookcaseOpenLow.glb",
+    "modelScale": 0.75,
+    "modelFit": "stretch"
   },
   "lab_desk": {
     "size": [
@@ -153,8 +169,9 @@
       0.82
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Desk_Medium.glb",
-    "modelScale": 0.8
+    "model": "kenney/furniture/desk.glb",
+    "modelScale": 0.8,
+    "modelFit": "stretch"
   },
   "lab_desk_small": {
     "size": [
@@ -163,8 +180,9 @@
       0.82
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Desk_Small.glb",
-    "modelScale": 0.8
+    "model": "kenney/furniture/desk.glb",
+    "modelScale": 0.8,
+    "modelFit": "stretch"
   },
   "lab_desk_corner": {
     "size": [
@@ -173,8 +191,9 @@
       1.78
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Desk_L.glb",
-    "modelScale": 0.8
+    "model": "kenney/furniture/deskCorner.glb",
+    "modelScale": 0.8,
+    "modelFit": "stretch"
   },
   "lab_chair": {
     "size": [
@@ -183,9 +202,10 @@
       0.67
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_Chair.glb",
+    "model": "kenney/space-station/chair.glb",
     "modelScale": 0.6,
-    "solid": false
+    "solid": false,
+    "modelFit": "footprint"
   },
   "satellite_dish": {
     "size": [
@@ -194,8 +214,9 @@
       2.08
     ],
     "mat": "metal",
-    "model": "quaternius/scifi/Prop_SatelliteDish.glb",
-    "modelScale": 0.75
+    "model": "kenney/space/satelliteDish_large.glb",
+    "modelScale": 0.75,
+    "modelFit": "footprint"
   },
   "desk": {
     "size": [
@@ -204,8 +225,9 @@
       0.7
     ],
     "mat": "wood",
-    "model": "quaternius/furniture/Desk.glb",
-    "modelScale": 0.82
+    "model": "kenney/furniture/desk.glb",
+    "modelScale": 0.82,
+    "modelFit": "stretch"
   },
   "office_chair": {
     "size": [
@@ -214,9 +236,10 @@
       0.69
     ],
     "mat": "metal",
-    "model": "quaternius/furniture/OfficeChair.glb",
+    "model": "kenney/furniture/chairDesk.glb",
     "modelScale": 0.85,
-    "solid": false
+    "solid": false,
+    "modelFit": "footprint"
   },
   "bookcase": {
     "size": [
@@ -225,8 +248,9 @@
       0.4
     ],
     "mat": "wood",
-    "model": "quaternius/furniture/Bookcase_Books.glb",
-    "modelScale": 0.6
+    "model": "kenney/furniture/bookcaseClosedWide.glb",
+    "modelScale": 0.6,
+    "modelFit": "stretch"
   },
   "closet": {
     "size": [
@@ -235,8 +259,9 @@
       0.59
     ],
     "mat": "wood",
-    "model": "quaternius/furniture/ShortCloset.glb",
-    "modelScale": 0.65
+    "model": "kenney/furniture/bookcaseClosedDoors.glb",
+    "modelScale": 0.65,
+    "modelFit": "stretch"
   },
   "side_table": {
     "size": [
@@ -245,8 +270,9 @@
       0.61
     ],
     "mat": "wood",
-    "model": "quaternius/furniture/NightStand.glb",
-    "modelScale": 1.2
+    "model": "kenney/furniture/sideTableDrawers.glb",
+    "modelScale": 1.2,
+    "modelFit": "stretch"
   },
   "bunk_bed": {
     "size": [
@@ -255,8 +281,9 @@
       2.04
     ],
     "mat": "wood",
-    "model": "quaternius/furniture/BedTwin.glb",
-    "modelScale": 0.48
+    "model": "kenney/furniture/bedBunk.glb",
+    "modelScale": 0.48,
+    "modelFit": "footprint"
   },
   "mess_table": {
     "size": [
@@ -265,8 +292,9 @@
       2.5
     ],
     "mat": "wood",
-    "model": "quaternius/furniture/Table.glb",
-    "modelScale": 0.9
+    "model": "kenney/furniture/table.glb",
+    "modelScale": 0.9,
+    "modelFit": "stretch"
   },
   "chair": {
     "size": [
@@ -275,9 +303,10 @@
       0.54
     ],
     "mat": "wood",
-    "model": "quaternius/furniture/Chair.glb",
+    "model": "kenney/furniture/chair.glb",
     "modelScale": 0.85,
-    "solid": false
+    "solid": false,
+    "modelFit": "footprint"
   },
   "stool": {
     "size": [
@@ -286,9 +315,10 @@
       0.42
     ],
     "mat": "wood",
-    "model": "quaternius/furniture/Stool.glb",
+    "model": "kenney/furniture/stoolBar.glb",
     "modelScale": 0.8,
-    "solid": false
+    "solid": false,
+    "modelFit": "footprint"
   },
   "armchair": {
     "size": [
@@ -297,8 +327,9 @@
       0.94
     ],
     "mat": "wood",
-    "model": "quaternius/furniture/Sofa_individual.glb",
-    "modelScale": 0.65
+    "model": "kenney/furniture/loungeChair.glb",
+    "modelScale": 0.65,
+    "modelFit": "footprint"
   },
   "alarm_panel": {
     "size": [

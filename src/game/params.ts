@@ -5,7 +5,7 @@ export interface GameParams {
   /** Skip the lobby (debug/testing): slot 0 gets keyboard+mouse, others the first free gamepads. */
   autostart: boolean;
   seed: number;
-  /** Model art set: '' (default, Kenney), 'kenney', 'quaternius' or 'none' (code-built figures). */
+  /** Model art set: '' (default, Kenney), 'kenney' or 'none' (code-built figures). */
   art: string;
 }
 

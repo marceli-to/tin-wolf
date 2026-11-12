@@ -1,4 +1,4 @@
-# Tin Wolf
+# Tin Fox
 
 A browser first-person shooter in the spirit of late-90s console shooters: stealth missions with guards and objectives, plus 2-player split-screen versus. Level geometry, textures and sound are generated in code; characters, the pistol and furniture are CC0 models. See `PLAN.md` for the plan and progress, `BRIEF.md` for the original brief.
 
@@ -21,7 +21,6 @@ URL parameters:
 - `?players=1|2`
 - `?autostart=1` skips lobby and briefing (slot 0 = keyboard + mouse, others = gamepads)
 - `?seed=<n>` fixes the sim RNG
-- `?art=quaternius` uses the earlier Quaternius models and gritty level textures instead of the default Kenney look (same levels and gameplay)
 - `?art=none` uses the code-built figures instead of the character models
 - `?debug=1` shows FPS, collision boxes, guard vision cones / paths / states, and exposes `window.__game`
 
@@ -62,7 +61,7 @@ Music is synthesised too (`src/audio/music.ts`, a small step sequencer): a menu 
 
 Settings (menu or pause): mouse / gamepad sensitivity, invert look, gamepad aim assist, difficulty, music volume, split direction, volume, graphics (Smooth, or Retro 480–180p pixels). Saved in `localStorage`.
 
-Third-party models are CC0 (Kenney by default, Quaternius with `?art=quaternius`); see `CREDITS.md`. To trim a new glTF to the animations you need: `python3 tools/trim_gltf.py in.gltf out.glb Idle Walk Run`.
+Third-party models are CC0 (Kenney); see `CREDITS.md`. To trim a new glTF to the animations you need: `python3 tools/trim_gltf.py in.gltf out.glb Idle Walk Run`.
 
 Only one mouse can be pointer-locked in a browser, so in split-screen player 1 uses keyboard + mouse and player 2 a gamepad (or both use gamepads).
 

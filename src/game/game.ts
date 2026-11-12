@@ -202,7 +202,7 @@ export class Game {
     this.input.kbm.exitLock();
     const depot = this.tryLoad(MISSION_LEVEL);
     this.screen.show({
-      title: 'TIN WOLF',
+      title: 'TIN FOX',
       body: '<p class="title-art">a field agent · a snowed-in depot · a blaster</p>',
       items: [
         {
