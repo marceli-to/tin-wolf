@@ -305,7 +305,9 @@ export class Game {
   startLevel(): void {
     const level = this.tryLoad(this.levelId);
     if (!level) return;
-    this.world = createWorld(level, this.data, { players: this.playerCount, seed: this.params.seed });
+    // The Kenney figures have big heads; their hit zones follow suit.
+    const body = this.params.art === 'kenney' ? 'chibi' : 'human';
+    this.world = createWorld(level, this.data, { players: this.playerCount, seed: this.params.seed, body });
     this.renderer.load(this.world, this.params.debug);
     this.clearHuds();
     this.huds = this.world.players.map(() => new PlayerHud(this.uiLayer));

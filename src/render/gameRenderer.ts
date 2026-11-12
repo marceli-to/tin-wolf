@@ -99,9 +99,14 @@ export class GameRenderer {
   load(world: World, debug: boolean): void {
     this.clear();
     const fog = world.level.fog;
-    this.scene.fog = new THREE.Fog(fog.color, fog.near, fog.far);
-    this.scene.background = new THREE.Color(fog.color);
-    this.light = buildLightField(world.grid, lampsFromLevel(world.level));
+    const mood = PROFILES[this.art]?.mood;
+    const fogColor = new THREE.Color(fog.color);
+    if (mood) fogColor.lerp(new THREE.Color(mood.fogTint), mood.fogMix);
+    const fogScale = mood?.fogFarScale ?? 1;
+    this.scene.fog = new THREE.Fog(fogColor, fog.near * fogScale, fog.far * fogScale);
+    this.scene.background = fogColor.clone();
+    const baked = buildLightField(world.grid, lampsFromLevel(world.level));
+    this.light = mood ? (x, z) => mood.lightFloor + (1 - mood.lightFloor) * baked(x, z) : baked;
     if (Snow.wanted(world.grid)) {
       this.snow = new Snow(world.grid);
       this.dynamic.add(this.snow.points);
@@ -288,7 +293,7 @@ export class GameRenderer {
     for (const id of ids) {
       const def = world.data.weapons[id];
       const inst = def?.model ? this.models.instance(def.model) : null;
-      if (def && inst) out.push({ id, model: inst, fit: def.fit });
+      if (def && inst) out.push({ id, model: inst, fit: def.fit, hold: def.hold });
     }
     return out;
   }

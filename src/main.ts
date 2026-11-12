@@ -19,6 +19,7 @@ async function boot(): Promise<void> {
   const game = new Game(app, readParams(location.search));
   // Kenney kits are the default look; ?art=quaternius keeps the earlier models; ?art=none the code-built figures.
   const art = game.params.art || 'kenney';
+  game.params.art = art;
   if (art in PROFILES) {
     // Art trial: load every model the data refers to before the first level starts.
     applyArtOverrides(PROFILES[art]!, game.data);

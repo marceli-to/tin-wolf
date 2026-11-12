@@ -58,7 +58,8 @@
     "range": 50,
     "noiseRadius": 30,
     "sfx": "smg_shot",
-    "model": "quaternius/guns/SubmachineGun_1.glb"
+    "model": "quaternius/guns/SubmachineGun_1.glb",
+    "hold": "two"
   },
   "grenade": {
     "name": "Frag grenade",

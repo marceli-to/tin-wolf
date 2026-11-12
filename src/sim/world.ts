@@ -5,6 +5,7 @@ import type { GameData } from '../data';
 import type { LevelDef } from '../data/schema';
 import type { Box, Terrain } from './collision';
 import type { ActorRef, SimEvent } from './events';
+import type { BodyShape } from './hitbox';
 import { buildGrid, cellCenter, floorAtWorld, type Grid } from './grid';
 import { createMatch, type MatchState } from './match';
 import { createMission, type MissionState } from './objectives';
@@ -207,6 +208,8 @@ export interface World {
   tick: number;
   time: number;
   rng: Rng;
+  /** Body proportions the hit zones follow. */
+  body: BodyShape;
   players: Player[];
   guards: Guard[];
   props: Prop[];
@@ -229,6 +232,8 @@ export interface World {
 export interface WorldOptions {
   players: number;
   seed?: number;
+  /** Body proportions for hit zones (default 'human'). */
+  body?: BodyShape;
 }
 
 export function createPlayer(slot: number, loadout: readonly string[], data: GameData): Player {
@@ -309,6 +314,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     tick: 0,
     time: 0,
     rng: createRng(opts.seed ?? 1),
+    body: opts.body ?? 'human',
     players: [],
     guards: [],
     props: [],

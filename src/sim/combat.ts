@@ -3,7 +3,7 @@ import { DEG, forwardFromAngles } from '../core/math';
 import { spread } from '../core/rng';
 import type { WeaponDef } from '../data/schema';
 import type { ActorRef, HitZone } from './events';
-import { humanoidZones } from './hitbox';
+import { humanoidZones, zoneDamage } from './hitbox';
 import { rayBox, rayCylinder, rayGrid, type Ray } from './raycast';
 import { doorBox, emit, type World } from './world';
 
@@ -70,7 +70,7 @@ export function traceShot(world: World, ray: Ray, range: number, ignore: ActorRe
   });
   for (const a of actorShapes(world)) {
     if (ignore && sameActor(a.ref, ignore)) continue;
-    for (const z of humanoidZones(a.height)) {
+    for (const z of humanoidZones(a.height, world.body)) {
       const t = rayCylinder(ray, a.x, a.z, z.r, a.y + z.y0, a.y + z.y1, limit());
       if (t !== null) consider(t, -ray.dx, -ray.dy, -ray.dz, { kind: 'actor', ref: a.ref, zone: z.zone });
     }
@@ -99,7 +99,7 @@ export function fireHitscan(
   if (!hit) return null;
   const t = hit.target;
   if (t.kind === 'actor') {
-    const dmg = weapon.damage * weapon.zoneMultiplier[t.zone];
+    const dmg = weapon.damage * zoneDamage(weapon.zoneMultiplier[t.zone], t.zone, world.body);
     emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'flesh', onPlayer: t.ref.kind === 'player' });
     applyDamage(world, t.ref, dmg, t.zone, shooter, hit);
   } else if (t.kind === 'prop') {

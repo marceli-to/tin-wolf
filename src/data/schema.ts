@@ -127,6 +127,8 @@ export const WeaponSchema = z.object({
   /** Model held in hand (render-only). `fit: 'gun'` keeps the gun pack's scale relative to the pistol. */
   model: z.string().optional(),
   fit: z.enum(['gun', 'hand']).default('gun'),
+  /** Held with one hand or two (render-only: picks the characters' arm pose). */
+  hold: z.enum(['one', 'two']).default('one'),
 });
 export type WeaponDef = z.output<typeof WeaponSchema>;
 export const WeaponsSchema = z.record(z.string(), WeaponSchema);

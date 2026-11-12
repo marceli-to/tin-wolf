@@ -121,6 +121,22 @@ describe('weapons: hitscan', () => {
     expect(dmgLegs).toBe(pistol.damage * pistol.zoneMultiplier.limb);
   });
 
+  it('chibi bodies: the big head starts below mid-height and its bonus is halved', () => {
+    const shot = (y: number): World => {
+      const w = duel(OPEN, Math.atan2(y - 1.6, 6) * (180 / Math.PI));
+      w.body = 'chibi';
+      return w;
+    };
+    const chest = shot(1.15);
+    const hit = events(chest, 1, [intent({ fire: true }), intent({})]).find((e) => e.type === 'hit');
+    expect(hit && hit.type === 'hit' && hit.zone).toBe('head');
+    expect(PLAYER.maxHp - chest.players[1]!.hp).toBe(pistol.damage * (1 + (pistol.zoneMultiplier.head - 1) * 0.5));
+
+    const belly = shot(0.6);
+    const hitB = events(belly, 1, [intent({ fire: true }), intent({})]).find((e) => e.type === 'hit');
+    expect(hitB && hitB.type === 'hit' && hitB.zone).toBe('torso');
+  });
+
   it('kills, credits the shooter, and respawns the victim', () => {
     const w = duel(OPEN, 0);
     w.players[1]!.hp = 10;

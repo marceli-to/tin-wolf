@@ -29,8 +29,20 @@ export interface CharacterProfile {
    * Arm pose layered over every animation but death: tracks of `bones` come from `clip` (and from
    * `shootClip` while shooting), so a figure walks and runs with its gun raised.
    */
-  armed?: { clip: string; shootClip: string; bones: string[] };
+  armed?: ArmedPose & {
+    /** Pose for two-handed weapons (`hold: 'two'`), with its own grip if the hand turns. */
+    two?: ArmedPose & { grip?: GripSpec };
+  };
 }
+
+/** How the arms hold a weapon, layered over the base animations. */
+export interface ArmedPose {
+  clip: string;
+  shootClip: string;
+  bones: string[];
+}
+
+export type HoldStyle = 'one' | 'two';
 
 export interface GripSpec {
   /** Hand point in the hand bone's space, where the gun's grip goes (model units). */
@@ -84,10 +96,10 @@ export function attachHeldGun(hand: THREE.Object3D, gun: THREE.Object3D, grip: G
  * Animation clips per game animation. With an `armed` pose the arm tracks of every clip but death
  * are replaced by the armed clip's, so legs walk while the arms keep the gun up.
  */
-export function buildClips(animations: THREE.AnimationClip[], profile: CharacterProfile): Map<CharacterAnim, THREE.AnimationClip> {
+export function buildClips(animations: THREE.AnimationClip[], profile: CharacterProfile, style: HoldStyle = 'one'): Map<CharacterAnim, THREE.AnimationClip> {
   const byName = new Map(animations.map((c) => [c.name, c]));
   const out = new Map<CharacterAnim, THREE.AnimationClip>();
-  const armed = profile.armed;
+  const armed = style === 'two' && profile.armed?.two ? profile.armed.two : profile.armed;
   const isArm = (t: THREE.KeyframeTrack): boolean => !!armed && armed.bones.some((b) => t.name.startsWith(`${THREE.PropertyBinding.sanitizeNodeName(b)}.`));
   for (const [anim, name] of Object.entries(profile.clips) as [CharacterAnim, string][]) {
     const base = byName.get(name);
@@ -98,7 +110,7 @@ export function buildClips(animations: THREE.AnimationClip[], profile: Character
       continue;
     }
     const tracks = [...base.tracks.filter((t) => !isArm(t)), ...pose.tracks.filter(isArm)];
-    out.set(anim, new THREE.AnimationClip(`${anim}+armed`, base.duration, tracks));
+    out.set(anim, new THREE.AnimationClip(`${anim}+${style}`, base.duration, tracks));
   }
   return out;
 }
@@ -215,6 +227,8 @@ export interface HeldGun {
   id: string;
   model: ModelInstance;
   fit: 'gun' | 'hand';
+  /** One- or two-handed pose (characters with an `armed.two` pose). */
+  hold?: HoldStyle;
 }
 
 /** Three's glTF loader strips characters such as '.' from node names ('Wrist.R' becomes 'WristR'). */
@@ -251,6 +265,8 @@ export interface ArtSet {
   };
   /** Level surfaces drawn flat and clean (no grime, rivets or noise) to match the models. */
   flatTextures?: boolean;
+  /** Brighter mood: baked light is lifted toward `lightFloor`, fog lightened toward `fogTint` and pushed back. */
+  mood?: { lightFloor: number; fogTint: string; fogMix: number; fogFarScale: number };
   /** First-person gun model and its placement in view-model space (used when there are no view arms). */
   viewGun?: { model: string; scale: number; position: [number, number, number]; rotation: [number, number, number] };
   /** First-person arms: the player model in an aiming pose, head collapsed, placed at the camera. */
@@ -342,7 +358,12 @@ const kenneyChar = (file: string): CharacterProfile => ({
   clips: K_CLIPS,
   hand: 'arm-right',
   grip: K_GRIP,
-  armed: { clip: 'holding-right', shootClip: 'holding-right-shoot', bones: ['arm-right'] },
+  armed: {
+    clip: 'holding-right',
+    shootClip: 'holding-right-shoot',
+    bones: ['arm-right'],
+    two: { clip: 'holding-both', shootClip: 'holding-both-shoot', bones: ['arm-left', 'arm-right'] },
+  },
 });
 
 PROFILES.kenney = {
@@ -364,6 +385,8 @@ PROFILES.kenney = {
     gunOnly: true,
   },
   flatTextures: true,
+  // Toy look: no pitch-dark corners and a light, distant haze instead of gloom.
+  mood: { lightFloor: 0.5, fogTint: '#c4d8e8', fogMix: 0.45, fogFarScale: 1.5 },
   overrides: {
     props: {
       console: { model: 'kenney/space-station/computer-wide.glb', modelFit: 'stretch' },
@@ -380,8 +403,9 @@ PROFILES.kenney = {
       shelf: { model: 'kenney/furniture/bookcaseOpen.glb', modelFit: 'stretch' },
       shelf_wide: { model: 'kenney/furniture/bookcaseClosedWide.glb', modelFit: 'stretch' },
       shelf_low: { model: 'kenney/furniture/bookcaseOpenLow.glb', modelFit: 'stretch' },
-      lab_desk: { model: 'kenney/space-station/table-large.glb', modelFit: 'stretch' },
-      lab_desk_small: { model: 'kenney/space-station/table.glb', modelFit: 'stretch' },
+      // The space-station tables are solid pedestals and turn into blocks at desk height.
+      lab_desk: { model: 'kenney/furniture/desk.glb', modelFit: 'stretch' },
+      lab_desk_small: { model: 'kenney/furniture/desk.glb', modelFit: 'stretch' },
       lab_desk_corner: { model: 'kenney/furniture/deskCorner.glb', modelFit: 'stretch' },
       lab_chair: { model: 'kenney/space-station/chair.glb', modelFit: 'footprint' },
       satellite_dish: { model: 'kenney/space/satelliteDish_large.glb', modelFit: 'footprint' },
@@ -462,10 +486,13 @@ export class ModelCharacter {
   readonly gun: THREE.Object3D;
   private mixer: THREE.AnimationMixer;
   private actions = new Map<CharacterAnim, THREE.AnimationAction>();
+  /** Actions per hold style; `actions` is the set of the drawn weapon. */
+  private styles = new Map<HoldStyle, Map<CharacterAnim, THREE.AnimationAction>>();
+  private style: HoldStyle = 'one';
   private current: CharacterAnim | null = null;
   private materials: THREE.MeshStandardMaterial[];
   /** Held weapons by id, with the barrel tip in hand space (null for thrown weapons). */
-  private held = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null }>();
+  private held = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; style: HoldStyle }>();
   private weaponId = '';
 
   /**
@@ -493,12 +520,17 @@ export class ModelCharacter {
     this.root.add(inner);
     this.materials = [...model.materials, ...(gunModel?.materials ?? []), ...held.flatMap((h) => h.model.materials)];
     this.mixer = new THREE.AnimationMixer(inner);
-    for (const [anim, clip] of buildClips(model.animations, profile)) this.actions.set(anim, this.mixer.clipAction(clip));
-    const die = this.actions.get('die');
-    if (die) {
-      die.setLoop(THREE.LoopOnce, 1);
-      die.clampWhenFinished = true;
+    for (const style of profile.armed?.two ? (['one', 'two'] as const) : (['one'] as const)) {
+      const set = new Map<CharacterAnim, THREE.AnimationAction>();
+      for (const [anim, clip] of buildClips(model.animations, profile, style)) set.set(anim, this.mixer.clipAction(clip));
+      const die = set.get('die');
+      if (die) {
+        die.setLoop(THREE.LoopOnce, 1);
+        die.clampWhenFinished = true;
+      }
+      this.styles.set(style, set);
     }
+    this.actions = this.styles.get('one')!;
     const hand = findNode(inner, profile.hand) ?? inner;
     // Undo the character's scale so gun offsets are in metres.
     const holder = new THREE.Group();
@@ -528,18 +560,21 @@ export class ModelCharacter {
       flash.scale.setScalar(1 / profile.gun.scale);
       this.gun.add(flash);
     } else if (profile.grip) {
-      // Guns go into the empty hand; the flash sits on each barrel tip in hand space.
-      const aim = this.actions.get('aim');
-      aim?.play();
-      this.mixer.update(0.3);
-      inner.updateMatrixWorld(true);
+      // Guns go into the empty hand; the flash sits on each barrel tip in hand space, measured in
+      // the aiming pose of the weapon's hold style.
       for (const h of held) {
-        const holder = attachHeldGun(hand, h.model.object, profile.grip, h.fit === 'hand' ? 0.45 : undefined);
+        const style: HoldStyle = h.hold === 'two' && this.styles.has('two') ? 'two' : 'one';
+        const grip = (style === 'two' ? profile.armed?.two?.grip : undefined) ?? profile.grip;
+        const aim = this.styles.get(style)!.get('aim');
+        aim?.play();
+        this.mixer.update(0.3);
+        inner.updateMatrixWorld(true);
+        const holder = attachHeldGun(hand, h.model.object, grip, h.fit === 'hand' ? 0.45 : undefined);
         const tip = h.fit === 'hand' ? null : findMuzzleIn(holder, hand);
+        aim?.stop();
         holder.visible = false;
-        this.held.set(h.id, { holder, tip });
+        this.held.set(h.id, { holder, tip, style });
       }
-      aim?.stop();
       flash.scale.setScalar(1 / inner.scale.x);
       hand.add(flash);
     } else if (profile.muzzle) {
@@ -552,7 +587,7 @@ export class ModelCharacter {
         if (!holder) continue;
         const tip = h.fit === 'hand' ? null : findMuzzleIn(holder, hand);
         holder.visible = false;
-        this.held.set(h.id, { holder, tip });
+        this.held.set(h.id, { holder, tip, style: 'one' });
       }
       const tip = this.held.size ? null : findMuzzle(inner, hand);
       aim?.stop();
@@ -579,8 +614,20 @@ export class ModelCharacter {
     if (id === this.weaponId || !this.held.has(id)) return;
     this.weaponId = id;
     for (const [k, h] of this.held) h.holder.visible = k === id;
-    const tip = this.held.get(id)!.tip;
+    const { tip, style } = this.held.get(id)!;
     if (tip) this.flash.position.copy(tip);
+    if (style !== this.style && this.styles.has(style)) {
+      // Cross-fade into the same animation with the other arm pose.
+      const cur = this.current;
+      if (cur) this.actions.get(cur)?.fadeOut(FADE);
+      this.style = style;
+      this.actions = this.styles.get(style)!;
+      this.current = null;
+      if (cur) {
+        this.actions.get(cur)?.reset().setEffectiveWeight(1).fadeIn(FADE).play();
+        this.current = cur;
+      }
+    }
   }
 
   /** Thrown weapons have no muzzle; the flash stays hidden. */
