@@ -224,12 +224,12 @@ Each milestone ends playable. Each task is testable alone. Run `npm test` and th
 **Done when:** one player can complete level 1 from menu to debrief without the debug flag; the mission can also be failed and retried; a stealthy route and a loud route both work. Versus still works from the same menu.
 
 ### M6 – Look & feel
-- [ ] Low-resolution render targets with nearest-neighbour upscale; resolution setting.
-- [ ] Procedural pixel textures (generated on canvas, `NearestFilter`) for the materials named in level legends.
-- [ ] Vertex-colour lighting baked at level build (per-cell light values); distance fog; no realtime shadows.
-- [ ] Final synth SFX set: shots, reload, footsteps, door, pickup, guard alert, hit, death, objective. Positional volume from the nearest player.
-- [ ] Menu and settings: mouse and gamepad sensitivity, invert Y, split direction, volume. Stored in `localStorage` with try/catch.
-- [ ] Performance pass: under 300 draw calls per view, steady 60 fps in level 1 and in the arena with two views.
+- [x] Low-resolution render targets with nearest-neighbour upscale; resolution setting.
+- [x] Procedural pixel textures (generated on canvas, `NearestFilter`) for the materials named in level legends.
+- [x] Vertex-colour lighting baked at level build (per-cell light values); distance fog; no realtime shadows.
+- [x] Final synth SFX set: shots, reload, footsteps, door, pickup, guard alert, hit, death, objective. Positional volume from the nearest player.
+- [x] Menu and settings: mouse and gamepad sensitivity, invert Y, split direction, volume. Stored in `localStorage` with try/catch.
+- [x] Performance pass: under 300 draw calls per view, steady 60 fps in level 1 and in the arena with two views.
 
 **Done when:** the game reads as a late-90s console shooter at first glance, has sound for every action, and settings survive a reload.
 
@@ -330,3 +330,9 @@ PLAN.md  README.md
 | 2026-11-12 | M5 | Debug-only autopilot (`src/game/autopilot.ts`) walks a route with the sim's A*, opens doors and fights | Lets an agent check "both routes work" without a human |
 | 2026-11-12 | M5 | Pause also triggers when the mouse is released (pointer-lock loss), since browsers swallow Esc while locked | Esc would otherwise only free the mouse |
 | 2026-11-12 | M5 | Objectives show for 5 s at mission start and toggle with Tab / Back; the interaction prompt names the missing key | Discoverability |
+| 2026-11-12 | M6 | Low resolution is done by rendering the whole canvas at the internal height (default 240 px; stacked split doubles it) and upscaling with CSS `image-rendering: pixelated`, not one render target per view | Same result, no extra pass; the DOM HUD stays sharp |
+| 2026-11-12 | M6 | Textures use nearest magnification but nearest-mipmap minification | Pure nearest shimmered badly on distant walls |
+| 2026-11-12 | M6 | Baked light is a bilinear field over cell `light` values plus `light` entities (lamps), sampled per vertex; actors are tinted by the field where they stand | Smooth pools of light instead of per-cell blocks |
+| 2026-11-12 | M6 | Added falling snow over open-sky cells, guard footsteps (`guardStep` event, not heard by other guards), mission success/fail jingles | Atmosphere; lets players hear patrols coming |
+| 2026-11-12 | M6 | Settings also include a resolution option (180/240/360/480/native); `noUnusedLocals` enabled | Weak machines and personal taste; keeps the code tidy |
+| 2026-11-12 | M6 | Measured in Chrome on the dev machine: Pumphouse 2 views ≈ 45 draw calls per view, Depot ≈ 170 per view, 60 fps. Not yet measured on integrated graphics | Needs a human on a weaker laptop |

@@ -18,6 +18,8 @@ import { LobbyView } from '../ui/lobby';
 import { ScreenView } from '../ui/screen';
 import { playSimEvent } from './audioBridge';
 import { startLoop, type RunningLoop } from './loop';
+import { loadSettings, RESOLUTIONS, saveSettings, type Settings } from './settings';
+import { DEFAULT_INPUT_SETTINGS } from '../input/settings';
 import type { GameParams } from './params';
 
 export type GameState = 'menu' | 'lobby' | 'briefing' | 'playing' | 'paused' | 'results' | 'debrief';
@@ -52,6 +54,7 @@ export class Game {
   private debugOverlay: DebugOverlay | null = null;
   private loop: RunningLoop | null = null;
   private uiLayer: HTMLElement;
+  settings: Settings = loadSettings();
 
   constructor(
     private app: HTMLElement,
@@ -75,6 +78,55 @@ export class Game {
     window.addEventListener('keydown', unlock);
     this.renderer.canvas.addEventListener('click', () => this.onCanvasClick());
     document.addEventListener('pointerlockchange', () => this.onPointerLockChange());
+    this.applySettings();
+  }
+
+  private applySettings(): void {
+    const s = this.settings;
+    this.input.settings = {
+      mouseSens: DEFAULT_INPUT_SETTINGS.mouseSens * s.mouseSens,
+      padSens: s.padSens,
+      invertY: s.invertY,
+    };
+    this.sfx.setVolume(s.volume);
+    this.renderer.split = s.split;
+    this.renderer.internalHeight = s.resolution;
+    this.onResize();
+  }
+
+  private settingsSpec(back: () => void): import('../ui/screen').ScreenSpec {
+    const s = this.settings;
+    const change = (fn: () => void): void => {
+      fn();
+      saveSettings(s);
+      this.applySettings();
+      this.screen.refresh(this.settingsSpec(back));
+    };
+    const step = (v: number, d: number, min: number, max: number): number => Math.round(Math.min(max, Math.max(min, v + d)) * 10) / 10;
+    const resLabel = (r: number): string => (r ? `${r}p` : 'Native');
+    const cycleRes = (d: number): void => {
+      const i = RESOLUTIONS.indexOf(s.resolution);
+      s.resolution = RESOLUTIONS[(i + d + RESOLUTIONS.length) % RESOLUTIONS.length]!;
+    };
+    const row = (name: string, value: string): string => `${name}<small>◂ ${value} ▸</small>`;
+    return {
+      title: 'SETTINGS',
+      overlay: this.state === 'paused',
+      items: [
+        { label: row('Mouse sensitivity', s.mouseSens.toFixed(1)), action: () => undefined, adjust: (d) => change(() => (s.mouseSens = step(s.mouseSens, d * 0.1, 0.2, 4))) },
+        { label: row('Gamepad sensitivity', s.padSens.toFixed(1)), action: () => undefined, adjust: (d) => change(() => (s.padSens = step(s.padSens, d * 0.1, 0.2, 4))) },
+        { label: row('Invert look', s.invertY ? 'On' : 'Off'), action: () => change(() => (s.invertY = !s.invertY)), adjust: () => change(() => (s.invertY = !s.invertY)) },
+        {
+          label: row('Split screen', s.split === 'vertical' ? 'Side by side' : 'Top and bottom'),
+          action: () => change(() => (s.split = s.split === 'vertical' ? 'horizontal' : 'vertical')),
+          adjust: () => change(() => (s.split = s.split === 'vertical' ? 'horizontal' : 'vertical')),
+        },
+        { label: row('Volume', `${Math.round(s.volume * 100)}%`), action: () => undefined, adjust: (d) => change(() => (s.volume = step(s.volume, d * 0.1, 0, 1))) },
+        { label: row('Resolution', resLabel(s.resolution)), action: () => change(() => cycleRes(1)), adjust: (d) => change(() => cycleRes(d)) },
+        { label: 'Back', action: back },
+      ],
+      footer: 'Left / right to change',
+    };
   }
 
   start(): void {
@@ -147,6 +199,7 @@ export class Game {
             this.enterLobby(2);
           },
         },
+        { label: 'Settings', action: () => this.screen.show(this.settingsSpec(() => this.enterMenu())) },
         { label: 'Controls', action: () => this.showControls() },
       ],
       footer: 'Arrows / W S / D-pad to choose · Enter / click / A to select',
@@ -282,6 +335,16 @@ export class Game {
       items: [
         { label: 'Resume', action: () => this.resume() },
         { label: 'Restart', action: () => this.startLevel() },
+        {
+          label: 'Settings',
+          action: () =>
+            this.screen.show(
+              this.settingsSpec(() => {
+                this.state = 'playing';
+                this.pause();
+              }),
+            ),
+        },
         { label: 'Quit to menu', action: () => this.enterMenu() },
       ],
     });
@@ -397,6 +460,8 @@ export class Game {
       case 'debrief': {
         if (m.up) this.screen.move(-1);
         if (m.down) this.screen.move(1);
+        if (m.left) this.screen.adjust(-1);
+        if (m.right) this.screen.adjust(1);
         if (m.confirm) {
           this.sfx.play('ui_select', 0.5);
           this.screen.activate();

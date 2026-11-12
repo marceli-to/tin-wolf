@@ -70,7 +70,9 @@ export function buildHumanoid(c: HumanoidColors): Humanoid {
   const gun = new THREE.Mesh(shadedBox(0.06, 0.12, 0.26), mGun);
   gun.position.set(0, -0.64, -0.08);
   armR.add(gun);
-  return { root, body, torso, head, legL, legR, armL, armR, gun, materials: [mBody, mLegs, mSkin, mHead, mGun] };
+  const materials = [mBody, mLegs, mSkin, mHead, mGun];
+  for (const m of materials) m.userData.base = m.color.clone();
+  return { root, body, torso, head, legL, legR, armL, armR, gun, materials };
 }
 
 export interface PoseInput {
@@ -83,6 +85,14 @@ export interface PoseInput {
   aim: number;
   /** Aim pitch in radians. */
   pitch: number;
+}
+
+/** Tints the figure by the baked light where it stands. */
+export function lightHumanoid(h: Humanoid, light: number): void {
+  for (const m of h.materials) {
+    const base = m.userData.base as THREE.Color | undefined;
+    if (base) m.color.copy(base).multiplyScalar(light);
+  }
 }
 
 export function poseHumanoid(h: Humanoid, p: PoseInput): void {

@@ -24,6 +24,25 @@ export function shadedBox(w: number, h: number, d: number, light = 1): THREE.Buf
   return shadeByNormal(new THREE.BoxGeometry(w, h, d), light);
 }
 
+/** Remaps a BoxGeometry's per-face UVs to world metres so textures keep their density on any box size. */
+export function worldUvBox(g: THREE.BufferGeometry, w: number, h: number, d: number, scale = 2): THREE.BufferGeometry {
+  const n = g.getAttribute('normal');
+  const pos = g.getAttribute('position');
+  const uv = g.getAttribute('uv');
+  for (let i = 0; i < n.count; i++) {
+    const ax = Math.abs(n.getX(i));
+    const ay = Math.abs(n.getY(i));
+    const x = pos.getX(i) + w / 2;
+    const y = pos.getY(i) + h / 2;
+    const z = pos.getZ(i) + d / 2;
+    if (ay > 0.5) uv.setXY(i, x / scale, z / scale);
+    else if (ax > 0.5) uv.setXY(i, z / scale, y / scale);
+    else uv.setXY(i, x / scale, y / scale);
+  }
+  uv.needsUpdate = true;
+  return g;
+}
+
 export function flatMaterial(color: string | THREE.Color): THREE.MeshBasicMaterial {
   return new THREE.MeshBasicMaterial({ color, vertexColors: true });
 }

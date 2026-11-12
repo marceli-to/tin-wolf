@@ -49,6 +49,9 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
     case 'footstep':
       at('footstep', e.x, e.z, 0.35);
       break;
+    case 'guardStep':
+      at('guard_step', e.x, e.z, e.running ? 0.5 : 0.3);
+      break;
     case 'pickup':
       sfx.play('pickup', 0.6);
       break;
@@ -66,6 +69,15 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
       break;
     case 'objectiveCompleted':
       sfx.play('objective', 0.7);
+      break;
+    case 'missionEnded':
+      sfx.play(e.success ? 'mission_success' : 'mission_fail', 0.7, 0, 0.4);
+      break;
+    case 'matchEnded':
+      sfx.play('mission_success', 0.6);
+      break;
+    case 'used':
+      sfx.play('ui_select', 0.6);
       break;
     default:
       break;

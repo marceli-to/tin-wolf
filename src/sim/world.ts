@@ -113,6 +113,7 @@ export interface Guard {
   stuckTime: number;
   lastProgress: { x: number; z: number };
   running: boolean;
+  stepDist: number;
 }
 
 export interface Prop {
@@ -404,6 +405,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
           stuckTime: 0,
           lastProgress: { x, z },
           running: false,
+          stepDist: 0,
         });
         break;
       }

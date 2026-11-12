@@ -4,6 +4,8 @@ export interface ScreenItem {
   label: string;
   action: () => void;
   hint?: string;
+  /** Left/right adjustment for settings rows. */
+  adjust?: (dir: -1 | 1) => void;
 }
 
 export interface ScreenSpec {
@@ -63,6 +65,20 @@ export class ScreenView {
     const n = this.spec.items.length;
     this.select((this.selected + d + n) % n);
     this.onMove();
+  }
+
+  adjust(dir: -1 | 1): void {
+    const it = this.spec?.items[this.selected];
+    if (it?.adjust) {
+      it.adjust(dir);
+      this.render();
+    }
+  }
+
+  /** Re-render after item labels changed. */
+  refresh(spec: ScreenSpec): void {
+    this.spec = spec;
+    this.render();
   }
 
   activate(): void {

@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { cellAt, floorAt, type Cell, type Grid } from '../sim/grid';
+import type { LightField } from './lighting';
 import { materialColor, SHADE } from './palette';
+import { texturedMaterial } from './textures';
 
 interface Bucket {
   pos: number[];
@@ -23,16 +25,23 @@ class MeshBuilder {
     return b;
   }
 
-  /** Quad given counter-clockwise (front side), with per-vertex UVs and one shade value. */
+  constructor(private light: LightField) {}
+
+  /**
+   * Quad given counter-clockwise (front side). Each vertex is lit by the baked light field,
+   * sampled slightly in front of the face so walls take the light of the room they face.
+   */
   quad(mat: string, v: [P, P, P, P], uvs: [number, number][], n: P, shade: number): void {
     const b = this.bucket(mat);
+    const lit = v.map((p) => shade * this.light(p[0] + n[0] * 0.3, p[2] + n[2] * 0.3));
     for (const i of [0, 1, 2, 0, 2, 3]) {
       const p = v[i]!;
       b.pos.push(p[0], p[1], p[2]);
       b.nrm.push(n[0], n[1], n[2]);
       const uv = uvs[i]!;
       b.uv.push(uv[0], uv[1]);
-      b.col.push(shade, shade, shade);
+      const l = lit[i]!;
+      b.col.push(l, l, l * 0.97);
     }
   }
 
@@ -46,7 +55,7 @@ class MeshBuilder {
       g.setAttribute('uv', new THREE.Float32BufferAttribute(b.uv, 2));
       g.setAttribute('color', new THREE.Float32BufferAttribute(b.col, 3));
       g.computeBoundingSphere();
-      const m = new THREE.MeshBasicMaterial({ color: materialColor(mat), vertexColors: true });
+      const m = texturedMaterial(mat, materialColor(mat));
       const mesh = new THREE.Mesh(g, m);
       mesh.name = `level:${mat}`;
       mesh.userData.mat = mat;
@@ -64,8 +73,8 @@ const TEX_SCALE = 2;
  * Each shared edge compares this cell's floor/ceiling heights with the neighbour's at both edge
  * endpoints, so ramps produce correct sloped side faces without special cases.
  */
-export function buildLevelMesh(grid: Grid): THREE.Group {
-  const mb = new MeshBuilder();
+export function buildLevelMesh(grid: Grid, light: LightField): THREE.Group {
+  const mb = new MeshBuilder(light);
   const s = grid.size;
   for (let cz = 0; cz < grid.h; cz++) {
     for (let cx = 0; cx < grid.w; cx++) {
@@ -76,7 +85,6 @@ export function buildLevelMesh(grid: Grid): THREE.Group {
       const z0 = cz * s;
       const z1 = z0 + s;
       const fh = (x: number, z: number): number => floorAt(grid, cell, cx, cz, x, z);
-      const light = cell.light;
       const h00 = fh(x0, z0);
       const h10 = fh(x1, z0);
       const h01 = fh(x0, z1);
@@ -92,7 +100,7 @@ export function buildLevelMesh(grid: Grid): THREE.Group {
         ],
         [uvf(x0, z0), uvf(x0, z1), uvf(x1, z1), uvf(x1, z0)],
         [0, 1, 0],
-        SHADE.top * light,
+        SHADE.top,
       );
       if (!cell.sky) {
         const c = cell.ceil;
@@ -106,7 +114,7 @@ export function buildLevelMesh(grid: Grid): THREE.Group {
           ],
           [uvf(x0, z0), uvf(x1, z0), uvf(x1, z1), uvf(x0, z1)],
           [0, -1, 0],
-          SHADE.bottom * light,
+          SHADE.bottom,
         );
       }
       // Each side: neighbour offset, and the edge's left/right endpoints as seen from inside this cell.
@@ -144,7 +152,7 @@ export function buildLevelMesh(grid: Grid): THREE.Group {
               [ua, ya1 / TEX_SCALE],
             ],
             side.n,
-            side.shade * light,
+            side.shade,
           );
         };
         if (!nb || nb.solid) {

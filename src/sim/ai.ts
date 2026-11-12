@@ -377,7 +377,14 @@ function act(world: World, g: Guard, def: EnemyDef, dt: number): void {
   g.yaw += clamp(turn, -maxTurn, maxTurn);
 
   if (speed > 0) {
+    const bx = g.x;
+    const bz = g.z;
     moveBody(world.terrain, g, g.vx * dt, g.vz * dt);
+    g.stepDist += Math.hypot(g.x - bx, g.z - bz);
+    if (g.stepDist > 1.6) {
+      g.stepDist = 0;
+      emit(world, { type: 'guardStep', x: g.x, z: g.z, running: g.running });
+    }
     // Stuck detection: no real progress for a while means re-plan, then give up on this goal.
     const moved = Math.hypot(g.x - g.lastProgress.x, g.z - g.lastProgress.z);
     if (moved > 0.4) {

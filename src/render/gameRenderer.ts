@@ -3,11 +3,14 @@ import { PLAYER, RENDER } from '../config';
 import { lerp } from '../core/math';
 import { playerEyeHeight } from '../sim/player';
 import { doorBox, type World } from '../sim/world';
-import { buildHumanoid, poseHumanoid, type Humanoid } from './humanoid';
+import { buildHumanoid, lightHumanoid, poseHumanoid, type Humanoid } from './humanoid';
+import { buildLightField, lampsFromLevel, type LightField } from './lighting';
+import { texturedMaterial } from './textures';
+import { Snow } from './snow';
 import { configureCameraLayers, LAYER, setLayerDeep } from './layers';
 import { buildLevelMesh } from './levelMesh';
 import { materialColor, PLAYER_COLORS } from './palette';
-import { flatMaterial, shadedBox } from './shapes';
+import { shadeByNormal, worldUvBox } from './shapes';
 import { computeViewRects, type SplitMode, type ViewRect } from './views';
 import { Effects } from './effects';
 import { buildPistolViewModel, poseViewModel, type ViewModel } from './viewModel';
@@ -45,10 +48,14 @@ export class GameRenderer {
   private doorMeshes: THREE.Mesh[] = [];
   private pickupMeshes: THREE.Group[] = [];
   private time = 0;
+  private light: LightField = () => 1;
+  /** Internal render height in pixels (0 = native resolution). */
+  internalHeight: number = RENDER.internalHeight;
+  private glScale = 1;
+  private snow: Snow | null = null;
   private players: ActorVisual[] = [];
   private guards: ActorVisual[] = [];
   private debugLines: THREE.LineSegments | null = null;
-  private debug = false;
   private rects: ViewRect[] = [];
   private debugGroup = new THREE.Group();
   /** View models render in a second pass over a cleared depth buffer so they never clip into walls. */
@@ -78,19 +85,39 @@ export class GameRenderer {
     const fog = world.level.fog;
     this.scene.fog = new THREE.Fog(fog.color, fog.near, fog.far);
     this.scene.background = new THREE.Color(fog.color);
-    this.levelGroup = buildLevelMesh(world.grid);
+    this.light = buildLightField(world.grid, lampsFromLevel(world.level));
+    if (Snow.wanted(world.grid)) {
+      this.snow = new Snow(world.grid);
+      this.dynamic.add(this.snow.points);
+    }
+    this.levelGroup = buildLevelMesh(world.grid, this.light);
     this.scene.add(this.levelGroup);
 
+    const litBox = (w: number, h: number, d: number, x: number, z: number, worldUv: boolean): THREE.BufferGeometry => {
+      const g = new THREE.BoxGeometry(w, h, d);
+      if (worldUv) worldUvBox(g, w, h, d);
+      return shadeByNormal(g, this.light(x, z));
+    };
     for (const p of world.props) {
       const b = p.box;
-      const m = new THREE.Mesh(shadedBox(b.maxX - b.minX, b.maxY - b.minY, b.maxZ - b.minZ), flatMaterial(materialColor(p.mat)));
+      const w = b.maxX - b.minX;
+      const h = b.maxY - b.minY;
+      const d = b.maxZ - b.minZ;
+      const cx = (b.minX + b.maxX) / 2;
+      const cz = (b.minZ + b.maxZ) / 2;
+      // Crates and consoles show their whole texture per face; panels tile in world units.
+      const perFace = p.mat === 'crate' || p.mat === 'console' || p.mat === 'barrel';
+      const m = new THREE.Mesh(litBox(w, h, d, cx, cz, !perFace), texturedMaterial(p.mat, materialColor(p.mat)));
       m.position.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, (b.minZ + b.maxZ) / 2);
       this.dynamic.add(m);
       this.propMeshes.push(m);
     }
     for (const d of world.doors) {
       const b = doorBox(world, d);
-      const m = new THREE.Mesh(shadedBox(b.maxX - b.minX, b.maxY - b.minY, b.maxZ - b.minZ), flatMaterial(materialColor(d.mat)));
+      const m = new THREE.Mesh(
+        litBox(b.maxX - b.minX, b.maxY - b.minY, b.maxZ - b.minZ, (b.minX + b.maxX) / 2, (b.minZ + b.maxZ) / 2, false),
+        texturedMaterial(d.mat, materialColor(d.mat)),
+      );
       this.dynamic.add(m);
       this.doorMeshes.push(m);
     }
@@ -139,7 +166,6 @@ export class GameRenderer {
       return vm;
     });
     this.bob = world.players.map(() => 0);
-    this.debug = debug;
     if (debug) this.buildDebug(world);
     this.resize();
   }
@@ -176,6 +202,7 @@ export class GameRenderer {
     this.viewModels = [];
     this.effects.clear();
     this.debugLines = null;
+    this.snow = null;
     this.guards = [];
     this.propMeshes = [];
     this.doorMeshes = [];
@@ -184,14 +211,24 @@ export class GameRenderer {
     this.cameras = [];
   }
 
+  /**
+   * The canvas renders at a low internal resolution and is upscaled by CSS with nearest-neighbour
+   * filtering. Rects stay in CSS pixels (for the HUD); GL viewports are scaled by glScale.
+   */
   resize(): void {
     const w = this.container.clientWidth || window.innerWidth;
     const h = this.container.clientHeight || window.innerHeight;
-    this.renderer.setSize(w, h, false);
+    const views = Math.max(1, this.cameras.length);
+    // Stacked views each get the full internal height.
+    const target = this.internalHeight > 0 ? this.internalHeight * (views === 2 && this.split === 'horizontal' ? 2 : 1) : h;
+    this.glScale = Math.min(1, target / h);
+    this.renderer.setSize(Math.max(1, Math.round(w * this.glScale)), Math.max(1, Math.round(h * this.glScale)), false);
     this.renderer.domElement.style.width = `${w}px`;
     this.renderer.domElement.style.height = `${h}px`;
-    this.rects = computeViewRects(Math.max(1, this.cameras.length), w, h, this.split);
+    this.rects = computeViewRects(views, w, h, this.split);
   }
+
+  drawCalls = 0;
 
   viewRects(): ViewRect[] {
     return this.rects;
@@ -262,6 +299,8 @@ export class GameRenderer {
   render(world: World, alpha: number, looks: ViewLook[], frameTime: number): void {
     this.effects.update(Math.min(frameTime, 0.05));
     this.time += frameTime;
+    const p0 = world.players[0];
+    if (this.snow && p0) this.snow.update(Math.min(frameTime, 0.05), p0.x, p0.z, this.time);
     world.pickups.forEach((pk, i) => {
       const m = this.pickupMeshes[i];
       if (!m) return;
@@ -290,6 +329,7 @@ export class GameRenderer {
       v.phase += speed * frameTime * 3.4;
       v.h.root.position.set(x, y, z);
       v.h.root.rotation.y = -g.yaw;
+      lightHumanoid(v.h, Math.min(1.15, this.light(x, z) + 0.1));
       const dead = g.state === 'dead';
       const fall = dead ? Math.min(1, g.deadTime / 0.55) : 0;
       // Death: topple backwards around the feet and settle on the floor.
@@ -318,6 +358,7 @@ export class GameRenderer {
       v.phase += speed * frameTime * 3.2;
       v.h.root.visible = p.alive;
       v.h.root.position.set(x, y, z);
+      lightHumanoid(v.h, Math.min(1.15, this.light(x, z) + 0.1));
       v.h.root.rotation.y = -p.yaw;
       poseHumanoid(v.h, { phase: v.phase, stride: Math.min(1, speed / 4), crouch, aim: 1, pitch: p.pitch });
       v.flash.visible = p.sinceShot < 0.06;
@@ -360,15 +401,21 @@ export class GameRenderer {
 
     const r = this.renderer;
     const fullH = r.domElement.height;
+    const k = this.glScale;
     r.setScissorTest(true);
+    r.info.autoReset = false;
+    r.info.reset();
     this.cameras.forEach((cam, i) => {
       const rect = this.rects[i];
       if (!rect) return;
       cam.aspect = rect.w / rect.h;
       cam.updateProjectionMatrix();
-      const y = fullH - rect.y - rect.h;
-      r.setViewport(rect.x, y, rect.w, rect.h);
-      r.setScissor(rect.x, y, rect.w, rect.h);
+      const x0 = Math.round(rect.x * k);
+      const w0 = Math.round((rect.x + rect.w) * k) - x0;
+      const h0 = Math.round(rect.h * k);
+      const y = fullH - Math.round(rect.y * k) - h0;
+      r.setViewport(x0, y, w0, h0);
+      r.setScissor(x0, y, w0, h0);
       r.render(this.scene, cam);
       r.autoClear = false;
       r.clearDepth();
@@ -376,6 +423,7 @@ export class GameRenderer {
       r.autoClear = true;
     });
     r.setScissorTest(false);
+    this.drawCalls = r.info.render.calls / Math.max(1, this.cameras.length);
   }
 }
 

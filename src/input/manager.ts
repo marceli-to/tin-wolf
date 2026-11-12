@@ -20,6 +20,8 @@ export function deviceLabel(d: DeviceId): string {
 export interface MenuInput {
   up: boolean;
   down: boolean;
+  left: boolean;
+  right: boolean;
   pause: boolean;
   objectives: boolean;
   confirm: boolean;
@@ -116,6 +118,8 @@ export class InputManager {
     const m: MenuInput = {
       up: k.pressed('ArrowUp') || k.pressed('KeyW'),
       down: k.pressed('ArrowDown') || k.pressed('KeyS'),
+      left: k.pressed('ArrowLeft') || k.pressed('KeyA'),
+      right: k.pressed('ArrowRight') || k.pressed('KeyD'),
       pause: k.pressed('Escape') || k.pressed('KeyP'),
       objectives: k.pressed('Tab'),
       confirm: k.pressed('Enter') || k.pressed('Space'),
@@ -124,6 +128,8 @@ export class InputManager {
     for (const i of this.pads.connected()) {
       m.up ||= this.pads.pressed(i, PAD.UP) || this.stickEdge(i, -1);
       m.down ||= this.pads.pressed(i, PAD.DOWN) || this.stickEdge(i, 1);
+      m.left ||= this.pads.pressed(i, PAD.LEFT);
+      m.right ||= this.pads.pressed(i, PAD.RIGHT);
       m.pause ||= this.pads.pressed(i, PAD.START);
       m.objectives ||= this.pads.pressed(i, PAD.BACK);
       m.confirm ||= this.pads.pressed(i, PAD.A);

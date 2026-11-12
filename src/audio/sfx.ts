@@ -17,6 +17,9 @@ export type SfxName =
   | 'explosion'
   | 'locked'
   | 'ui_move'
+  | 'mission_success'
+  | 'mission_fail'
+  | 'guard_step'
   | 'ui_select';
 
 export class Sfx {
@@ -123,6 +126,15 @@ export class Sfx {
       case 'locked':
         this.tone(out, t, 'square', 180, 180, 0.12, 0.25);
         this.tone(out, t + 0.14, 'square', 140, 140, 0.16, 0.25);
+        break;
+      case 'mission_success':
+        [392, 523, 659, 784, 1046].forEach((f, i) => this.tone(out, t + i * 0.12, 'square', f, f, 0.22, 0.22));
+        break;
+      case 'mission_fail':
+        [392, 349, 311, 262].forEach((f, i) => this.tone(out, t + i * 0.2, 'triangle', f, f * 0.98, 0.3, 0.3));
+        break;
+      case 'guard_step':
+        this.noiseBurst(out, t, 0.06, 'bandpass', 250 + Math.random() * 100, 0.6, 2);
         break;
       case 'ui_move':
         this.tone(out, t, 'square', 440, 440, 0.04, 0.12);

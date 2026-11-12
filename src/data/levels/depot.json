@@ -623,6 +623,78 @@
     30,
     21
    ]
+  },
+  {
+   "type": "light",
+   "cell": [
+    19,
+    25
+   ],
+   "level": 0.35,
+   "radius": 3
+  },
+  {
+   "type": "light",
+   "cell": [
+    31,
+    25
+   ],
+   "level": 0.3,
+   "radius": 3
+  },
+  {
+   "type": "light",
+   "cell": [
+    20,
+    5
+   ],
+   "level": 0.25,
+   "radius": 4
+  },
+  {
+   "type": "light",
+   "cell": [
+    24,
+    14
+   ],
+   "level": 0.15,
+   "radius": 3
+  },
+  {
+   "type": "light",
+   "cell": [
+    13,
+    14
+   ],
+   "level": 0.3,
+   "radius": 2.5
+  },
+  {
+   "type": "light",
+   "cell": [
+    31,
+    8
+   ],
+   "level": 0.25,
+   "radius": 3
+  },
+  {
+   "type": "light",
+   "cell": [
+    31,
+    18
+   ],
+   "level": 0.25,
+   "radius": 3
+  },
+  {
+   "type": "light",
+   "cell": [
+    35,
+    1.5
+   ],
+   "level": 0.35,
+   "radius": 2.5
   }
  ],
  "objectives": [
