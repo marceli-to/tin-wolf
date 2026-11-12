@@ -59,7 +59,7 @@ export function traceShot(world: World, ray: Ray, range: number, ignore: ActorRe
   if (g) consider(g.t, g.nx, g.ny, g.nz, { kind: 'world' });
   const limit = (): number => (best ? (best as ShotResult).t : range);
   world.props.forEach((p, i) => {
-    if (!p.alive) return;
+    if (!p.alive || !p.solid) return;
     const h = rayBox(ray, p.box, limit());
     if (h) consider(h.t, h.nx, h.ny, h.nz, { kind: 'prop', index: i });
   });

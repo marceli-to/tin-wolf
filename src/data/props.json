@@ -4,5 +4,21 @@
   "barrel": { "size": [0.7, 1.1, 0.7], "mat": "barrel" },
   "console": { "size": [1.4, 1.2, 0.7], "mat": "console", "hp": 60 },
   "terminal": { "size": [0.9, 1.3, 0.6], "mat": "console", "usable": true },
-  "pillar": { "size": [0.6, 3.0, 0.6], "mat": "panel" }
+  "pillar": { "size": [0.6, 3.0, 0.6], "mat": "panel" },
+
+  "desk": { "size": [1.45, 0.76, 1.1], "mat": "wood", "model": "kenney/furniture/desk.glb", "modelScale": 2 },
+  "bookcase": { "size": [1.6, 1.6, 0.5], "mat": "wood", "model": "kenney/furniture/bookcaseClosedWide.glb", "modelScale": 2 },
+  "shelf": { "size": [0.8, 1.76, 0.5], "mat": "wood", "model": "kenney/furniture/bookcaseOpen.glb", "modelScale": 2 },
+  "side_table": { "size": [1.05, 0.76, 0.78], "mat": "wood", "model": "kenney/furniture/sideTableDrawers.glb", "modelScale": 2 },
+  "office_chair": { "size": [0.9, 0.9, 0.9], "mat": "metal", "solid": false, "model": "kenney/furniture/chairDesk.glb", "modelScale": 2 },
+  "monitor": { "size": [0.78, 0.58, 0.2], "mat": "console", "solid": false, "model": "kenney/furniture/computerScreen.glb", "modelScale": 2 },
+  "keyboard": { "size": [0.56, 0.06, 0.24], "mat": "metal", "solid": false, "model": "kenney/furniture/computerKeyboard.glb", "modelScale": 2 },
+  "plant": { "size": [0.5, 1.1, 0.5], "mat": "wood", "solid": false, "model": "kenney/furniture/pottedPlant.glb", "modelScale": 2 },
+  "floor_lamp": { "size": [0.25, 1.7, 0.25], "mat": "metal", "solid": false, "model": "kenney/furniture/lampSquareFloor.glb", "modelScale": 2 },
+  "trashcan": { "size": [0.5, 0.9, 0.45], "mat": "metal", "solid": false, "model": "kenney/furniture/trashcan.glb", "modelScale": 1 },
+  "cardboard_box": { "size": [0.6, 0.56, 0.6], "mat": "crate", "model": "kenney/furniture/cardboardBoxClosed.glb", "modelScale": 2.6 },
+  "coffee_machine": { "size": [0.55, 0.6, 0.65], "mat": "metal", "solid": false, "model": "kenney/furniture/kitchenCoffeeMachine.glb", "modelScale": 2 },
+  "radio": { "size": [0.64, 0.46, 0.2], "mat": "metal", "solid": false, "model": "kenney/furniture/radio.glb", "modelScale": 2 },
+  "rug": { "size": [3.1, 0.02, 1.8], "mat": "carpet", "solid": false, "model": "kenney/furniture/rugRectangle.glb", "modelScale": 2 },
+  "ceiling_lamp": { "size": [0.25, 0.46, 0.25], "mat": "metal", "solid": false, "model": "kenney/furniture/lampSquareCeiling.glb", "modelScale": 2 }
 }

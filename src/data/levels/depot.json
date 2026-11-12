@@ -695,6 +695,196 @@
    ],
    "level": 0.35,
    "radius": 2.5
+  },
+  {
+   "type": "prop",
+   "kind": "rug",
+   "cell": [
+    24.6,
+    14.5
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "desk",
+   "cell": [
+    23.3,
+    12.35
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "monitor",
+   "cell": [
+    23.3,
+    12.25
+   ],
+   "yaw": 180,
+   "elevation": 0.76
+  },
+  {
+   "type": "prop",
+   "kind": "keyboard",
+   "cell": [
+    23.3,
+    12.55
+   ],
+   "yaw": 180,
+   "elevation": 0.76
+  },
+  {
+   "type": "prop",
+   "kind": "office_chair",
+   "cell": [
+    23.3,
+    12.95
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "desk",
+   "cell": [
+    25.1,
+    12.35
+   ],
+   "yaw": 180,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "monitor",
+   "cell": [
+    25.1,
+    12.25
+   ],
+   "yaw": 180,
+   "elevation": 0.76
+  },
+  {
+   "type": "prop",
+   "kind": "radio",
+   "cell": [
+    25.55,
+    12.3
+   ],
+   "yaw": 180,
+   "elevation": 0.76
+  },
+  {
+   "type": "prop",
+   "kind": "office_chair",
+   "cell": [
+    25.1,
+    12.95
+   ],
+   "yaw": 20,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "bookcase",
+   "cell": [
+    25.0,
+    16.75
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "shelf",
+   "cell": [
+    26.3,
+    16.75
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "side_table",
+   "cell": [
+    27.6,
+    13.4
+   ],
+   "yaw": 270,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "coffee_machine",
+   "cell": [
+    27.6,
+    13.4
+   ],
+   "yaw": 270,
+   "elevation": 0.76
+  },
+  {
+   "type": "prop",
+   "kind": "plant",
+   "cell": [
+    22.35,
+    16.6
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "floor_lamp",
+   "cell": [
+    27.7,
+    12.35
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "trashcan",
+   "cell": [
+    22.4,
+    12.4
+   ],
+   "yaw": 0,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "cardboard_box",
+   "cell": [
+    27.4,
+    16.45
+   ],
+   "yaw": 15,
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "ceiling_lamp",
+   "cell": [
+    23.5,
+    14.5
+   ],
+   "yaw": 0,
+   "elevation": 2.54
+  },
+  {
+   "type": "prop",
+   "kind": "ceiling_lamp",
+   "cell": [
+    26.0,
+    14.5
+   ],
+   "yaw": 0,
+   "elevation": 2.54
   }
  ],
  "objectives": [

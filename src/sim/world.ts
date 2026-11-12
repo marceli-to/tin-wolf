@@ -120,6 +120,8 @@ export interface Prop {
   id: string;
   kind: string;
   box: Box;
+  solid: boolean;
+  yaw: number;
   hp: number;
   maxHp: number;
   destructible: boolean;
@@ -295,12 +297,14 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
         const rot = Math.round(e.yaw / 90) % 2 !== 0;
         const hx = (rot ? sz : sx) / 2;
         const hz = (rot ? sx : sz) / 2;
-        const fy = floorAtWorld(grid, x, z) ?? 0;
+        const fy = (floorAtWorld(grid, x, z) ?? 0) + e.elevation;
         const hp = e.hp ?? kind.hp ?? 0;
         world.props.push({
           id: e.id ?? nextId(e.kind),
           kind: e.kind,
           box: { minX: x - hx, maxX: x + hx, minY: fy, maxY: fy + sy, minZ: z - hz, maxZ: z + hz },
+          solid: kind.solid,
+          yaw: e.yaw * DEG,
           hp,
           maxHp: hp,
           destructible: hp > 0,
@@ -438,7 +442,7 @@ export function doorBox(world: World, d: Door): Box {
 
 export function rebuildBoxes(world: World): void {
   const boxes: Box[] = [];
-  for (const p of world.props) if (p.alive) boxes.push(p.box);
+  for (const p of world.props) if (p.alive && p.solid) boxes.push(p.box);
   for (const d of world.doors) if (d.open < 0.95) boxes.push(doorBox(world, d));
   world.terrain = { grid: world.grid, boxes };
 }

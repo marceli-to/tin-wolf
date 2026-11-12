@@ -7,6 +7,8 @@ import { buildHumanoid, lightHumanoid, poseHumanoid, type Humanoid } from './hum
 import { buildLightField, lampsFromLevel, type LightField } from './lighting';
 import { texturedMaterial } from './textures';
 import { Snow } from './snow';
+import { tintModel, type ModelLibrary } from './models';
+import { ModelCharacter } from './modelCharacter';
 import { configureCameraLayers, LAYER, setLayerDeep } from './layers';
 import { buildLevelMesh } from './levelMesh';
 import { materialColor, PLAYER_COLORS } from './palette';
@@ -25,8 +27,12 @@ export interface ViewLook {
 interface ActorVisual {
   h: Humanoid;
   phase: number;
-  flash: THREE.Mesh;
+  flash: THREE.Object3D;
+  /** Animated glTF figure, when model art is enabled; replaces the box humanoid. */
+  model?: ModelCharacter;
 }
+
+const GUARD_MODEL = 'kenney/characters/character-soldier.glb';
 
 const STATE_COLORS: Record<string, string> = {
   patrol: '#40d070',
@@ -44,7 +50,10 @@ export class GameRenderer {
   split: SplitMode = 'vertical';
   private levelGroup: THREE.Group | null = null;
   private dynamic = new THREE.Group();
-  private propMeshes: THREE.Mesh[] = [];
+  private propMeshes: THREE.Object3D[] = [];
+  /** Set to use glTF models for props and guards (art trial). */
+  models: ModelLibrary | null = null;
+  private modelLights = new THREE.Group();
   private doorMeshes: THREE.Mesh[] = [];
   private pickupMeshes: THREE.Group[] = [];
   private time = 0;
@@ -98,8 +107,37 @@ export class GameRenderer {
       if (worldUv) worldUvBox(g, w, h, d);
       return shadeByNormal(g, this.light(x, z));
     };
+    this.scene.remove(this.modelLights);
+    this.modelLights.clear();
+    if (this.models) {
+      // Models use standard materials, so they need real lights; the level stays unlit and baked.
+      this.modelLights.add(new THREE.HemisphereLight('#dfe8f0', '#4a443c', 1.5));
+      const sun = new THREE.DirectionalLight('#fff4e0', 1.0);
+      sun.position.set(0.4, 1, 0.3);
+      this.modelLights.add(sun);
+      this.scene.add(this.modelLights);
+    }
     for (const p of world.props) {
       const b = p.box;
+      const kind = world.data.props[p.kind];
+      const model = kind?.model && this.models ? this.models.instance(kind.model) : null;
+      if (model) {
+        const o = model.object;
+        o.scale.setScalar(kind!.modelScale);
+        o.position.set((b.minX + b.maxX) / 2, b.minY, (b.minZ + b.maxZ) / 2);
+        // Kenney furniture faces +z; prop yaw follows the level convention (0 = north / -z).
+        o.rotation.y = Math.PI - p.yaw;
+        tintModel(model.materials, Math.min(1.1, this.light(o.position.x, o.position.z) + 0.15));
+        this.dynamic.add(o);
+        this.propMeshes.push(o);
+        continue;
+      }
+      if (!p.solid) {
+        // Decoration without a model is simply not drawn.
+        const empty = new THREE.Object3D();
+        this.propMeshes.push(empty);
+        continue;
+      }
       const w = b.maxX - b.minX;
       const h = b.maxY - b.minY;
       const d = b.maxZ - b.minZ;
@@ -148,6 +186,14 @@ export class GameRenderer {
     });
     this.guards = world.guards.map((g) => {
       const def = world.data.enemies[g.archetype];
+      const inst = this.models?.instance(GUARD_MODEL);
+      if (inst) {
+        const model = new ModelCharacter(inst, g.height, this.flashMat);
+        this.dynamic.add(model.root);
+        // Officers get a darker uniform so they still read as a different archetype.
+        if (g.archetype === 'guard_officer') for (const m of inst.materials) (m.userData.base as THREE.Color).multiplyScalar(0.7);
+        return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
+      }
       const h = buildHumanoid({ body: def?.color ?? '#556', legs: def?.legs ?? '#333', skin: '#c99a7a' });
       const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), this.flashMat);
       flash.position.set(0, 0, -0.2);
@@ -326,6 +372,20 @@ export class GameRenderer {
       const y = lerp(g.prev.y, g.y, alpha);
       const z = lerp(g.prev.z, g.z, alpha);
       const speed = Math.hypot(g.vx, g.vz);
+      if (v.model) {
+        const m = v.model;
+        m.root.position.set(x, y, z);
+        m.root.rotation.y = -g.yaw;
+        if (g.state === 'dead') m.play('die');
+        else if (g.state === 'attack' && g.sees && speed < 0.1) m.play(g.sinceShot < 0.35 ? 'holding-right-shoot' : 'holding-right');
+        else if (speed > 2.5) m.play('sprint');
+        else if (speed > 0.1) m.play('walk');
+        else m.play(g.state === 'attack' || g.state === 'suspicious' ? 'holding-right' : 'idle');
+        m.update(Math.min(frameTime, 0.05), speed > 2.5 ? speed / 5 : speed / 1.6);
+        m.light(Math.min(1.1, this.light(x, z) + 0.15));
+        v.flash.visible = g.state !== 'dead' && g.sinceShot < 0.06;
+        return;
+      }
       v.phase += speed * frameTime * 3.4;
       v.h.root.position.set(x, y, z);
       v.h.root.rotation.y = -g.yaw;

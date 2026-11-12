@@ -54,6 +54,8 @@ export const EntitySchema = z.discriminatedUnion('type', [
     hp: z.number().optional(),
     size: z.tuple([z.number(), z.number(), z.number()]).optional(),
     yaw: z.number().default(0),
+    /** Metres above the floor, for things standing on other things. */
+    elevation: z.number().default(0),
     ...Base,
   }),
   z.object({ type: z.literal('zone'), size: z.tuple([z.number(), z.number()]).default([1, 1]), ...Base, id: z.string() }),
@@ -147,6 +149,11 @@ export const PropKindSchema = z.object({
   mat: z.string(),
   hp: z.number().optional(),
   usable: z.boolean().default(false),
+  /** Non-solid props are decoration only: no collision, not hit by shots. */
+  solid: z.boolean().default(true),
+  /** Optional model file under /assets, used when model art is enabled. */
+  model: z.string().optional(),
+  modelScale: z.number().default(1),
 });
 export type PropKindDef = z.output<typeof PropKindSchema>;
 export const PropKindsSchema = z.record(z.string(), PropKindSchema);
