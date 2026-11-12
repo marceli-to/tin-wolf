@@ -15,7 +15,7 @@ import { materialColor, PLAYER_COLORS } from './palette';
 import { shadeByNormal, worldUvBox } from './shapes';
 import { computeViewRects, type SplitMode, type ViewRect } from './views';
 import { Effects } from './effects';
-import { buildPistolViewModel, poseViewModel, type ViewModel } from './viewModel';
+import { buildModelArmsViewModel, buildPistolViewModel, poseViewModel, type ViewModel } from './viewModel';
 import { buildPickupMesh } from './pickups';
 import type { SimEvent } from '../sim/events';
 
@@ -226,9 +226,24 @@ export class GameRenderer {
     vmSun.position.set(0.5, 1, 0.8);
     this.vmScene.add(vmSun);
     this.viewModels = world.players.map((p) => {
-      const vg = set?.viewGun;
-      const vgModel = vg && this.models ? this.models.instance(vg.model) : null;
-      const vm = buildPistolViewModel(PLAYER_COLORS[p.slot] ?? '#555', vgModel, vg);
+      const va = set?.viewArms;
+      const armsInst = va && this.models ? this.models.instance(va.model) : null;
+      let vm: ViewModel;
+      if (va && armsInst) {
+        for (const m of armsInst.materials) if (m.name === va.tintMaterial) m.color.multiply(new THREE.Color(PLAYER_COLORS[p.slot] ?? '#888')).multiplyScalar(2.2);
+        vm = buildModelArmsViewModel(armsInst, {
+          clip: va.clip,
+          collapse: va.collapse,
+          headOffset: va.headOffset,
+          hand: va.hand,
+          muzzle: va.muzzle,
+          height: p.height,
+        });
+      } else {
+        const vg = set?.viewGun;
+        const vgModel = vg && this.models ? this.models.instance(vg.model) : null;
+        vm = buildPistolViewModel(PLAYER_COLORS[p.slot] ?? '#555', vgModel, vg);
+      }
       setLayerDeep(vm.root, LAYER.VIEWMODEL + p.slot);
       const holder = new THREE.Group();
       holder.add(vm.root);
@@ -474,6 +489,7 @@ export class GameRenderer {
       if (vm) {
         this.bob[i] = (this.bob[i] ?? 0) + speed * frameTime * 2.2;
         const def = world.data.weapons[p.weapon.id];
+        vm.mixer?.update(Math.min(frameTime, 0.05));
         poseViewModel(vm, {
           sinceShot: p.sinceShot,
           reload: p.weapon.reloadTimer > 0 && def ? 1 - p.weapon.reloadTimer / def.reloadTime : -1,
