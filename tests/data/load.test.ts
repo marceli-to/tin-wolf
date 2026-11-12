@@ -18,3 +18,14 @@ describe('level loader', () => {
     ).toThrow(/map\.1: row has 1 chars[\s\S]*entities\.0\.cell/);
   });
 });
+
+import { levelIds } from '../../src/data';
+import { validateLevel } from '../../src/sim/validate';
+
+describe('all shipped levels', () => {
+  for (const id of levelIds()) {
+    it(`${id} passes gameplay validation`, () => {
+      expect(validateLevel(loadLevel(id))).toEqual([]);
+    });
+  }
+});

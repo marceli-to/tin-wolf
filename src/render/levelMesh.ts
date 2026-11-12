@@ -148,8 +148,8 @@ export function buildLevelMesh(grid: Grid): THREE.Group {
           );
         };
         if (!nb || nb.solid) {
-          const wallMat = nb ? nb.wallMat : cell.wallMat;
-          wall(wallMat, fa, fb, cell.ceil, cell.ceil);
+          // Solid cells take the look of the room they face, so one '#' works everywhere.
+          wall(cell.wallMat, fa, fb, cell.ceil, cell.ceil);
           continue;
         }
         const nfa = floorAt(grid, nb, ncx, ncz, ax, az);

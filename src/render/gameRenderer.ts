@@ -11,6 +11,7 @@ import { flatMaterial, shadedBox } from './shapes';
 import { computeViewRects, type SplitMode, type ViewRect } from './views';
 import { Effects } from './effects';
 import { buildPistolViewModel, poseViewModel, type ViewModel } from './viewModel';
+import { buildPickupMesh } from './pickups';
 import type { SimEvent } from '../sim/events';
 
 export interface ViewLook {
@@ -34,6 +35,8 @@ export class GameRenderer {
   private dynamic = new THREE.Group();
   private propMeshes: THREE.Mesh[] = [];
   private doorMeshes: THREE.Mesh[] = [];
+  private pickupMeshes: THREE.Group[] = [];
+  private time = 0;
   private players: ActorVisual[] = [];
   private rects: ViewRect[] = [];
   private debugGroup = new THREE.Group();
@@ -79,6 +82,14 @@ export class GameRenderer {
       const m = new THREE.Mesh(shadedBox(b.maxX - b.minX, b.maxY - b.minY, b.maxZ - b.minZ), flatMaterial(materialColor(d.mat)));
       this.dynamic.add(m);
       this.doorMeshes.push(m);
+    }
+    for (const pk of world.pickups) {
+      const item = world.data.items[pk.item];
+      const holder = new THREE.Group();
+      if (item) holder.add(buildPickupMesh(item));
+      holder.position.set(pk.x, pk.y + 0.45, pk.z);
+      this.dynamic.add(holder);
+      this.pickupMeshes.push(holder);
     }
     this.cameras = world.players.map((p) => {
       const cam = new THREE.PerspectiveCamera(RENDER.fov, 1, 0.05, 200);
@@ -137,6 +148,7 @@ export class GameRenderer {
     this.effects.clear();
     this.propMeshes = [];
     this.doorMeshes = [];
+    this.pickupMeshes = [];
     this.players = [];
     this.cameras = [];
   }
@@ -161,6 +173,14 @@ export class GameRenderer {
 
   render(world: World, alpha: number, looks: ViewLook[], frameTime: number): void {
     this.effects.update(Math.min(frameTime, 0.05));
+    this.time += frameTime;
+    world.pickups.forEach((pk, i) => {
+      const m = this.pickupMeshes[i];
+      if (!m) return;
+      m.visible = pk.active;
+      m.rotation.y = this.time * 1.6 + i;
+      m.position.y = pk.y + 0.45 + Math.sin(this.time * 2.4 + i) * 0.06;
+    });
     world.props.forEach((p, i) => {
       const m = this.propMeshes[i];
       if (m) m.visible = p.alive;

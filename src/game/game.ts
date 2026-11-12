@@ -13,9 +13,12 @@ import { Sfx } from '../audio/sfx';
 import { playSimEvent } from './audioBridge';
 import type { SimEvent } from '../sim/events';
 import { LobbyView } from '../ui/lobby';
+import { ResultsView } from '../ui/results';
+import { validateLevel } from '../sim/validate';
+import { DataError } from '../data/load';
 import type { GameParams } from './params';
 
-export type GameState = 'lobby' | 'playing' | 'paused';
+export type GameState = 'lobby' | 'playing' | 'paused' | 'results';
 
 /** Owns the loop and wires input → sim → render/ui/audio. */
 export class Game {
@@ -37,6 +40,7 @@ export class Game {
   private notices: { text: string; until: number }[] = [];
   private clock = 0;
   private lobby: LobbyView;
+  private results: ResultsView;
   private debugOverlay: DebugOverlay | null = null;
   private loop: RunningLoop | null = null;
   private uiLayer: HTMLElement;
@@ -46,7 +50,7 @@ export class Game {
     readonly params: GameParams,
   ) {
     this.data = loadGameData();
-    this.levelId = params.level ?? 'test_room';
+    this.levelId = params.level ?? 'arena_pumphouse';
     this.playerCount = params.players || 2;
     this.renderer = new GameRenderer(app);
     this.uiLayer = document.createElement('div');
@@ -54,6 +58,7 @@ export class Game {
     app.appendChild(this.uiLayer);
     this.input = new InputManager(this.renderer.canvas);
     this.lobby = new LobbyView(this.uiLayer);
+    this.results = new ResultsView(this.uiLayer);
     if (params.debug) this.debugOverlay = new DebugOverlay(this.uiLayer);
     window.addEventListener('resize', () => this.onResize());
     // Audio can only start after a user gesture.
@@ -80,6 +85,8 @@ export class Game {
 
   enterLobby(): void {
     this.state = 'lobby';
+    this.results.show(false);
+    this.input.kbm.exitLock();
     this.input.slots = new Array(this.playerCount).fill(null);
     this.lobby.show(true);
     if (this.params.autostart) {
@@ -119,6 +126,10 @@ export class Game {
 
   startLevel(): void {
     const level = loadLevel(this.levelId);
+    const problems = validateLevel(level);
+    if (problems.length) throw new DataError(`Level ${level.id} failed validation:\n  ${problems.join('\n  ')}`);
+    this.results.show(false);
+    this.notices = [];
     this.world = createWorld(level, this.data, { players: this.playerCount, seed: this.params.seed });
     this.renderer.load(this.world, this.params.debug);
     this.huds.forEach((h) => h.dispose());
@@ -137,7 +148,23 @@ export class Game {
     if (this.state === 'lobby') {
       const dev = this.input.pollJoin();
       if (dev) this.join(dev);
+    } else if (this.state === 'results') {
+      const m = this.input.menu();
+      if (m.confirm) {
+        this.startLevel();
+        if (this.input.isAssigned({ kind: 'kbm' })) this.input.kbm.requestLock();
+      } else if (m.back) this.enterLobby();
+    } else if (this.state === 'playing' && this.world?.match?.over) {
+      this.showResults();
     }
+  }
+
+  private showResults(): void {
+    if (!this.world) return;
+    this.state = 'results';
+    this.results.render(this.world);
+    this.results.show(true);
+    this.input.kbm.exitLock();
   }
 
   private tick(): void {
@@ -174,6 +201,10 @@ export class Game {
   }
 
   private noticeFor(e: SimEvent): void {
+    if (e.type === 'pickup') {
+      const item = this.world?.data.items[e.item];
+      if (item) this.notify(e.slot, item.name, 1.5);
+    }
     if (e.type === 'died' && e.target.kind === 'player') {
       const victim = e.target.slot;
       const k = e.killer;
@@ -212,9 +243,14 @@ export class Game {
     this.input.endFrame();
   }
 
-  /** Top-of-view line; versus adds score and timer in M3. */
-  protected hudTop(_slot: number): string {
-    return '';
+  /** Score and timer in versus. */
+  private hudTop(slot: number): string {
+    const w = this.world;
+    if (!w?.match) return '';
+    const scores = w.players.map((p) => `<span class="${p.slot === slot ? 'me' : ''}">P${p.slot + 1} ${p.kills}</span>`).join(' &nbsp; ');
+    const t = Math.ceil(w.match.timeLeft);
+    const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+    return `<span class="score">${scores}<span class="timer">${clock}</span></span>`;
   }
 
   private onResize(): void {

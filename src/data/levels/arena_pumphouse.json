@@ -1,0 +1,347 @@
+{
+ "id": "arena_pumphouse",
+ "name": "Pumphouse",
+ "mode": "versus",
+ "cellSize": 2,
+ "fog": {
+  "color": "#1c2024",
+  "near": 10,
+  "far": 44
+ },
+ "legend": {
+  "#": {
+   "solid": true
+  },
+  ",": {
+   "floor": 0,
+   "ceil": 3,
+   "floorMat": "grate",
+   "wall": "panel",
+   "ceilMat": "ceiling",
+   "light": 0.62
+  },
+  ".": {
+   "floor": 0,
+   "ceil": 4.5,
+   "floorMat": "concrete",
+   "wall": "brick",
+   "ceilMat": "ceiling",
+   "light": 0.85
+  },
+  "+": {
+   "floor": 1.2,
+   "ceil": 4.5,
+   "floorMat": "metal",
+   "wall": "hazard",
+   "ceilMat": "ceiling",
+   "light": 0.95
+  },
+  "a": {
+   "ramp": "e",
+   "floor": 0,
+   "floorTo": 1.2,
+   "ceil": 4.5,
+   "floorMat": "metal",
+   "wall": "hazard",
+   "light": 0.9
+  },
+  "b": {
+   "ramp": "w",
+   "floor": 0,
+   "floorTo": 1.2,
+   "ceil": 4.5,
+   "floorMat": "metal",
+   "wall": "hazard",
+   "light": 0.9
+  },
+  "c": {
+   "ramp": "s",
+   "floor": 0,
+   "floorTo": 1.2,
+   "ceil": 4.5,
+   "floorMat": "metal",
+   "wall": "hazard",
+   "light": 0.9
+  },
+  "d": {
+   "ramp": "n",
+   "floor": 0,
+   "floorTo": 1.2,
+   "ceil": 4.5,
+   "floorMat": "metal",
+   "wall": "hazard",
+   "light": 0.9
+  }
+ },
+ "map": [
+  "####################",
+  "#,,,,,,,,,,,,,,,,,,#",
+  "#,#####,####,#####,#",
+  "#,#...#,#..#,#...#,#",
+  "#,#...,,,..,,,...#,#",
+  "#,#...#,#..#,#...#,#",
+  "#,##.###....###.##,#",
+  "#,,,....+cc+....,,,#",
+  "#,#,...++++++...,#,#",
+  "#,.,..a++++++b..,.,#",
+  "#,.,..a++++++b..,.,#",
+  "#,#,...++++++...,#,#",
+  "#,,,....+dd+....,,,#",
+  "#,##.###....###.##,#",
+  "#,#...#,#..#,#...#,#",
+  "#,#...,,,..,,,...#,#",
+  "#,#...#,#..#,#...#,#",
+  "#,#####,####,#####,#",
+  "#,,,,,,,,,,,,,,,,,,#",
+  "####################"
+ ],
+ "entities": [
+  {
+   "type": "spawn",
+   "cell": [
+    4,
+    4
+   ],
+   "yaw": 135
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    15,
+    4
+   ],
+   "yaw": 225
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    4,
+    15
+   ],
+   "yaw": 45
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    15,
+    15
+   ],
+   "yaw": 315
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    9,
+    4
+   ],
+   "yaw": 180
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    10,
+    15
+   ],
+   "yaw": 0
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    1,
+    10
+   ],
+   "yaw": 90
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    18,
+    9
+   ],
+   "yaw": 270
+  },
+  {
+   "type": "playerStart",
+   "slot": 0,
+   "cell": [
+    4,
+    4
+   ],
+   "yaw": 135
+  },
+  {
+   "type": "playerStart",
+   "slot": 1,
+   "cell": [
+    15,
+    15
+   ],
+   "yaw": 315
+  },
+  {
+   "type": "pickup",
+   "item": "medkit",
+   "cell": [
+    9.5,
+    9.5
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    10,
+    4
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    9,
+    15
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    2,
+    9
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_pistol",
+   "cell": [
+    17,
+    10
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "armor",
+   "cell": [
+    3,
+    3
+   ],
+   "respawn": 45
+  },
+  {
+   "type": "pickup",
+   "item": "armor",
+   "cell": [
+    16,
+    16
+   ],
+   "respawn": 45
+  },
+  {
+   "type": "pickup",
+   "item": "medkit",
+   "cell": [
+    16,
+    3
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "pickup",
+   "item": "medkit",
+   "cell": [
+    3,
+    16
+   ],
+   "respawn": 30
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    5,
+    8
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    14,
+    11
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    4.4,
+    11.6
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    15.6,
+    8.4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_tall",
+   "cell": [
+    5.3,
+    3.3
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_tall",
+   "cell": [
+    14.7,
+    16.7
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    8,
+    9
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    11,
+    10
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "pillar",
+   "cell": [
+    1.5,
+    1.5
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "pillar",
+   "cell": [
+    18.5,
+    18.5
+   ]
+  }
+ ],
+ "match": {
+  "killLimit": 10,
+  "timeLimit": 300
+ }
+}

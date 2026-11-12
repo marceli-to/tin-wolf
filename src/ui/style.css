@@ -30,7 +30,7 @@ canvas { display: block; image-rendering: pixelated; }
 .crosshair::after { top: 6px; left: 0; height: 2px; width: 14px; }
 .lock-hint { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); padding: 6px 12px; background: var(--panel); font-size: 14px; display: none; }
 .center-msg { position: absolute; left: 0; right: 0; top: 38%; text-align: center; font-size: 28px; color: var(--accent); text-shadow: 2px 2px 0 #000; }
-.debug-overlay { position: absolute; left: 8px; top: 8px; z-index: 30; font-size: 12px; color: #0f8; background: rgba(0,0,0,0.5); padding: 2px 6px; white-space: pre; }
+.debug-overlay { position: absolute; left: 8px; top: 44px; z-index: 30; font-size: 12px; color: #0f8; background: rgba(0,0,0,0.5); padding: 2px 6px; white-space: pre; }
 .error-box { position: absolute; inset: 0; z-index: 50; background: #200; color: #fbb; padding: 24px; white-space: pre-wrap; font-size: 14px; }
 
 .hud.small { font-size: 12px; }
@@ -52,3 +52,12 @@ canvas { display: block; image-rendering: pixelated; }
 .center-msg small { font-size: 14px; color: var(--ink); letter-spacing: 0.15em; }
 .notice { position: absolute; left: 0; right: 0; top: 22%; text-align: center; font-size: 16px; color: var(--ink); text-shadow: 2px 2px 0 #000; letter-spacing: 0.08em; }
 .hud-top { position: absolute; left: 0; right: 0; top: 12px; text-align: center; font-size: 16px; text-shadow: 2px 2px 0 #000; }
+.results { background: rgba(0, 0, 0, 0.72); }
+.stats { width: 100%; border-collapse: collapse; margin: 0 0 22px; font-size: 18px; }
+.stats th { text-align: right; color: var(--dim); font-weight: normal; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; padding-bottom: 6px; }
+.stats td { text-align: right; padding: 6px 0; border-top: 1px solid #2a2c2a; }
+.stats th:first-child, .stats td:first-child { text-align: left; }
+.stats tr.win td { color: var(--accent); }
+.hud-top .score { display: inline-block; padding: 2px 10px; background: rgba(0,0,0,0.45); }
+.hud-top .me { color: var(--accent); }
+.hud-top .timer { margin-left: 10px; color: var(--ink); }

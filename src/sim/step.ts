@@ -2,6 +2,8 @@ import { DT } from '../config';
 import { emptyIntent, type PlayerIntent } from '../core/intent';
 import { separateBodies } from './collision';
 import { updatePlayerMovement } from './player';
+import { updateMatch } from './match';
+import { updatePickups } from './pickups';
 import { respawnPlayer } from './spawn';
 import { updatePlayerWeapon } from './weapons';
 import { rebuildBoxes, type World } from './world';
@@ -9,6 +11,8 @@ import { rebuildBoxes, type World } from './world';
 /** Advances the world by one fixed tick. Events from this tick are left in `world.events`. */
 export function stepWorld(world: World, intents: readonly PlayerIntent[]): void {
   world.events.length = 0;
+  // A finished match freezes the world for the results screen.
+  if (world.match?.over) return;
   rebuildBoxes(world);
   for (const p of world.players) {
     p.prev.x = p.x;
@@ -37,6 +41,8 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
       if (a.alive && b.alive) separateBodies(world.terrain, a, b);
     }
   }
+  updatePickups(world, DT);
+  updateMatch(world, DT);
   world.tick++;
   world.time += DT;
 }

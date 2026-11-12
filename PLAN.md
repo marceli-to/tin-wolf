@@ -190,13 +190,13 @@ Each milestone ends playable. Each task is testable alone. Run `npm test` and th
 **Done when:** the two players can shoot each other in the test room; head shots do more damage than limb shots; ammo and reload behave as the data says; each HUD shows only its own player's values.
 
 ### M3 – Versus mode
-- [ ] `mode` field, `spawn` entities and `match` block in the level schema; loader checks that every spawn can reach every other spawn.
-- [ ] Pickups: ammo and health, with respawn timers.
-- [ ] Spawn selection: the spawn farthest from the opponent without line of sight to them; 1.5 s spawn protection.
-- [ ] Match rules: first to the kill limit or highest score at the time limit; unit tests for scoring, tie and time-out.
-- [ ] Arena 1, original design, about 20×20 cells: two height levels joined by ramps, several loops, no dead ends, props for cover.
-- [ ] HUD additions per view: score of both players, match timer, kill notice.
-- [ ] Flow: lobby → match → result screen → rematch or back to lobby.
+- [x] `mode` field, `spawn` entities and `match` block in the level schema; loader checks that every spawn can reach every other spawn.
+- [x] Pickups: ammo and health, with respawn timers.
+- [x] Spawn selection: the spawn farthest from the opponent without line of sight to them; 1.5 s spawn protection.
+- [x] Match rules: first to the kill limit or highest score at the time limit; unit tests for scoring, tie and time-out.
+- [x] Arena 1, original design, about 20×20 cells: two height levels joined by ramps, several loops, no dead ends, props for cover.
+- [x] HUD additions per view: score of both players, match timer, kill notice.
+- [x] Flow: lobby → match → result screen → rematch or back to lobby.
 
 **Done when:** two people play a complete match from lobby to result screen and start a rematch, without the debug flag. Nobody spawns in the opponent's sights. This is the first shippable game.
 
@@ -314,3 +314,7 @@ PLAN.md  README.md
 | 2026-11-12 | M2 | Armour field on players (soaks 2/3 of damage) and `items.json` armour item | Cheap now, used by M3 pickups |
 | 2026-11-12 | M2 | Spawn selection (no line of sight, then farthest) and bullet-hole decals done in M2 | Respawn was needed for M2's death loop; decals are part of the impact effect |
 | 2026-11-12 | M2 | `startLoop` (requestAnimationFrame) moved from `core/` to `game/loop.ts`; `core/loop.ts` keeps only the pure accumulator | Import rule: no DOM APIs in core |
+| 2026-11-12 | M3 | Reachability checks live in `sim/validate.ts` (uses the sim's nav), run by the game before a level starts and by a Vitest test over every shipped level, not inside `data/` | `data/` may not import `sim/`; the test makes bad levels fail `npm test` |
+| 2026-11-12 | M3 | A* (`sim/nav.ts`) written in M3 instead of M4 | Needed for the spawn reachability check; M4 reuses it |
+| 2026-11-12 | M3 | Arena 1 is "Pumphouse" (20×20); a draw is shown as "DRAW" (no sudden death); a finished match freezes the sim | Simplest rule that satisfies "tie" |
+| 2026-11-12 | M3 | Until the M5 menu exists, the default URL opens the versus lobby on Pumphouse | Versus is the first shippable mode |

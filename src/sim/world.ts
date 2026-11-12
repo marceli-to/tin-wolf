@@ -6,6 +6,7 @@ import type { LevelDef } from '../data/schema';
 import type { Box, Terrain } from './collision';
 import type { ActorRef, SimEvent } from './events';
 import { buildGrid, cellCenter, floorAtWorld, type Grid } from './grid';
+import { createMatch, type MatchState } from './match';
 
 export interface WeaponState {
   id: string;
@@ -146,6 +147,7 @@ export interface World {
   spawns: SpawnPoint[];
   starts: SpawnPoint[];
   events: SimEvent[];
+  match: MatchState | null;
   /** Collision obstacles, rebuilt each tick from props and doors. */
   terrain: Terrain;
 }
@@ -223,6 +225,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     spawns: [],
     starts: [],
     events: [],
+    match: level.mode === 'versus' && level.match ? createMatch(level.match.killLimit, level.match.timeLimit) : null,
     terrain: { grid, boxes: [] },
   };
   const s = grid.size;
