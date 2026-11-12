@@ -4,6 +4,7 @@ import {
   ItemsSchema,
   LevelSchema,
   PropKindsSchema,
+  DifficultiesSchema,
   WeaponsSchema,
   type LevelDef,
 } from './schema';
@@ -47,3 +48,4 @@ export const parseWeapons = (raw: unknown) => parse(WeaponsSchema, raw, 'weapons
 export const parseEnemies = (raw: unknown) => parse(EnemiesSchema, raw, 'enemies.json');
 export const parseItems = (raw: unknown) => parse(ItemsSchema, raw, 'items.json');
 export const parseProps = (raw: unknown) => parse(PropKindsSchema, raw, 'props.json');
+export const parseDifficulties = (raw: unknown) => parse(DifficultiesSchema, raw, 'difficulty.json');

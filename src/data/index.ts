@@ -2,14 +2,16 @@ import enemiesJson from './enemies.json';
 import itemsJson from './items.json';
 import propsJson from './props.json';
 import weaponsJson from './weapons.json';
-import { parseEnemies, parseItems, parseLevel, parseProps, parseWeapons } from './load';
-import type { EnemyDef, ItemDef, LevelDef, PropKindDef, WeaponDef } from './schema';
+import difficultyJson from './difficulty.json';
+import { parseDifficulties, parseEnemies, parseItems, parseLevel, parseProps, parseWeapons } from './load';
+import type { DifficultyDef, EnemyDef, ItemDef, LevelDef, PropKindDef, WeaponDef } from './schema';
 
 export interface GameData {
   weapons: Record<string, WeaponDef>;
   enemies: Record<string, EnemyDef>;
   items: Record<string, ItemDef>;
   props: Record<string, PropKindDef>;
+  difficulty: Record<string, DifficultyDef>;
 }
 
 export function loadGameData(): GameData {
@@ -18,6 +20,7 @@ export function loadGameData(): GameData {
     enemies: parseEnemies(enemiesJson),
     items: parseItems(itemsJson),
     props: parseProps(propsJson),
+    difficulty: parseDifficulties(difficultyJson),
   };
 }
 

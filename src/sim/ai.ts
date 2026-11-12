@@ -19,7 +19,7 @@ const FOOTSTEP_RADIUS = 6;
 const ARRIVE = 0.4;
 
 export function guardDef(world: World, g: Guard): EnemyDef {
-  return world.data.enemies[g.archetype]!;
+  return world.enemies[g.archetype]!;
 }
 
 function setState(world: World, g: Guard, s: GuardState): void {

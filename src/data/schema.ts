@@ -163,6 +163,36 @@ export const EnemySchema = z.object({
 export type EnemyDef = z.output<typeof EnemySchema>;
 export const EnemiesSchema = z.record(z.string(), EnemySchema);
 
+/** Multipliers a difficulty applies to every guard archetype. */
+export const DifficultySchema = z.object({
+  name: z.string(),
+  hp: z.number().positive(),
+  damage: z.number().positive(),
+  reactionTime: z.number().positive(),
+  noticeTime: z.number().positive(),
+  aimSpread: z.number().positive(),
+  hearing: z.number().positive(),
+  vision: z.number().positive(),
+  burstPause: z.number().positive(),
+});
+export type DifficultyDef = z.output<typeof DifficultySchema>;
+export const DifficultiesSchema = z.record(z.string(), DifficultySchema);
+
+/** An enemy archetype with a difficulty's multipliers applied. */
+export function scaleEnemy(def: EnemyDef, d: DifficultyDef): EnemyDef {
+  return {
+    ...def,
+    hp: Math.round(def.hp * d.hp),
+    damageScale: def.damageScale * d.damage,
+    reactionTime: def.reactionTime * d.reactionTime,
+    noticeTime: def.noticeTime * d.noticeTime,
+    aimSpreadDeg: def.aimSpreadDeg * d.aimSpread,
+    hearingScale: def.hearingScale * d.hearing,
+    visionRange: def.visionRange * d.vision,
+    burstPause: [def.burstPause[0] * d.burstPause, def.burstPause[1] * d.burstPause],
+  };
+}
+
 export const ItemSchema = z.object({
   name: z.string(),
   kind: z.enum(['key', 'health', 'ammo', 'armor', 'weapon']),

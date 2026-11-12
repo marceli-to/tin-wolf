@@ -2,7 +2,7 @@ import { PLAYER } from '../config';
 import { createRng, type Rng } from '../core/rng';
 import { DEG } from '../core/math';
 import type { GameData } from '../data';
-import type { LevelDef } from '../data/schema';
+import { scaleEnemy, type EnemyDef, type LevelDef } from '../data/schema';
 import type { Box, Terrain } from './collision';
 import type { ActorRef, SimEvent } from './events';
 import type { BodyShape } from './hitbox';
@@ -210,6 +210,8 @@ export interface World {
   rng: Rng;
   /** Body proportions the hit zones follow. */
   body: BodyShape;
+  /** Guard archetypes with the difficulty applied; the AI reads these, not data.enemies. */
+  enemies: Record<string, EnemyDef>;
   players: Player[];
   guards: Guard[];
   props: Prop[];
@@ -234,6 +236,8 @@ export interface WorldOptions {
   seed?: number;
   /** Body proportions for hit zones (default 'human'). */
   body?: BodyShape;
+  /** Key of data.difficulty (default 'normal'). */
+  difficulty?: string;
 }
 
 export function createPlayer(slot: number, loadout: readonly string[], data: GameData): Player {
@@ -305,6 +309,12 @@ export function placePlayer(world: World, p: Player, sp: SpawnPoint): void {
   p.crouch = 0;
 }
 
+function scaledEnemies(data: GameData, difficulty = 'normal'): Record<string, EnemyDef> {
+  const d = data.difficulty[difficulty] ?? data.difficulty.normal;
+  if (!d) return data.enemies;
+  return Object.fromEntries(Object.entries(data.enemies).map(([k, def]) => [k, scaleEnemy(def, d)]));
+}
+
 export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions): World {
   const grid = buildGrid(level);
   const world: World = {
@@ -315,6 +325,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     time: 0,
     rng: createRng(opts.seed ?? 1),
     body: opts.body ?? 'human',
+    enemies: scaledEnemies(data, opts.difficulty),
     players: [],
     guards: [],
     props: [],
@@ -416,7 +427,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
         break;
       }
       case 'guard': {
-        const def = data.enemies[e.archetype];
+        const def = world.enemies[e.archetype];
         if (!def) throw new Error(`Unknown enemy archetype '${e.archetype}'`);
         const yaw = e.yaw * DEG;
         const toPoint = ([pc, pr]: [number, number]) => ({

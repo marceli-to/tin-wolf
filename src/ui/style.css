@@ -63,7 +63,7 @@ canvas { display: block; image-rendering: pixelated; }
 .hud-top .timer { margin-left: 10px; color: var(--ink); }
 .screen.overlay { background: rgba(4, 6, 8, 0.72); }
 .panel.wide { width: min(760px, 92vw); }
-.panel .body { color: var(--ink); font-size: 15px; line-height: 1.6; margin: 0 0 22px; max-height: 52vh; overflow: auto; }
+.panel .body { color: var(--ink); font-size: 15px; line-height: 1.6; margin: 0 0 22px; max-height: 60vh; overflow: auto; }
 .panel .body p { margin: 0 0 12px; }
 .panel .body h3 { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); font-weight: normal; margin: 18px 0 8px; }
 .objlist { list-style: none; margin: 0; padding: 0; }
@@ -84,3 +84,6 @@ canvas { display: block; image-rendering: pixelated; }
 .prompt { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font-size: 15px; text-shadow: 2px 2px 0 #000; letter-spacing: 0.06em; }
 .prompt.locked { color: var(--bad); }
 .title-art { font-size: 13px; color: var(--dim); letter-spacing: 0.3em; margin: -18px 0 24px; text-transform: uppercase; }
+
+.panel .difficulty { color: var(--dim); letter-spacing: 0.08em; margin-top: 0; }
+.panel .difficulty b { color: var(--accent); margin-left: 8px; }

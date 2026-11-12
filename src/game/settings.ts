@@ -11,9 +11,13 @@ export interface Settings {
   resolution: number;
   /** Gamepad aim assist. */
   aimAssist: boolean;
+  /** Mission difficulty, a key of data/difficulty.json. */
+  difficulty: string;
 }
 
-export const DEFAULT_SETTINGS: Settings = { mouseSens: 1, padSens: 1, invertY: false, split: 'vertical', volume: 0.7, resolution: 0, aimAssist: true };
+export const DEFAULT_SETTINGS: Settings = { mouseSens: 1, padSens: 1, invertY: false, split: 'vertical', volume: 0.7, resolution: 0, aimAssist: true, difficulty: 'normal' };
+
+export const DIFFICULTIES = ['easy', 'normal', 'hard'];
 
 /** 0 = smooth native rendering; the others are retro pixel heights. */
 export const RESOLUTIONS = [0, 480, 360, 240, 180];
@@ -33,6 +37,7 @@ export function loadSettings(): Settings {
       volume: clampNum(v.volume, 0, 1, DEFAULT_SETTINGS.volume),
       resolution: RESOLUTIONS.includes(v.resolution as number) ? (v.resolution as number) : DEFAULT_SETTINGS.resolution,
       aimAssist: typeof v.aimAssist === 'boolean' ? v.aimAssist : DEFAULT_SETTINGS.aimAssist,
+      difficulty: DIFFICULTIES.includes(v.difficulty as string) ? (v.difficulty as string) : DEFAULT_SETTINGS.difficulty,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

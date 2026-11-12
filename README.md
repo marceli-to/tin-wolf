@@ -52,6 +52,8 @@ Kestrel 9 pistol, Kestrel 9 SD (silenced: guards only hear it within 4 m), Vireo
 
 Nintendo controllers (Switch Pro) follow their printed labels: A uses, B crouches, X/Y as in the table, like in Switch games.
 
+Missions have three difficulties (left / right on the briefing, or Settings): Easy guards notice and react slower, miss more, hit softer and have less health; Hard is the reverse. The multipliers are data (`src/data/difficulty.json`).
+
 Gamepads get aim assist: turning slows down over a visible enemy, and while you move or turn the aim drifts gently toward it (it never aims for you when you stand still). Mouse aiming is untouched.
 
 Settings (menu or pause): mouse / gamepad sensitivity, invert look, gamepad aim assist, split direction, volume, graphics (Smooth, or Retro 480–180p pixels). Saved in `localStorage`.

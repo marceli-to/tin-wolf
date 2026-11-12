@@ -18,7 +18,7 @@ import { LobbyView } from '../ui/lobby';
 import { ScreenView } from '../ui/screen';
 import { playSimEvent } from './audioBridge';
 import { startLoop, type RunningLoop } from './loop';
-import { loadSettings, RESOLUTIONS, saveSettings, type Settings } from './settings';
+import { DIFFICULTIES, loadSettings, RESOLUTIONS, saveSettings, type Settings } from './settings';
 import { DEFAULT_INPUT_SETTINGS } from '../input/settings';
 import type { GameParams } from './params';
 
@@ -123,6 +123,7 @@ export class Game {
           action: () => change(() => (s.split = s.split === 'vertical' ? 'horizontal' : 'vertical')),
           adjust: () => change(() => (s.split = s.split === 'vertical' ? 'horizontal' : 'vertical')),
         },
+        { label: row('Difficulty', this.difficultyName()), action: () => change(() => this.cycleDifficulty(1)), adjust: (d) => change(() => this.cycleDifficulty(d)) },
         { label: row('Volume', `${Math.round(s.volume * 100)}%`), action: () => undefined, adjust: (d) => change(() => (s.volume = step(s.volume, d * 0.1, 0, 1))) },
         { label: row('Graphics', resLabel(s.resolution)), action: () => change(() => cycleRes(1)), adjust: (d) => change(() => cycleRes(d)) },
         { label: 'Back', action: back },
@@ -289,6 +290,12 @@ export class Game {
       return;
     }
     this.state = 'briefing';
+    this.showBriefing();
+  }
+
+  private showBriefing(): void {
+    const level = this.tryLoad(this.levelId);
+    if (!level) return;
     const paras = level.briefing
       .split(/\n\s*\n/)
       .map((p) => `<p>${esc(p)}</p>`)
@@ -298,10 +305,20 @@ export class Game {
       title: 'BRIEFING',
       subtitle: esc(level.name),
       wide: true,
-      body: `${paras}<h3>Objectives</h3><ul class="objlist">${objs}</ul>`,
+      body: `<p class="difficulty">Difficulty <b>◂ ${esc(this.difficultyName())} ▸</b></p>${paras}<h3>Objectives</h3><ul class="objlist">${objs}</ul>`,
       items: [],
-      footer: 'Click, press Enter, or press A on a gamepad to begin · Esc / B: back',
+      footer: 'Left / right: difficulty · Click, Enter or A to begin · Esc / B: back',
     });
+  }
+
+  private difficultyName(): string {
+    return this.data.difficulty[this.settings.difficulty]?.name ?? this.settings.difficulty;
+  }
+
+  private cycleDifficulty(d: number): void {
+    const i = DIFFICULTIES.indexOf(this.settings.difficulty);
+    this.settings.difficulty = DIFFICULTIES[Math.max(0, Math.min(DIFFICULTIES.length - 1, i + d))]!;
+    saveSettings(this.settings);
   }
 
   startLevel(): void {
@@ -309,7 +326,8 @@ export class Game {
     if (!level) return;
     // The Kenney figures have big heads; their hit zones follow suit.
     const body = this.params.art === 'kenney' ? 'chibi' : 'human';
-    this.world = createWorld(level, this.data, { players: this.playerCount, seed: this.params.seed, body });
+    // Difficulty only changes guards, so it applies to missions; versus has none.
+    this.world = createWorld(level, this.data, { players: this.playerCount, seed: this.params.seed, body, difficulty: this.settings.difficulty });
     this.renderer.load(this.world, this.params.debug);
     this.clearHuds();
     this.huds = this.world.players.map(() => new PlayerHud(this.uiLayer));
@@ -448,6 +466,12 @@ export class Game {
       case 'briefing': {
         if (m.back) {
           this.enterMenu();
+          break;
+        }
+        if (m.left || m.right) {
+          this.cycleDifficulty(m.left ? -1 : 1);
+          this.sfx.play('ui_select', 0.3);
+          this.showBriefing();
           break;
         }
         const dev = this.input.confirmDevice();
