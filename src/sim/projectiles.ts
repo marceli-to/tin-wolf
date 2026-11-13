@@ -95,8 +95,8 @@ export function updateProjectiles(world: World, dt: number): void {
         if (Math.hypot(pr.vx, pr.vz) < 0.3) pr.vx = pr.vz = 0;
       }
     }
-    // Rolling on a floor loses speed quickly (contact checked just below the grenade).
-    const below = rayGrid(world.grid, { ox: pr.x, oy: pr.y, oz: pr.z, dx: 0, dy: -1, dz: 0 }, RADIUS + 0.05);
+    // Rolling on a floor (or a crate, catwalk) loses speed quickly (contact checked just below the grenade).
+    const below = sweep(world, { ox: pr.x, oy: pr.y, oz: pr.z, dx: 0, dy: -1, dz: 0 }, RADIUS + 0.05);
     if (below) {
       const k = Math.exp(-ROLL_DRAG * dt);
       pr.vx *= k;

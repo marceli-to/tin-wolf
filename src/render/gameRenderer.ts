@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PLAYER, RENDER } from '../config';
 import { lerp } from '../core/math';
 import { SWITCH_TIME } from '../sim/weapons';
@@ -138,6 +139,7 @@ export class GameRenderer {
     }
     this.grid = world.grid;
     const batch = new StaticBatch();
+    const plain = new Map<string, THREE.BufferGeometry[]>();
     for (const p of world.props) {
       const b = p.box;
       const kind = world.data.props[p.kind];
@@ -190,12 +192,27 @@ export class GameRenderer {
       const cz = (b.minZ + b.maxZ) / 2;
       // Crates and consoles show their whole texture per face; panels tile in world units.
       const perFace = p.mat === 'crate' || p.mat === 'console' || p.mat === 'barrel' || p.mat === 'alarm';
-      const m = new THREE.Mesh(litBox(w, h, d, cx, cz, !perFace), texturedMaterial(p.mat, materialColor(p.mat)));
-      m.position.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, (b.minZ + b.maxZ) / 2);
+      const geo = litBox(w, h, d, cx, cz, !perFace);
+      if (!p.destructible && !p.usable) {
+        // Static plain boxes (catwalks, stairs, railings) merge into one mesh per material.
+        geo.translate(cx, (b.minY + b.maxY) / 2, cz);
+        const list = plain.get(p.mat) ?? [];
+        list.push(geo);
+        plain.set(p.mat, list);
+        this.propMeshes.push(new THREE.Object3D());
+        continue;
+      }
+      const m = new THREE.Mesh(geo, texturedMaterial(p.mat, materialColor(p.mat)));
+      m.position.set(cx, (b.minY + b.maxY) / 2, cz);
       this.dynamic.add(m);
       this.propMeshes.push(m);
     }
     this.dynamic.add(batch.build());
+    for (const [mat, geos] of plain) {
+      const merged = mergeGeometries(geos);
+      for (const g of geos) g.dispose();
+      if (merged) this.dynamic.add(new THREE.Mesh(merged, texturedMaterial(mat, materialColor(mat))));
+    }
     for (const d of world.doors) {
       const b = doorBox(world, d);
       const m = new THREE.Mesh(

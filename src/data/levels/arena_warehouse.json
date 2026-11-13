@@ -2,15 +2,15 @@
  "id": "arena_warehouse",
  "name": "Warehouse",
  "mode": "versus",
- "cellSize": 2,
+ "cellSize": 2.0,
  "fog": {
   "color": "#2a2f36",
-  "near": 14,
-  "far": 52
+  "near": 22,
+  "far": 80
  },
  "match": {
   "killLimit": 10,
-  "timeLimit": 300
+  "timeLimit": 360
  },
  "legend": {
   "#": {
@@ -19,133 +19,2396 @@
   },
   ".": {
    "floor": 0,
-   "ceil": 6,
    "floorMat": "concrete",
+   "light": 0.9,
+   "ceil": 7,
    "wall": "brick",
-   "ceilMat": "ceiling",
-   "light": 0.9
+   "ceilMat": "ceiling"
   },
   "p": {
    "floor": 1.2,
-   "ceil": 6,
    "floorMat": "metal",
-   "wall": "brick",
-   "ceilMat": "ceiling",
    "light": 1.0,
-   "step": "hazard"
-  },
-  "<": {
-   "ramp": "w",
-   "floor": 0,
-   "floorTo": 1.2,
-   "ceil": 6,
-   "floorMat": "metal",
+   "step": "hazard",
+   "ceil": 7,
    "wall": "brick",
-   "light": 0.95,
-   "step": "hazard"
+   "ceilMat": "ceiling"
   },
   ">": {
    "ramp": "e",
    "floor": 0,
    "floorTo": 1.2,
-   "ceil": 6,
    "floorMat": "metal",
-   "wall": "brick",
    "light": 0.95,
-   "step": "hazard"
+   "step": "hazard",
+   "ceil": 7,
+   "wall": "brick",
+   "ceilMat": "ceiling"
+  },
+  "<": {
+   "ramp": "w",
+   "floor": 0,
+   "floorTo": 1.2,
+   "floorMat": "metal",
+   "light": 0.95,
+   "step": "hazard",
+   "ceil": 7,
+   "wall": "brick",
+   "ceilMat": "ceiling"
   }
  },
  "map": [
-  "######################",
-  "#pppppp<.............#",
-  "#pppppp<.............#",
-  "#pppppp.....##.......#",
-  "#pppppp.....##.......#",
-  "#....................#",
-  "#...##..........##...#",
-  "#...##..........##...#",
-  "#.........##.........#",
-  "#.........##.........#",
-  "#...##..........##...#",
-  "#...##..........##...#",
-  "#....................#",
-  "#.......##.....pppppp#",
-  "#.......##.....pppppp#",
-  "#.............>pppppp#",
-  "#.............>pppppp#",
-  "######################"
+  "###################################",
+  "#.......................>ppppppppp#",
+  "#.......................>ppppppppp#",
+  "#........................ppppppppp#",
+  "#........................ppppppppp#",
+  "#.................................#",
+  "#.................................#",
+  "#.....##..................##......#",
+  "#.....##..................##......#",
+  "#....................##...........#",
+  "#....................##...........#",
+  "#.................................#",
+  "#..........##.....................#",
+  "#..........##................##...#",
+  "#...##.......................##...#",
+  "#...##................##..........#",
+  "#.....................##..........#",
+  "#.................................#",
+  "#...........##....................#",
+  "#...........##....................#",
+  "#......##..................##.....#",
+  "#......##..................##.....#",
+  "#.................................#",
+  "#.................................#",
+  "#ppppppppp........................#",
+  "#ppppppppp........................#",
+  "#ppppppppp<.......................#",
+  "#ppppppppp<.......................#",
+  "###################################"
  ],
  "entities": [
+  {
+   "type": "prop",
+   "kind": "catwalk",
+   "cell": [
+    11,
+    2.0001
+   ],
+   "size": [
+    42,
+    0.2,
+    4
+   ],
+   "elevation": 2.8
+  },
+  {
+   "type": "prop",
+   "kind": "catwalk",
+   "cell": [
+    23,
+    27.0001
+   ],
+   "size": [
+    42.0,
+    0.2,
+    4.0
+   ],
+   "elevation": 2.8
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    22.125,
+    2.0001
+   ],
+   "size": [
+    0.5,
+    2.625,
+    4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    12.875,
+    27.0001
+   ],
+   "size": [
+    0.5,
+    2.625,
+    4.0
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    22.375,
+    2.0001
+   ],
+   "size": [
+    0.5,
+    2.25,
+    4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    12.625,
+    27.0001
+   ],
+   "size": [
+    0.5,
+    2.25,
+    4.0
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    22.625,
+    2.0001
+   ],
+   "size": [
+    0.5,
+    1.875,
+    4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    12.375,
+    27.0001
+   ],
+   "size": [
+    0.5,
+    1.875,
+    4.0
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    22.875,
+    2.0001
+   ],
+   "size": [
+    0.5,
+    1.5,
+    4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    12.125,
+    27.0001
+   ],
+   "size": [
+    0.5,
+    1.5,
+    4.0
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    23.125,
+    2.0001
+   ],
+   "size": [
+    0.5,
+    1.125,
+    4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    11.875,
+    27.0001
+   ],
+   "size": [
+    0.5,
+    1.125,
+    4.0
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    23.375,
+    2.0001
+   ],
+   "size": [
+    0.5,
+    0.75,
+    4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    11.625,
+    27.0001
+   ],
+   "size": [
+    0.5,
+    0.75,
+    4.0
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    23.625,
+    2.0001
+   ],
+   "size": [
+    0.5,
+    0.375,
+    4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    11.375,
+    27.0001
+   ],
+   "size": [
+    0.5,
+    0.375,
+    4.0
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    2.0001,
+    3.125
+   ],
+   "size": [
+    4,
+    2.625,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    33.0001,
+    25.875
+   ],
+   "size": [
+    4.0,
+    2.625,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    2.0001,
+    3.375
+   ],
+   "size": [
+    4,
+    2.25,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    33.0001,
+    25.625
+   ],
+   "size": [
+    4.0,
+    2.25,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    2.0001,
+    3.625
+   ],
+   "size": [
+    4,
+    1.875,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    33.0001,
+    25.375
+   ],
+   "size": [
+    4.0,
+    1.875,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    2.0001,
+    3.875
+   ],
+   "size": [
+    4,
+    1.5,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    33.0001,
+    25.125
+   ],
+   "size": [
+    4.0,
+    1.5,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    2.0001,
+    4.125
+   ],
+   "size": [
+    4,
+    1.125,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    33.0001,
+    24.875
+   ],
+   "size": [
+    4.0,
+    1.125,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    2.0001,
+    4.375
+   ],
+   "size": [
+    4,
+    0.75,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    33.0001,
+    24.625
+   ],
+   "size": [
+    4.0,
+    0.75,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    2.0001,
+    4.625
+   ],
+   "size": [
+    4,
+    0.375,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "stair",
+   "cell": [
+    33.0001,
+    24.375
+   ],
+   "size": [
+    4.0,
+    0.375,
+    0.5
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    10.0001,
+    2.98
+   ],
+   "size": [
+    28,
+    0.1,
+    0.08
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    25.0001,
+    26.02
+   ],
+   "size": [
+    28.0,
+    0.1,
+    0.08
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    3.02,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    31.98,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    4.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    31.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    5.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    30.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    6.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    29.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    7.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    28.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    8.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    27.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    9.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    26.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    10.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    25.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    11.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    24.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    12.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    23.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    13.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    22.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    14.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    21.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    15.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    20.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    19.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.98,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.02,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    20.0001,
+    2.98
+   ],
+   "size": [
+    8,
+    0.1,
+    0.08
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    15.0001,
+    26.02
+   ],
+   "size": [
+    8.0,
+    0.1,
+    0.08
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.02,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.98,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    19.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    20.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    15.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    21.0001,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    14.0001,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    21.98,
+    2.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    13.02,
+    26.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    5.0001,
+    2.85
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    30.0001,
+    26.15
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    9.0001,
+    2.85
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    26.0001,
+    26.15
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    13.0001,
+    2.85
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    22.0001,
+    26.15
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    20,
+    2.85
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    14,
+    26.15
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "catwalk",
+   "cell": [
+    17,
+    8.0001
+   ],
+   "size": [
+    2,
+    0.2,
+    20
+   ],
+   "elevation": 2.8
+  },
+  {
+   "type": "prop",
+   "kind": "catwalk",
+   "cell": [
+    17,
+    21.0001
+   ],
+   "size": [
+    2.0,
+    0.2,
+    20.0
+   ],
+   "elevation": 2.8
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    17.02,
+    8.0001
+   ],
+   "size": [
+    0.08,
+    0.1,
+    20
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    17.98,
+    21.0001
+   ],
+   "size": [
+    0.08,
+    0.1,
+    20.0
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    3.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    25.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    4.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    25.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    5.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    24.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    6.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    23.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    7.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    22.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    8.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    21.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    9.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    20.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    10.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    19.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    11.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    18.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    12.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    17.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    12.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    16.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    17.98,
+    8.0001
+   ],
+   "size": [
+    0.08,
+    0.1,
+    20
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    17.02,
+    21.0001
+   ],
+   "size": [
+    0.08,
+    0.1,
+    20.0
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    3.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    25.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    4.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    25.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    5.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    24.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    6.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    23.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    7.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    22.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    8.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    21.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    9.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    20.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    10.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    19.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    11.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    18.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    12.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    17.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.98,
+    12.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    17.02,
+    16.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    17,
+    6
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    17,
+    22
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    17,
+    10.0001
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    17,
+    19.0001
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "catwalk",
+   "cell": [
+    17,
+    14
+   ],
+   "size": [
+    6,
+    0.2,
+    6
+   ],
+   "elevation": 2.8
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    16,
+    13.02
+   ],
+   "size": [
+    2,
+    0.1,
+    0.08
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    18,
+    15.98
+   ],
+   "size": [
+    2.0,
+    0.1,
+    0.08
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.02,
+    13.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.98,
+    15.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.98,
+    13.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.02,
+    15.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    18,
+    13.02
+   ],
+   "size": [
+    2,
+    0.1,
+    0.08
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    16,
+    15.98
+   ],
+   "size": [
+    2.0,
+    0.1,
+    0.08
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.02,
+    13.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.98,
+    15.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.98,
+    13.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.02,
+    15.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    16.02,
+    14
+   ],
+   "size": [
+    0.08,
+    0.1,
+    6
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "railing",
+   "cell": [
+    18.98,
+    14
+   ],
+   "size": [
+    0.08,
+    0.1,
+    6.0
+   ],
+   "elevation": 3.9
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.02,
+    13.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.98,
+    15.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.02,
+    14.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.98,
+    15.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.02,
+    15.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.98,
+    14.0001
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    16.02,
+    15.98
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "rail_post",
+   "cell": [
+    18.98,
+    13.02
+   ],
+   "size": [
+    0.08,
+    0.9,
+    0.08
+   ],
+   "elevation": 3.0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    16.2,
+    13.2
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    18.8,
+    15.8
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    18.8,
+    13.2
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
+  {
+   "type": "prop",
+   "kind": "support",
+   "cell": [
+    16.2,
+    15.8
+   ],
+   "size": [
+    0.4,
+    2.8,
+    0.4
+   ],
+   "elevation": 0
+  },
   {
    "type": "playerStart",
    "slot": 0,
    "cell": [
     3,
-    2
+    11
    ],
-   "yaw": 135
+   "yaw": 90
   },
   {
    "type": "playerStart",
    "slot": 1,
    "cell": [
-    18,
-    15
-   ],
-   "yaw": 315
-  },
-  {
-   "type": "spawn",
-   "cell": [
-    3,
-    2
-   ],
-   "yaw": 135
-  },
-  {
-   "type": "spawn",
-   "cell": [
-    18,
-    15
-   ],
-   "yaw": 315
-  },
-  {
-   "type": "spawn",
-   "cell": [
-    14,
-    2
-   ],
-   "yaw": 225
-  },
-  {
-   "type": "spawn",
-   "cell": [
-    7,
-    15
-   ],
-   "yaw": 45
-  },
-  {
-   "type": "spawn",
-   "cell": [
-    2,
-    9
-   ],
-   "yaw": 90
-  },
-  {
-   "type": "spawn",
-   "cell": [
-    19,
-    8
+    31,
+    17
    ],
    "yaw": 270
   },
   {
    "type": "spawn",
    "cell": [
-    8,
+    3,
+    11
+   ],
+   "yaw": 90
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    31,
+    17
+   ],
+   "yaw": 270
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    13,
     6
    ],
    "yaw": 180
@@ -153,17 +2416,93 @@
   {
    "type": "spawn",
    "cell": [
-    13,
-    11
+    21,
+    22
    ],
    "yaw": 0
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    30,
+    10
+   ],
+   "yaw": 225
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    4,
+    18
+   ],
+   "yaw": 45
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    24,
+    4
+   ],
+   "yaw": 180
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    10,
+    24
+   ],
+   "yaw": 0
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    5,
+    1
+   ],
+   "yaw": 135,
+   "elevation": 3.0
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    29,
+    27
+   ],
+   "yaw": 315,
+   "elevation": 3.0
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    29,
+    3
+   ],
+   "yaw": 225
+  },
+  {
+   "type": "spawn",
+   "cell": [
+    5,
+    25
+   ],
+   "yaw": 45
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_sniper",
+   "cell": [
+    17,
+    14
+   ],
+   "respawn": 30,
+   "elevation": 3.0
   },
   {
    "type": "pickup",
    "item": "weapon_smg",
    "cell": [
-    10,
-    5
+    9,
+    10
    ],
    "respawn": 30
   },
@@ -171,8 +2510,8 @@
    "type": "pickup",
    "item": "weapon_smg",
    "cell": [
-    11,
-    12
+    25,
+    18
    ],
    "respawn": 30
   },
@@ -181,7 +2520,7 @@
    "item": "medkit",
    "cell": [
     2,
-    4
+    8
    ],
    "respawn": 30
   },
@@ -189,8 +2528,8 @@
    "type": "pickup",
    "item": "medkit",
    "cell": [
-    19,
-    13
+    32,
+    20
    ],
    "respawn": 30
   },
@@ -198,44 +2537,46 @@
    "type": "pickup",
    "item": "armor",
    "cell": [
-    20,
+    12,
     1
    ],
-   "respawn": 45
+   "respawn": 45,
+   "elevation": 3.0
   },
   {
    "type": "pickup",
    "item": "armor",
    "cell": [
-    1,
-    16
+    22,
+    27
    ],
-   "respawn": 45
+   "respawn": 45,
+   "elevation": 3.0
   },
   {
    "type": "pickup",
    "item": "grenades",
    "cell": [
-    16,
-    8
-   ],
-   "respawn": 40
-  },
-  {
-   "type": "pickup",
-   "item": "grenades",
-   "cell": [
-    5,
+    14,
     9
    ],
    "respawn": 40
   },
   {
    "type": "pickup",
+   "item": "grenades",
+   "cell": [
+    20,
+    19
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
    "item": "ammo_pistol",
    "cell": [
-    6,
-    12
+    8,
+    14
    ],
    "respawn": 20
   },
@@ -243,17 +2584,8 @@
    "type": "pickup",
    "item": "ammo_pistol",
    "cell": [
-    15,
-    5
-   ],
-   "respawn": 20
-  },
-  {
-   "type": "pickup",
-   "item": "ammo_smg",
-   "cell": [
-    1,
-    8
+    26,
+    14
    ],
    "respawn": 20
   },
@@ -262,40 +2594,103 @@
    "item": "ammo_smg",
    "cell": [
     20,
-    9
+    3
    ],
    "respawn": 20
   },
   {
+   "type": "pickup",
+   "item": "ammo_smg",
+   "cell": [
+    14,
+    25
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    30,
+    2
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    4,
+    26
+   ],
+   "respawn": 20
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    19,
+    2
+   ],
+   "respawn": 20,
+   "elevation": 3.0
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_rifle",
+   "cell": [
+    15,
+    26
+   ],
+   "respawn": 20,
+   "elevation": 3.0
+  },
+  {
    "type": "prop",
    "kind": "shelf_wide",
    "cell": [
-    17.5,
-    2.3
+    8.5,
+    1.2
    ]
   },
   {
    "type": "prop",
    "kind": "shelf_wide",
    "cell": [
-    4.5,
-    15.7
+    26.5,
+    27.8
    ]
   },
   {
    "type": "prop",
    "kind": "shelf_wide",
    "cell": [
-    19.5,
-    2.3
+    14.5,
+    1.2
    ]
   },
   {
    "type": "prop",
    "kind": "shelf_wide",
    "cell": [
-    2.5,
-    15.7
+    20.5,
+    27.8
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "locker",
+   "cell": [
+    19.6,
+    1.2
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "locker",
+   "cell": [
+    15.399999999999999,
+    27.8
    ]
   },
   {
@@ -310,48 +2705,32 @@
    "type": "prop",
    "kind": "crate",
    "cell": [
-    12,
-    14
+    25,
+    25
    ]
   },
   {
    "type": "prop",
    "kind": "crate_tall",
    "cell": [
-    7.6,
-    9.4
+    14.6,
+    11.4
    ]
   },
   {
    "type": "prop",
    "kind": "crate_tall",
    "cell": [
-    14.4,
-    8.6
-   ]
-  },
-  {
-   "type": "prop",
-   "kind": "barrel",
-   "cell": [
-    3.6,
-    5.6
-   ]
-  },
-  {
-   "type": "prop",
-   "kind": "barrel",
-   "cell": [
-    18.4,
-    12.4
+    20.4,
+    17.6
    ]
   },
   {
    "type": "prop",
    "kind": "cargo",
    "cell": [
-    14,
-    6
+    24,
+    13
    ],
    "yaw": 90
   },
@@ -359,105 +2738,145 @@
    "type": "prop",
    "kind": "cargo",
    "cell": [
-    7,
-    11
-   ],
-   "yaw": 270
-  },
-  {
-   "type": "prop",
-   "kind": "crate",
-   "cell": [
-    19,
-    8
-   ]
-  },
-  {
-   "type": "prop",
-   "kind": "crate",
-   "cell": [
-    2,
-    9
-   ]
-  },
-  {
-   "type": "light",
-   "cell": [
-    4,
-    2
-   ],
-   "level": 0.25,
-   "radius": 4
-  },
-  {
-   "type": "light",
-   "cell": [
-    17,
+    10,
     15
    ],
-   "level": 0.25,
-   "radius": 4
+   "yaw": 90
   },
   {
-   "type": "light",
+   "type": "prop",
+   "kind": "cargo",
    "cell": [
     10,
-    7
-   ],
-   "level": 0.2,
-   "radius": 5
+    18
+   ]
   },
   {
-   "type": "light",
+   "type": "prop",
+   "kind": "cargo",
    "cell": [
-    11,
+    24,
     10
-   ],
-   "level": 0.2,
-   "radius": 5
+   ]
   },
   {
-   "type": "pickup",
-   "item": "weapon_sniper",
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    28,
+    6
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    6,
+    22
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_large",
    "cell": [
     3,
+    6.5
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate_large",
+   "cell": [
+    32,
+    22.5
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    27,
     2
-   ],
-   "respawn": 30
+   ]
   },
   {
-   "type": "pickup",
-   "item": "weapon_sniper",
+   "type": "prop",
+   "kind": "crate",
    "cell": [
-    18,
-    15
-   ],
-   "respawn": 30
+    7,
+    26
+   ]
   },
   {
-   "type": "pickup",
-   "item": "ammo_rifle",
+   "type": "prop",
+   "kind": "crate_tall",
    "cell": [
-    10,
-    1
-   ],
-   "respawn": 20
+    32.3,
+    3.3
+   ]
   },
   {
-   "type": "pickup",
-   "item": "ammo_rifle",
+   "type": "prop",
+   "kind": "crate_tall",
    "cell": [
-    11,
-    16
-   ],
-   "respawn": 20
+    2.700000000000003,
+    25.7
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    16.4,
+    4.4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    18.6,
+    24.6
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    7.6,
+    12.3
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel",
+   "cell": [
+    27.4,
+    16.7
+   ]
   },
   {
    "type": "prop",
    "kind": "barrel_red",
    "cell": [
-    7,
-    3
+    10,
+    5
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    24,
+    23
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "barrel_red",
+   "cell": [
+    20,
+    11
    ]
   },
   {
@@ -465,24 +2884,78 @@
    "kind": "barrel_red",
    "cell": [
     14,
-    14
+    17
    ]
   },
   {
    "type": "prop",
    "kind": "barrel_red",
    "cell": [
-    3,
-    8
+    2,
+    13
    ]
   },
   {
    "type": "prop",
    "kind": "barrel_red",
    "cell": [
-    18,
+    32,
+    15
+   ]
+  },
+  {
+   "type": "light",
+   "cell": [
+    5,
+    4
+   ],
+   "level": 0.25,
+   "radius": 5
+  },
+  {
+   "type": "light",
+   "cell": [
+    29,
+    24
+   ],
+   "level": 0.25,
+   "radius": 5
+  },
+  {
+   "type": "light",
+   "cell": [
+    17,
     9
-   ]
+   ],
+   "level": 0.2,
+   "radius": 6
+  },
+  {
+   "type": "light",
+   "cell": [
+    17,
+    19
+   ],
+   "level": 0.2,
+   "radius": 6
+  },
+  {
+   "type": "light",
+   "cell": [
+    29,
+    2
+   ],
+   "level": 0.2,
+   "radius": 5
+  },
+  {
+   "type": "light",
+   "cell": [
+    5,
+    26
+   ],
+   "level": 0.2,
+   "radius": 5
   }
  ]
 }

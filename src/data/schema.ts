@@ -26,8 +26,9 @@ export type CellDef = z.output<typeof CellDefSchema>;
 const Base = { id: z.string().optional(), cell: CellRef };
 
 export const EntitySchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('playerStart'), slot: z.number().int().min(0), yaw: z.number().default(0), ...Base }),
-  z.object({ type: z.literal('spawn'), yaw: z.number().default(0), ...Base }),
+  /** `elevation`: metres above the cell's floor, for starts on catwalks and other walkable props. */
+  z.object({ type: z.literal('playerStart'), slot: z.number().int().min(0), yaw: z.number().default(0), elevation: z.number().default(0), ...Base }),
+  z.object({ type: z.literal('spawn'), yaw: z.number().default(0), elevation: z.number().default(0), ...Base }),
   z.object({
     type: z.literal('guard'),
     archetype: z.string(),
@@ -54,6 +55,8 @@ export const EntitySchema = z.discriminatedUnion('type', [
     item: z.string(),
     amount: z.number().optional(),
     respawn: z.number().optional(),
+    /** Metres above the cell's floor (e.g. up on a catwalk). */
+    elevation: z.number().default(0),
     ...Base,
   }),
   z.object({

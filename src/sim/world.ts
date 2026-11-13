@@ -214,6 +214,8 @@ export interface SpawnPoint {
   x: number;
   z: number;
   yaw: number;
+  /** Feet height; absent means the floor of the cell. */
+  y?: number;
 }
 
 export interface World {
@@ -344,7 +346,7 @@ export function giveLoadout(p: Player, loadout: readonly string[], data: GameDat
 export function placePlayer(world: World, p: Player, sp: SpawnPoint): void {
   p.x = sp.x;
   p.z = sp.z;
-  p.y = floorAtWorld(world.grid, sp.x, sp.z) ?? 0;
+  p.y = sp.y ?? floorAtWorld(world.grid, sp.x, sp.z) ?? 0;
   p.prev = { x: p.x, y: p.y, z: p.z, crouch: 0 };
   p.yaw = sp.yaw;
   p.pitch = 0;
@@ -401,10 +403,10 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     const z = Number.isInteger(r) ? (r + 0.5) * s : r * s;
     switch (e.type) {
       case 'playerStart':
-        world.starts[e.slot] = { x, z, yaw: e.yaw * DEG };
+        world.starts[e.slot] = { x, z, yaw: e.yaw * DEG, y: (floorAtWorld(grid, x, z) ?? 0) + e.elevation };
         break;
       case 'spawn':
-        world.spawns.push({ x, z, yaw: e.yaw * DEG });
+        world.spawns.push({ x, z, yaw: e.yaw * DEG, y: (floorAtWorld(grid, x, z) ?? 0) + e.elevation });
         break;
       case 'prop': {
         const kind = data.props[e.kind];
@@ -480,7 +482,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
           item: e.item,
           amount: e.amount ?? item.amount,
           x,
-          y: floorAtWorld(grid, x, z) ?? 0,
+          y: (floorAtWorld(grid, x, z) ?? 0) + e.elevation,
           z,
           respawn: e.respawn ?? null,
           timer: 0,

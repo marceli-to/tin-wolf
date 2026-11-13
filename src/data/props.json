@@ -369,5 +369,45 @@
     ],
     "mat": "alarm",
     "usable": true
+  },
+  "catwalk": {
+    "size": [
+      2,
+      0.2,
+      2
+    ],
+    "mat": "grate"
+  },
+  "stair": {
+    "size": [
+      4,
+      0.375,
+      0.5
+    ],
+    "mat": "metal"
+  },
+  "railing": {
+    "size": [
+      2,
+      0.1,
+      0.08
+    ],
+    "mat": "hazard"
+  },
+  "rail_post": {
+    "size": [
+      0.08,
+      1.0,
+      0.08
+    ],
+    "mat": "metal"
+  },
+  "support": {
+    "size": [
+      0.4,
+      2.8,
+      0.4
+    ],
+    "mat": "metal"
   }
 }
