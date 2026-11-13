@@ -19,6 +19,22 @@ export const PLAYER = {
   spawnProtection: 1.5,
 };
 
+/** Power-ups from surprise boxes (src/sim/powerups.ts). Durations live with the items in src/data/items.json. */
+export const POWER = {
+  /** Zoom Boots: walk and sprint speed multiplier. */
+  speedScale: 1.6,
+  /** Double Blast: damage multiplier on everything the player hurts. */
+  damageScale: 2,
+  /** Moon Jump: jump apex in metres (normal 0.85). */
+  jumpHeight: 2.2,
+  /** Shrink Ray: size, speed and damage of a shrunk player or guard. */
+  tinyScale: 0.55,
+  tinySpeed: 0.75,
+  tinyDamage: 0.5,
+  /** Shrink Ray reaches guards this close in missions (other players are always hit). */
+  shrinkRadius: 25,
+};
+
 export const WORLD = {
   stepHeight: 0.4,
   gravity: 22,

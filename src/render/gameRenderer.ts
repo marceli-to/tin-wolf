@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { PLAYER, RENDER } from '../config';
 import { lerp } from '../core/math';
 import { SWITCH_TIME } from '../sim/weapons';
+import { sizeScale } from '../sim/powerups';
 import { playerEyeHeight, zoomFactor } from '../sim/player';
 import { doorBox, type Pickup, type World } from '../sim/world';
 import { buildHumanoid, lightHumanoid, poseHumanoid, type Humanoid } from './humanoid';
@@ -38,6 +39,10 @@ interface ActorVisual {
   flash: THREE.Object3D;
   /** Animated glTF figure, when model art is enabled; replaces the box humanoid. */
   model?: ModelCharacter;
+  /** Drawn size, eased toward the sim's (a Shrink Ray shrinks the figure). */
+  size?: number;
+  /** Bubble Shield around a player. */
+  bubble?: THREE.Mesh;
 }
 
 
@@ -52,6 +57,10 @@ const STATE_COLORS: Record<string, string> = {
 /** Owns the Three.js scene. Reads world state each frame; never writes to it. */
 /** Degrees of extra field of view at full sprint. */
 const SPRINT_FOV = 7;
+/** Degrees of extra field of view with Zoom Boots. */
+const SPEED_FOV = 12;
+/** Seconds a surprise box takes to pop back in. */
+const BOX_POP = 0.35;
 
 export class GameRenderer {
   readonly renderer: THREE.WebGLRenderer;
@@ -70,6 +79,12 @@ export class GameRenderer {
   private targetVisuals: TargetVisual[] = [];
   private pickupMeshes: THREE.Group[] = [];
   private projectileMeshes = new Map<number, THREE.Object3D>();
+  /** Prop kind and index by id, for effects that only carry the id. */
+  private propIndex = new Map<string, number>();
+  /** Surprise boxes: render time each one came back, for the pop-in. */
+  private boxBack = new Map<number, number>();
+  private bubbleGeo = new THREE.IcosahedronGeometry(1, 3);
+  private boxIds = new Set<string>();
   private time = 0;
   private light: LightField = () => 1;
   /** Internal render height in pixels (0 = native resolution). */
@@ -139,6 +154,10 @@ export class GameRenderer {
       this.scene.add(this.modelLights);
     }
     this.grid = world.grid;
+    world.props.forEach((p, i) => {
+      this.propIndex.set(p.id, i);
+      if (world.data.props[p.kind]?.loot) this.boxIds.add(p.id);
+    });
     const batch = new StaticBatch();
     const plain = new Map<string, THREE.BufferGeometry[]>();
     for (const p of world.props) {
@@ -192,7 +211,7 @@ export class GameRenderer {
       const cx = (b.minX + b.maxX) / 2;
       const cz = (b.minZ + b.maxZ) / 2;
       // Crates and consoles show their whole texture per face; panels tile in world units.
-      const perFace = p.mat === 'crate' || p.mat === 'console' || p.mat === 'barrel' || p.mat === 'alarm';
+      const perFace = p.mat === 'crate' || p.mat === 'console' || p.mat === 'barrel' || p.mat === 'alarm' || p.mat === 'surprise';
       const geo = litBox(w, h, d, cx, cz, !perFace);
       if (!p.destructible && !p.usable) {
         // Static plain boxes (catwalks, stairs, railings) merge into one mesh per material.
@@ -259,6 +278,15 @@ export class GameRenderer {
       setLayerDeep(h.root, LAYER.BODY + p.slot);
       this.dynamic.add(h.root);
       return { h, phase: 0, flash };
+    });
+    // Bubble Shields: seen by everyone but the player inside (they get the HUD tint instead).
+    this.players.forEach((v, i) => {
+      const mat = new THREE.MeshBasicMaterial({ color: '#5ec8ff', transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending });
+      const b = new THREE.Mesh(this.bubbleGeo, mat);
+      b.visible = false;
+      b.layers.set(LAYER.BODY + (world.players[i]?.slot ?? i));
+      this.dynamic.add(b);
+      v.bubble = b;
     });
     this.guards = [];
     for (const g of world.guards) this.guards.push(this.guardVisual(world, g));
@@ -407,6 +435,9 @@ export class GameRenderer {
     this.snow = null;
     this.guards = [];
     this.propMeshes = [];
+    this.propIndex.clear();
+    this.boxIds.clear();
+    this.boxBack.clear();
     this.doorMeshes = [];
     this.targetVisuals = [];
     this.pickupMeshes = [];
@@ -569,8 +600,20 @@ export class GameRenderer {
   onSimEvent(e: SimEvent): void {
     // Blood on a player would burst right in front of their own camera; the hurt overlay covers it.
     if (e.type === 'impact' && !(e.onPlayer && this.cameras.length === 1)) this.effects.impact(e.x, e.y, e.z, e.nx, e.ny, e.nz, e.surface);
-    else if (e.type === 'propDestroyed') this.effects.burst(e.x, e.y, e.z, '#6a6a6a', 24, 5);
+    else if (e.type === 'propDestroyed') {
+      if (this.isBox(e.id)) this.effects.confetti(e.x, e.y, e.z);
+      else this.effects.burst(e.x, e.y, e.z, '#6a6a6a', 24, 5);
+    } else if (e.type === 'propRespawned') {
+      const i = this.propIndex.get(e.id);
+      if (i !== undefined) this.boxBack.set(i, this.time);
+      this.effects.burst(e.x, e.y, e.z, '#f5c542', 12, 3);
+    } else if (e.type === 'shrunk') this.effects.burst(e.x, e.y + 0.6, e.z, '#b77cff', 20, 3);
+    else if (e.type === 'shieldBlock') this.effects.burst(e.x, e.y, e.z, '#5ec8ff', 6, 2.5);
     else if (e.type === 'explosion') this.effects.explosion(e.x, e.y + 0.2, e.z, e.radius);
+  }
+
+  private isBox(id: string): boolean {
+    return this.boxIds.has(id);
   }
 
   render(world: World, alpha: number, looks: ViewLook[], frameTime: number): void {
@@ -591,6 +634,16 @@ export class GameRenderer {
     world.props.forEach((p, i) => {
       const m = this.propMeshes[i];
       if (m) m.visible = p.alive;
+      if (m && p.alive && world.data.props[p.kind]?.loot) {
+        // Surprise boxes turn slowly, bob, and pop back in when they return.
+        const b = p.box;
+        const back = this.boxBack.get(i);
+        const t = back === undefined ? 1 : Math.min(1, (this.time - back) / BOX_POP);
+        const pop = t < 1 ? 1 + 2.7 * (t - 1) ** 3 + 1.7 * (t - 1) ** 2 : 1;
+        m.scale.setScalar(pop);
+        m.rotation.y = this.time * 0.8 + i;
+        m.position.y = (b.minY + b.maxY) / 2 + 0.04 + Math.sin(this.time * 2 + i) * 0.04;
+      }
       // Alarm panels flash once the alarm is raised.
       if (m && world.alarm.raised && world.data.props[p.kind]?.alarm) {
         const mat = (m as THREE.Mesh).material as THREE.MeshBasicMaterial | undefined;
@@ -617,8 +670,11 @@ export class GameRenderer {
       const y = lerp(g.prev.y, g.y, alpha);
       const z = lerp(g.prev.z, g.z, alpha);
       const speed = Math.hypot(g.vx, g.vz);
+      v.size = (v.size ?? 1) + (sizeScale(g.tiny) - (v.size ?? 1)) * Math.min(1, frameTime * 8);
+      v.h.root.scale.setScalar(v.size);
       if (v.model) {
         const m = v.model;
+        m.root.scale.setScalar(v.size);
         m.root.position.set(x, y, z);
         m.root.rotation.y = -g.yaw;
         if (g.state === 'dead') m.play('die');
@@ -662,9 +718,21 @@ export class GameRenderer {
       const crouch = lerp(p.prev.crouch, p.crouch, alpha);
       const speed = Math.hypot(p.vx, p.vz);
       v.phase += speed * frameTime * 3.2;
+      const size = (v.size ?? 1) + (sizeScale(p.power.tiny) - (v.size ?? 1)) * Math.min(1, frameTime * 8);
+      v.size = size;
+      v.h.root.scale.setScalar(size);
+      if (v.bubble) {
+        const left = p.power.shield;
+        // Blinks in its last second and a half.
+        v.bubble.visible = p.alive && left > 0 && (left > 1.5 || Math.sin(this.time * 24) > 0);
+        v.bubble.position.set(x, y + 0.9 * size, z);
+        v.bubble.scale.setScalar(1.05 * size);
+        v.bubble.rotation.y = this.time;
+      }
       if (v.model) {
         const m = v.model;
-        m.root.position.set(x, y - crouch * 0.45, z);
+        m.root.scale.setScalar(size);
+        m.root.position.set(x, y - crouch * 0.45 * size, z);
         m.root.rotation.y = -p.yaw;
         if (!p.alive) m.play('die');
         else if (p.sinceShot < 0.3 && speed < 0.5) m.play('shoot');
@@ -707,7 +775,7 @@ export class GameRenderer {
       cam.position.set(x, y + eye, z);
       cam.rotation.y = -(p.yaw + look.yaw);
       cam.rotation.x = Math.max(-1.5, Math.min(1.5, p.pitch + look.pitch));
-      const kick = (this.fovKick[i] ?? 0) + ((p.sprinting && p.alive ? SPRINT_FOV : 0) - (this.fovKick[i] ?? 0)) * Math.min(1, frameTime * 8);
+      const kick = (this.fovKick[i] ?? 0) + ((p.alive ? (p.sprinting ? SPRINT_FOV : 0) + (p.power.speed > 0 ? SPEED_FOV : 0) : 0) - (this.fovKick[i] ?? 0)) * Math.min(1, frameTime * 8);
       this.fovKick[i] = kick;
       // A scope narrows the view by its magnification.
       const mag = zoomFactor(world, p);

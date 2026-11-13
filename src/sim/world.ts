@@ -63,10 +63,26 @@ export interface Player {
   jumpPrev: boolean;
   /** 0 hip .. 1 fully scoped in (weapons with `zoom`). */
   zoom: number;
+  /** Seconds left on each timed power-up (0 = off). `tiny` is set on the victim of a Shrink Ray. */
+  power: PowerTimers;
   kills: number;
   deaths: number;
   shotsFired: number;
   shotsHit: number;
+}
+
+export interface PowerTimers {
+  speed: number;
+  shield: number;
+  damage: number;
+  jump: number;
+  tiny: number;
+}
+
+export type PowerName = keyof PowerTimers;
+
+export function noPowers(): PowerTimers {
+  return { speed: 0, shield: 0, damage: 0, jump: 0, tiny: 0 };
 }
 
 /** Something guards can hear. */
@@ -142,6 +158,8 @@ export interface Guard {
   crouching: boolean;
   /** Index of the alarm panel (in world.props) the guard is running to, or null. */
   alarmTarget: number | null;
+  /** Seconds left shrunk by a Shrink Ray. */
+  tiny: number;
 }
 
 export interface Prop {
@@ -157,6 +175,14 @@ export interface Prop {
   used: boolean;
   alive: boolean;
   mat: string;
+  /** Surprise box: fixed drop (null = random from the kind's loot). */
+  drop: string | null;
+  /** Surprise box: seconds to come back after the drop is taken (null = never). */
+  respawn: number | null;
+  /** Surprise box: index in world.pickups of the item it dropped last, while that is still lying there. */
+  dropped: number | null;
+  /** Surprise box: counts down to coming back once the drop is gone. */
+  timer: number;
 }
 
 export interface Door {
@@ -319,6 +345,7 @@ export function createPlayer(slot: number, loadout: readonly string[], data: Gam
     sprinting: false,
     jumpPrev: false,
     zoom: 0,
+    power: noPowers(),
     kills: 0,
     deaths: 0,
     shotsFired: 0,
@@ -430,6 +457,10 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
           used: false,
           alive: true,
           mat: kind.mat,
+          drop: e.drop ?? null,
+          respawn: e.respawn ?? (level.mode === 'versus' ? (kind.respawn ?? null) : null),
+          dropped: null,
+          timer: 0,
         });
         break;
       }
@@ -595,6 +626,7 @@ function makeGuard(world: World, e: GuardEntity, index: number): Guard {
     coverCooldown: 0,
     crouching: false,
     alarmTarget: null,
+    tiny: 0,
   };
 }
 

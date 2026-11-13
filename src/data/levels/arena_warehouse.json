@@ -2904,6 +2904,38 @@
    ]
   },
   {
+   "type": "prop",
+   "kind": "surprise_box",
+   "cell": [
+    7,
+    4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "cell": [
+    27,
+    24
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "cell": [
+    32,
+    4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "cell": [
+    2,
+    24
+   ]
+  },
+  {
    "type": "light",
    "cell": [
     5,

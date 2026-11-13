@@ -1,4 +1,5 @@
 import { PLAYER } from '../config';
+import { applyPowerup } from './powerups';
 import { giveWeapon } from './weapons';
 import { emit, type Pickup, type Player, type World } from './world';
 
@@ -31,6 +32,8 @@ function apply(world: World, p: Player, pk: Pickup): boolean {
     case 'key':
       if (!p.inventory.includes(pk.item)) p.inventory.push(pk.item);
       return true;
+    case 'powerup':
+      return applyPowerup(world, p, pk.item, item);
   }
 }
 

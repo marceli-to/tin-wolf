@@ -7,6 +7,7 @@ import { updateDoors, updateInteraction } from './doors';
 import { updateMatch } from './match';
 import { updateObjectives } from './objectives';
 import { updatePickups } from './pickups';
+import { updateBoxes, updatePowers } from './powerups';
 import { updateBlasts, updateProjectiles } from './projectiles';
 import { updateTargets } from './targets';
 import { respawnPlayer } from './spawn';
@@ -50,6 +51,8 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
   }
   updateDoors(world, DT);
   updatePickups(world, DT);
+  updateBoxes(world, DT);
+  updatePowers(world, DT);
   updateMatch(world, DT);
   updateObjectives(world, DT);
   updateTargets(world, DT);

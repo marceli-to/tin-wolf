@@ -4,6 +4,7 @@ import { nextFloat, range } from '../core/rng';
 import type { EnemyDef } from '../data/schema';
 import { moveBody, updateVertical } from './collision';
 import { fireHitscan } from './combat';
+import { sizeScale } from './powerups';
 import { cellAt, worldToCell } from './grid';
 import { clearLine } from './los';
 import { canStep, findPath, type NavOptions } from './nav';
@@ -31,7 +32,7 @@ const ALARM_RADIUS = 30;
 const ALARM_REACH = 0.8;
 
 export function guardEye(g: Guard): number {
-  return g.crouching ? CROUCH_EYE : EYE;
+  return (g.crouching ? CROUCH_EYE : EYE) * sizeScale(g.tiny);
 }
 
 export function guardDef(world: World, g: Guard): EnemyDef {
@@ -126,7 +127,7 @@ export function findCover(world: World, g: Guard, target: Player): { x: number; 
 }
 
 function playerEyeOf(p: Player): number {
-  return PLAYER.eyeHeight + (PLAYER.crouchEyeHeight - PLAYER.eyeHeight) * p.crouch;
+  return (PLAYER.eyeHeight + (PLAYER.crouchEyeHeight - PLAYER.eyeHeight) * p.crouch) * sizeScale(p.power.tiny);
 }
 
 /** Sends the guard to cover if there is some; true if it is on its way. */
@@ -634,7 +635,7 @@ function act(world: World, g: Guard, def: EnemyDef, dt: number): void {
     g.coverTimer -= dt;
     if (g.coverTimer <= 0) leaveCover(world, g);
   }
-  g.height = g.crouching ? PLAYER.crouchHeight : PLAYER.height;
+  g.height = (g.crouching ? PLAYER.crouchHeight : PLAYER.height) * sizeScale(g.tiny);
 
   // Alarm: the runner reaches the panel.
   if (g.alarmTarget !== null) {

@@ -1,9 +1,10 @@
-import { PLAYER, WORLD } from '../config';
+import { PLAYER, POWER, WORLD } from '../config';
 import { clamp } from '../core/math';
 import type { PlayerIntent } from '../core/intent';
 import { applyAimAssist } from './aimAssist';
 import { hasHeadroom, moveBody, updateVertical } from './collision';
 import { interactTarget } from './doors';
+import { sizeScale } from './powerups';
 import { emit, type Player, type World } from './world';
 
 const CROUCH_RATE = 7;
@@ -12,7 +13,7 @@ const STEP_LENGTH = 2.2;
 const ZOOM_RATE = 6;
 
 export function playerEyeHeight(p: Player): number {
-  return PLAYER.eyeHeight + (PLAYER.crouchEyeHeight - PLAYER.eyeHeight) * p.crouch;
+  return (PLAYER.eyeHeight + (PLAYER.crouchEyeHeight - PLAYER.eyeHeight) * p.crouch) * sizeScale(p.power.tiny);
 }
 
 /** Current scope magnification (1 when not zoomed). */
@@ -35,7 +36,7 @@ export function updatePlayerMovement(world: World, p: Player, intent: PlayerInte
   // Standing up needs headroom; toggle-crouch for gamepads is handled by the input device.
   if (intent.crouch) p.crouch = Math.min(1, p.crouch + CROUCH_RATE * dt);
   else if (p.crouch > 0 && hasHeadroom(world.terrain, p, PLAYER.height)) p.crouch = Math.max(0, p.crouch - CROUCH_RATE * dt);
-  p.height = PLAYER.height + (PLAYER.crouchHeight - PLAYER.height) * p.crouch;
+  p.height = (PLAYER.height + (PLAYER.crouchHeight - PLAYER.height) * p.crouch) * sizeScale(p.power.tiny);
 
   let mx = intent.moveX;
   let mz = intent.moveZ;
@@ -46,7 +47,8 @@ export function updatePlayerMovement(world: World, p: Player, intent: PlayerInte
   }
   // Sprint only runs forward, standing up; it keeps going in the air but cannot start there.
   p.sprinting = intent.sprint && !scoped && intent.moveZ > 0.5 && p.crouch < 0.05 && (p.grounded || p.sprinting);
-  const speed = p.sprinting ? PLAYER.sprintSpeed : PLAYER.walkSpeed + (PLAYER.crouchSpeed - PLAYER.walkSpeed) * p.crouch;
+  const base = p.sprinting ? PLAYER.sprintSpeed : PLAYER.walkSpeed + (PLAYER.crouchSpeed - PLAYER.walkSpeed) * p.crouch;
+  const speed = base * (p.power.speed > 0 ? POWER.speedScale : 1) * (p.power.tiny > 0 ? POWER.tinySpeed : 1);
   const sin = Math.sin(p.yaw);
   const cos = Math.cos(p.yaw);
   // forward = (sin, -cos), right = (cos, sin)
@@ -67,7 +69,8 @@ export function updatePlayerMovement(world: World, p: Player, intent: PlayerInte
   // Jump on the press, from the ground, standing. A gamepad's A also uses doors: using wins.
   if (intent.jump && !p.jumpPrev && p.grounded && p.crouch < 0.5 && !(intent.interact && interactTarget(world, p))) {
     // Half a tick of gravity on top, so the stepped arc peaks at the configured height.
-    p.vy = Math.sqrt(2 * WORLD.gravity * PLAYER.jumpHeight) + 0.5 * WORLD.gravity * dt;
+    const apex = p.power.jump > 0 ? POWER.jumpHeight : PLAYER.jumpHeight;
+    p.vy = Math.sqrt(2 * WORLD.gravity * apex) + 0.5 * WORLD.gravity * dt;
     p.grounded = false;
   }
   p.jumpPrev = intent.jump;

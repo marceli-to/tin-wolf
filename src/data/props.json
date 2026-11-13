@@ -409,5 +409,23 @@
       0.4
     ],
     "mat": "metal"
+  },
+  "surprise_box": {
+    "size": [
+      0.8,
+      0.8,
+      0.8
+    ],
+    "mat": "surprise",
+    "hp": 1,
+    "loot": [
+      "power_speed",
+      "power_shield",
+      "power_damage",
+      "power_jump",
+      "power_refill",
+      "power_shrink"
+    ],
+    "respawn": 30
   }
 }

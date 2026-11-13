@@ -15,6 +15,11 @@ export type SimEvent =
   | { type: 'doorOpened'; id: string; x: number; y: number; z: number }
   | { type: 'doorLocked'; id: string; slot: number; requires: string }
   | { type: 'propDestroyed'; id: string; x: number; y: number; z: number }
+  | { type: 'propRespawned'; id: string; x: number; y: number; z: number }
+  | { type: 'powerup'; slot: number; item: string }
+  | { type: 'powerEnded'; slot: number; power: 'speed' | 'shield' | 'damage' | 'jump' | 'tiny' }
+  | { type: 'shrunk'; target: ActorRef; by: number; x: number; y: number; z: number }
+  | { type: 'shieldBlock'; slot: number; x: number; y: number; z: number }
   | { type: 'guardAlerted'; id: string; x: number; y: number; z: number }
   | { type: 'alarmRaised'; id: string; x: number; y: number; z: number }
   | { type: 'alarmRunner'; id: string; x: number; z: number }

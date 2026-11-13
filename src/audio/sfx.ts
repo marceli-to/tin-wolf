@@ -29,7 +29,14 @@ export type SfxName =
   | 'ui_select'
   | 'alarm'
   | 'target_hit'
-  | 'bullseye';
+  | 'bullseye'
+  | 'box_pop'
+  | 'box_back'
+  | 'powerup'
+  | 'power_end'
+  | 'shrink'
+  | 'grow'
+  | 'shield_block';
 
 export class Sfx {
   private ctx: AudioContext | null = null;
@@ -199,6 +206,33 @@ export class Sfx {
         break;
       case 'ui_select':
         this.tone(out, t, 'square', 660, 880, 0.08, 0.15);
+        break;
+      case 'box_pop':
+        // A party-popper: a soft pop and a sparkle.
+        this.noiseBurst(out, t, 0.1, 'bandpass', 1200, 0.7, 1.2);
+        this.tone(out, t, 'sine', 300, 120, 0.1, 0.5);
+        [1568, 2093, 2637].forEach((f, i) => this.tone(out, t + 0.05 + i * 0.04, 'triangle', f, f, 0.12, 0.15));
+        break;
+      case 'box_back':
+        this.tone(out, t, 'triangle', 400, 900, 0.14, 0.25);
+        break;
+      case 'powerup':
+        // A quick rising arpeggio.
+        [523, 659, 784, 1046, 1318].forEach((f, i) => this.tone(out, t + i * 0.05, 'square', f, f, 0.09, 0.18));
+        break;
+      case 'power_end':
+        this.tone(out, t, 'triangle', 880, 440, 0.18, 0.25);
+        break;
+      case 'shrink':
+        // A slide-whistle going down.
+        this.tone(out, t, 'sine', 1400, 300, 0.45, 0.35);
+        break;
+      case 'grow':
+        this.tone(out, t, 'sine', 300, 1100, 0.35, 0.3);
+        break;
+      case 'shield_block':
+        this.tone(out, t, 'triangle', 1800, 1500, 0.12, 0.25);
+        this.click(out, t, 3000, 0.3);
         break;
     }
   }

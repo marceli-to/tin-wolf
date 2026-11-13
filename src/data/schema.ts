@@ -67,6 +67,10 @@ export const EntitySchema = z.discriminatedUnion('type', [
     yaw: z.number().default(0),
     /** Metres above the floor, for things standing on other things. */
     elevation: z.number().default(0),
+    /** Surprise boxes: always drop this item instead of a random one from the kind's `loot`. */
+    drop: z.string().optional(),
+    /** Surprise boxes: seconds until the box comes back after its drop was taken (default: the kind's, in versus only). */
+    respawn: z.number().optional(),
     ...Base,
   }),
   z.object({ type: z.literal('zone'), size: z.tuple([z.number(), z.number()]).default([1, 1]), ...Base, id: z.string() }),
@@ -241,7 +245,12 @@ export function scaleEnemy(def: EnemyDef, d: DifficultyDef): EnemyDef {
 
 export const ItemSchema = z.object({
   name: z.string(),
-  kind: z.enum(['key', 'health', 'ammo', 'armor', 'weapon']),
+  kind: z.enum(['key', 'health', 'ammo', 'armor', 'weapon', 'powerup']),
+  /** Power-up effect; `duration` in seconds (0 = instant). */
+  effect: z.enum(['speed', 'shield', 'damage', 'jump', 'refill', 'shrink']).optional(),
+  duration: z.number().min(0).default(0),
+  /** Short name for the HUD timer. */
+  short: z.string().optional(),
   amount: z.number().default(0),
   /** Weapon given by a `weapon` item; `amount` is the ammo that comes with it. */
   weapon: z.string().optional(),
@@ -274,6 +283,10 @@ export const PropKindSchema = z.object({
   alarm: z.boolean().default(false),
   /** Explodes when destroyed (needs `hp`): damage at the centre falling off to 0 at `radius`; guards hear it within `noise` m. */
   blast: z.object({ radius: z.number().positive(), damage: z.number().positive(), noise: z.number().min(0) }).optional(),
+  /** Surprise box: breaking it drops one of these items (picked at random per break). */
+  loot: z.array(z.string()).optional(),
+  /** Surprise box: seconds until it comes back after its drop was taken (versus only, unless a level sets it). */
+  respawn: z.number().positive().optional(),
   /** Render-only: model materials recoloured by name (e.g. an explosive barrel's body red, its bands yellow). */
   colors: z.record(z.string(), z.string()).optional(),
 });

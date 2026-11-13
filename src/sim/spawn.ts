@@ -1,6 +1,6 @@
 import { PLAYER } from '../config';
 import { clearLine } from './los';
-import { giveLoadout, placePlayer, type Player, type SpawnPoint, type World } from './world';
+import { giveLoadout, noPowers, placePlayer, type Player, type SpawnPoint, type World } from './world';
 
 function spawnCandidates(world: World): SpawnPoint[] {
   return world.spawns.length ? world.spawns : world.starts.filter(Boolean);
@@ -39,6 +39,7 @@ export function respawnPlayer(world: World, p: Player): void {
   p.protect = PLAYER.spawnProtection;
   p.hurtTimer = 0;
   p.inventory = [];
+  p.power = noPowers();
   giveLoadout(p, world.level.loadout, world.data);
   world.events.push({ type: 'spawned', slot: p.slot });
 }

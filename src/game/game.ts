@@ -25,6 +25,15 @@ import { DIFFICULTIES, loadSettings, RESOLUTIONS, saveSettings, type Settings } 
 import { DEFAULT_INPUT_SETTINGS } from '../input/settings';
 import type { GameParams } from './params';
 
+/** Second line of the notice when a power-up is picked up. */
+const POWER_HINTS: Record<string, string> = {
+  speed: 'Super fast!',
+  shield: 'Nothing can hurt you',
+  damage: 'Your shots hit twice as hard',
+  jump: 'Jump really high',
+  refill: 'Health and ammo full',
+};
+
 /** How long the siren wails after the alarm is raised. */
 const SIREN_SECONDS = 10;
 
@@ -679,9 +688,16 @@ export class Game {
     switch (e.type) {
       case 'pickup': {
         const item = w.data.items[e.item];
-        if (item) this.notify(e.slot, esc(item.name), 1.5);
+        if (!item) break;
+        const hint = item.effect ? POWER_HINTS[item.effect] : '';
+        const shrink = item.effect === 'shrink' ? (w.players.length > 1 ? 'Everyone else is tiny!' : 'Guards nearby are tiny!') : '';
+        const sub = shrink || hint;
+        this.notify(e.slot, `${esc(item.name)}${sub ? `<br><small>${esc(sub)}</small>` : ''}`, sub ? 2.2 : 1.5);
         break;
       }
+      case 'shrunk':
+        if (e.target.kind === 'player') this.notify(e.target.slot, `Shrunk!<br><small>Player ${e.by + 1} used a Shrink Ray</small>`, 2.2);
+        break;
       case 'doorLocked': {
         const item = w.data.items[e.requires];
         this.notify(e.slot, `Locked — needs the ${esc(item?.name ?? e.requires)}`, 2);

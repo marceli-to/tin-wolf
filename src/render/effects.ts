@@ -72,6 +72,11 @@ export class Effects {
     }
   }
 
+  /** Surprise box: a pop of toy-coloured confetti. */
+  confetti(x: number, y: number, z: number): void {
+    for (const c of ['#ff5a4a', '#ffc93c', '#7ad36b', '#5ec8ff', '#b77cff', '#ffffff']) this.burst(x, y, z, c, 7, 5);
+  }
+
   /** Grenade blast: a fireball that swells and fades, sparks, and grey debris. */
   explosion(x: number, y: number, z: number, radius: number): void {
     let b = this.balls.find((o) => o.life <= 0);

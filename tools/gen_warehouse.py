@@ -109,6 +109,9 @@ for e in (
     {'type': 'prop', 'kind': 'barrel_red', 'cell': [10, 5]},
     {'type': 'prop', 'kind': 'barrel_red', 'cell': [20, 11]},
     {'type': 'prop', 'kind': 'barrel_red', 'cell': [2, 13]},
+    # Surprise boxes: one on the floor, one up on the raised east platform (each mirrored).
+    {'type': 'prop', 'kind': 'surprise_box', 'cell': [7, 4]},
+    {'type': 'prop', 'kind': 'surprise_box', 'cell': [32, 4]},
     {'type': 'light', 'cell': [5, 4], 'level': 0.25, 'radius': 5},
     {'type': 'light', 'cell': [17, 9], 'level': 0.2, 'radius': 6},
     {'type': 'light', 'cell': [29, 2], 'level': 0.2, 'radius': 5},

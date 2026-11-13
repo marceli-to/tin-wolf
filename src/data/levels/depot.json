@@ -1420,6 +1420,24 @@
     20,
     23
    ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "id": "surprise_1",
+   "cell": [
+    37,
+    37
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "id": "surprise_2",
+   "cell": [
+    12,
+    19
+   ]
   }
  ],
  "objectives": [

@@ -83,5 +83,52 @@
     "color": "#5a7a9a",
     "model": "kenney/blasters/clip-small.glb",
     "modelScale": 1.6
+  },
+  "power_speed": {
+    "name": "Zoom Boots",
+    "short": "Zoom",
+    "kind": "powerup",
+    "effect": "speed",
+    "duration": 10,
+    "color": "#ffc93c"
+  },
+  "power_shield": {
+    "name": "Bubble Shield",
+    "short": "Shield",
+    "kind": "powerup",
+    "effect": "shield",
+    "duration": 6,
+    "color": "#5ec8ff"
+  },
+  "power_damage": {
+    "name": "Double Blast",
+    "short": "x2",
+    "kind": "powerup",
+    "effect": "damage",
+    "duration": 10,
+    "color": "#ff5a4a"
+  },
+  "power_jump": {
+    "name": "Moon Jump",
+    "short": "Jump",
+    "kind": "powerup",
+    "effect": "jump",
+    "duration": 12,
+    "color": "#7ad36b"
+  },
+  "power_refill": {
+    "name": "Full Refill",
+    "short": "Refill",
+    "kind": "powerup",
+    "effect": "refill",
+    "color": "#ff9a3c"
+  },
+  "power_shrink": {
+    "name": "Shrink Ray",
+    "short": "Shrink",
+    "kind": "powerup",
+    "effect": "shrink",
+    "duration": 8,
+    "color": "#b77cff"
   }
 }

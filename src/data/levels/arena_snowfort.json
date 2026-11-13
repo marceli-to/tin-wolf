@@ -433,6 +433,42 @@
     19,
     8
    ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "id": "surprise_1",
+   "cell": [
+    6,
+    10
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "id": "surprise_2",
+   "cell": [
+    15,
+    11
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "id": "surprise_3",
+   "cell": [
+    10,
+    4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "id": "surprise_4",
+   "cell": [
+    11,
+    17
+   ]
   }
  ]
 }

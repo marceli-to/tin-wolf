@@ -18,6 +18,21 @@ export interface HudExtras {
 const HEART =
   '<svg class="heart" viewBox="0 0 32 30" aria-hidden="true"><path d="M16 27.5 4.6 16.4C1 12.9 1.4 7.1 5.6 4.6c3.2-1.9 7.2-1 9.4 1.9l1 1.3 1-1.3c2.2-2.9 6.2-3.8 9.4-1.9 4.2 2.5 4.6 8.3 1 11.8Z" fill="#e9453a" stroke="#1f2a44" stroke-width="3" stroke-linejoin="round"/><path d="M8 9.5c.6-1.6 2-2.5 3.6-2.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".8"/></svg>';
 
+/** Item that grants each timed power, for its HUD colour and label. */
+const POWER_ITEMS: Record<string, string> = { speed: 'power_speed', shield: 'power_shield', damage: 'power_damage', jump: 'power_jump', tiny: 'power_shrink' };
+
+/** One chip per running power-up: its colour, short name and whole seconds left. */
+function powerChips(world: World, p: Player): string {
+  let out = '';
+  for (const [k, t] of Object.entries(p.power)) {
+    if (t <= 0) continue;
+    const item = world.data.items[POWER_ITEMS[k] ?? ''];
+    const label = k === 'tiny' ? 'Tiny!' : (item?.short ?? k);
+    out += `<span class="power${k === 'tiny' ? ' bad' : ''}" style="--c:${item?.color ?? '#fff'}">${esc(label)} <b>${Math.ceil(t)}</b></span>`;
+  }
+  return out;
+}
+
 /** One absolutely positioned DOM layer per player view. */
 export class PlayerHud {
   readonly root = el('div', 'hud');
@@ -28,6 +43,8 @@ export class PlayerHud {
   private notice = el('div', 'notice chip');
   private top = el('div', 'hud-top');
   private hurt = el('div', 'hurt');
+  private shield = el('div', 'shield-tint');
+  private powers = el('div', 'hud-powers');
   private health = el('div', 'hud-health chip');
   private ammo = el('div', 'hud-ammo chip');
   private objectives = el('div', 'hud-objectives chip');
@@ -35,7 +52,7 @@ export class PlayerHud {
   private last = '';
 
   constructor(parent: HTMLElement) {
-    this.root.append(this.hurt, this.scope, this.crosshair, this.top, this.objectives, this.notice, this.center, this.prompt, this.health, this.ammo, this.lockHint);
+    this.root.append(this.hurt, this.shield, this.powers, this.scope, this.crosshair, this.top, this.objectives, this.notice, this.center, this.prompt, this.health, this.ammo, this.lockHint);
     parent.appendChild(this.root);
   }
 
@@ -55,7 +72,10 @@ export class PlayerHud {
     this.scope.classList.toggle('on', scoped);
     this.crosshair.style.display = p.alive && !scoped ? 'block' : 'none';
     this.lockHint.style.display = x.needsLock ? 'block' : 'none';
+    const left = p.power.shield;
+    this.shield.classList.toggle('on', p.alive && left > 0 && (left > 1.5 || Math.floor(left * 8) % 2 === 0));
     const reloading = p.weapon.reloadTimer > 0;
+    const powers = p.alive ? powerChips(world, p) : '';
     // Only touch the DOM when something visible changed.
     const key = [
       Math.ceil(p.hp),
@@ -73,6 +93,7 @@ export class PlayerHud {
       x.objectives,
       x.prompt,
       world.level.mode,
+      powers,
     ].join('|');
     if (key === this.last) return;
     this.last = key;
@@ -93,6 +114,7 @@ export class PlayerHud {
     } else {
       this.center.innerHTML = p.protect > 0 ? '<small>Spawn shield</small>' : '';
     }
+    this.powers.innerHTML = powers;
     this.notice.innerHTML = x.notice;
     this.top.innerHTML = x.top;
     this.objectives.innerHTML = x.objectives;

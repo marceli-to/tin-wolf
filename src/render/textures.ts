@@ -117,6 +117,7 @@ function rivet(p: Pix, x: number, y: number): void {
 type Paint = (p: Pix, n: number, rnd: () => number) => void;
 
 const PAINTERS: Record<string, Paint> = {
+  surprise: (p, n) => paintSurprise(p, n),
   concrete: (p, n, r) => {
     surface(p, r, '#8f8c84', 0.22, 0.1);
     // Formwork seams and tie holes, as on poured concrete walls.
@@ -339,6 +340,24 @@ function flatPanel(p: Pix, x: number, y: number, w: number, h: number, edge = 3)
 }
 
 /** Clean, flat-coloured surfaces (no grime, grain or rivets) to sit next to Kenney models. */
+/** Surprise box face: purple with a gold rim and a big white question mark. */
+function paintSurprise(p: Pix, n: number): void {
+  p.fill(0, 0, n, n, '#8a5cf0');
+  p.fill(0, 0, n, 12, '#f5c542');
+  p.fill(0, n - 12, n, 12, '#f5c542');
+  p.fill(0, 0, 12, n, '#f5c542');
+  p.fill(n - 12, 0, 12, n, '#f5c542');
+  flatPanel(p, 0, 0, n, n, 4);
+  flatPanel(p, 12, 12, n - 24, n - 24, 3);
+  const glyph = ['.###.', '#...#', '....#', '..##.', '..#..', '.....', '..#..'];
+  const u = 10;
+  const x0 = (n - 5 * u) / 2;
+  const y0 = (n - 7 * u) / 2;
+  glyph.forEach((row, gy) => {
+    for (let gx = 0; gx < 5; gx++) if (row[gx] === '#') p.fill(x0 + gx * u, y0 + gy * u, u, u, '#ffffff');
+  });
+}
+
 const FLAT_PAINTERS: Record<string, Paint> = {
   concrete: (p, n) => {
     p.fill(0, 0, n, n, '#c4bfb3');

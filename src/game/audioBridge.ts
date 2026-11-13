@@ -65,7 +65,24 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
       at('guard_step', e.x, e.z, e.running ? 0.5 : 0.3);
       break;
     case 'pickup':
-      sfx.play('pickup', 0.6);
+      // Power-ups have their own fanfare (the 'powerup' event).
+      if (world.data.items[e.item]?.kind !== 'powerup') sfx.play('pickup', 0.6);
+      break;
+    case 'powerup':
+      sfx.play('powerup', 0.7);
+      break;
+    case 'powerEnded':
+      sfx.play(e.power === 'tiny' ? 'grow' : 'power_end', 0.5);
+      break;
+    case 'shrunk':
+      if (e.target.kind === 'player') sfx.play('shrink', 0.7);
+      else at('shrink', e.x, e.z, 0.6);
+      break;
+    case 'shieldBlock':
+      sfx.play('shield_block', 0.5);
+      break;
+    case 'propRespawned':
+      at('box_back', e.x, e.z, 0.6);
       break;
     case 'targetHit':
       // Not positional: a far target must still ring clearly for the shooter.
@@ -86,7 +103,9 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
     case 'propDestroyed': {
       // Explosive props make their bang with the blast a moment later.
       const prop = world.props.find((p) => p.id === e.id);
-      if (!world.data.props[prop?.kind ?? '']?.blast) at('explosion', e.x, e.z, 1);
+      const kind = world.data.props[prop?.kind ?? ''];
+      if (kind?.loot) at('box_pop', e.x, e.z, 0.9);
+      else if (!kind?.blast) at('explosion', e.x, e.z, 1);
       break;
     }
     case 'guardAlerted':

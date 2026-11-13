@@ -447,6 +447,24 @@
     15,
     14
    ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "id": "surprise_1",
+   "cell": [
+    7,
+    4
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "surprise_box",
+   "id": "surprise_2",
+   "cell": [
+    12,
+    15
+   ]
   }
  ],
  "match": {

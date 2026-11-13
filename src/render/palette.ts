@@ -20,6 +20,7 @@ export const MATERIAL_COLORS: Record<string, string> = {
   hazard: '#c9a23a',
   carpet: '#5a3a3a',
   roof: '#5d7a96',
+  surprise: '#8a5cf0',
 };
 
 export const PLAYER_COLORS = ['#2f5f8f', '#8f3a2f', '#3f7f3f', '#8f7f2f'];

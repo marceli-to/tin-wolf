@@ -1,10 +1,11 @@
-import { PLAYER } from '../config';
+import { PLAYER, POWER } from '../config';
 import { DEG, forwardFromAngles } from '../core/math';
 import { spread } from '../core/rng';
 import type { WeaponDef } from '../data/schema';
 import type { ActorRef, HitZone } from './events';
 import { humanoidZones, zoneDamage } from './hitbox';
 import { rayBox, rayCylinder, rayGrid, type Ray } from './raycast';
+import { dropFromBox, sizeScale } from './powerups';
 import { hitTarget, rayTarget, targetHittable } from './targets';
 import { doorBox, emit, type World } from './world';
 
@@ -33,15 +34,17 @@ export interface ActorShape {
   y: number;
   z: number;
   height: number;
+  /** Size scale (a Shrink Ray makes it smaller); the hit zones shrink with it. */
+  scale: number;
 }
 
 export function actorShapes(world: World): ActorShape[] {
   const out: ActorShape[] = [];
   for (const p of world.players) {
-    if (p.alive) out.push({ ref: { kind: 'player', slot: p.slot }, x: p.x, y: p.y, z: p.z, height: p.height });
+    if (p.alive) out.push({ ref: { kind: 'player', slot: p.slot }, x: p.x, y: p.y, z: p.z, height: p.height, scale: sizeScale(p.power.tiny) });
   }
   for (const g of world.guards) {
-    if (g.state !== 'dead') out.push({ ref: { kind: 'guard', index: g.index }, x: g.x, y: g.y, z: g.z, height: g.height });
+    if (g.state !== 'dead') out.push({ ref: { kind: 'guard', index: g.index }, x: g.x, y: g.y, z: g.z, height: g.height, scale: sizeScale(g.tiny) });
   }
   return out;
 }
@@ -80,7 +83,7 @@ export function traceShot(world: World, ray: Ray, range: number, ignore: ActorRe
     // Guards never shoot each other: with the alarm up they converge in crowds.
     if (ignore?.kind === 'guard' && a.ref.kind === 'guard') continue;
     for (const z of humanoidZones(a.height, world.body)) {
-      const t = rayCylinder(ray, a.x, a.z, z.r, a.y + z.y0, a.y + z.y1, limit());
+      const t = rayCylinder(ray, a.x, a.z, z.r * a.scale, a.y + z.y0, a.y + z.y1, limit());
       if (t !== null) consider(t, -ray.dx, -ray.dy, -ray.dz, { kind: 'actor', ref: a.ref, zone: z.zone });
     }
   }
@@ -137,6 +140,7 @@ export function damageProp(world: World, index: number, amount: number, by: Acto
     const cx = (b.minX + b.maxX) / 2;
     const cz = (b.minZ + b.maxZ) / 2;
     emit(world, { type: 'propDestroyed', id: p.id, x: cx, y: (b.minY + b.maxY) / 2, z: cz });
+    dropFromBox(world, p);
     const blast = world.data.props[p.kind]?.blast;
     if (blast) world.blasts.push({ ...blast, x: cx, y: b.minY + 0.2, z: cz, owner: by, timer: BLAST_DELAY });
   }
@@ -148,10 +152,24 @@ export interface DamagePoint {
   z: number;
 }
 
+/** Power-ups on whoever deals the damage: Double Blast doubles it, being shrunk halves it. */
+function damageScale(world: World, shooter: ActorRef | null): number {
+  if (!shooter) return 1;
+  if (shooter.kind === 'guard') return (world.guards[shooter.index]?.tiny ?? 0) > 0 ? POWER.tinyDamage : 1;
+  const s = world.players[shooter.slot];
+  if (!s) return 1;
+  return (s.power.damage > 0 ? POWER.damageScale : 1) * (s.power.tiny > 0 ? POWER.tinyDamage : 1);
+}
+
 export function applyDamage(world: World, target: ActorRef, amount: number, zone: HitZone, shooter: ActorRef | null, at: DamagePoint): void {
+  amount *= damageScale(world, shooter);
   if (target.kind === 'player') {
     const p = world.players[target.slot];
     if (!p || !p.alive || p.protect > 0) return;
+    if (p.power.shield > 0) {
+      emit(world, { type: 'shieldBlock', slot: p.slot, x: at.x, y: at.y, z: at.z });
+      return;
+    }
     // Armour soaks two thirds of incoming damage until it runs out.
     const soak = Math.min(p.armor, amount * (2 / 3));
     p.armor -= soak;
