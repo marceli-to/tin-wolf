@@ -87,6 +87,9 @@ export class Game {
     app.appendChild(this.uiLayer);
     this.input = new InputManager(this.renderer.canvas);
     this.lobby = new LobbyView(this.uiLayer);
+    this.lobby.onBack = () => {
+      if (this.state === 'lobby') this.lobbyBack();
+    };
     this.lobby.show(false);
     this.screen = new ScreenView(this.uiLayer);
     this.screen.onMove = () => this.sfx.play('ui_move', 0.4);
@@ -344,8 +347,21 @@ export class Game {
       (this.playerCount > 1
         ? 'Keyboard + mouse: click or press any key.<br>Gamepad: press A / Cross.<br>Only one mouse can be captured, so the second player needs a gamepad.'
         : 'Click or press any key to start with keyboard + mouse, or press A on a gamepad.') +
-        '<br>Esc / B on an empty slot: back to the menu.',
+        '<br>Esc / B: the last player to join leaves; with nobody joined, back to the menu.',
     );
+  }
+
+  /** Back in the lobby: the last player to join leaves; with nobody left, back to the menu. */
+  private lobbyBack(): void {
+    const slots = this.input.slots;
+    const last = slots.reduce((n, s, i) => (s ? i : n), -1);
+    if (last < 0) {
+      this.enterMenu();
+      return;
+    }
+    slots[last] = null;
+    this.sfx.play('ui_select', 0.3);
+    this.renderLobby();
   }
 
   private join(dev: DeviceId): void {
@@ -353,7 +369,7 @@ export class Game {
     if (free < 0) return;
     this.input.slots[free] = dev;
     this.sfx.play('ui_select', 0.5);
-    if (dev.kind === 'kbm') this.input.kbm.requestLock();
+    // No pointer lock yet: Esc and the Back button must keep working in the lobby (startLevel locks).
     if (this.input.slots.every((s) => s)) this.startLevel();
     else this.renderLobby();
   }
@@ -390,7 +406,10 @@ export class Game {
       subtitle: esc(level.name),
       wide: true,
       body: `<p class="difficulty">Difficulty <button type="button" class="pill" data-difficulty title="Change difficulty">◂ ${esc(this.difficultyName())} ▸</button></p>${paras}<h3>Objectives</h3><ul class="objlist">${objs}</ul>`,
-      items: [{ label: 'Start game', action: () => this.beginMission({ kind: 'kbm' }) }],
+      items: [
+        { label: 'Start game', action: () => this.beginMission({ kind: 'kbm' }) },
+        { label: 'Back', action: () => this.enterMenu() },
+      ],
       footer: 'Click the difficulty or press left / right to change it · Enter or A: start · Esc / B: back',
       onBodyClick: (t) => {
         if (!t.closest('[data-difficulty]')) return;
@@ -558,8 +577,8 @@ export class Game {
     const m = this.input.menu();
     switch (this.state) {
       case 'lobby': {
-        if (m.back && this.input.slots.every((s) => !s)) {
-          this.enterMenu();
+        if (m.back) {
+          this.lobbyBack();
           break;
         }
         const dev = this.input.pollJoin();
