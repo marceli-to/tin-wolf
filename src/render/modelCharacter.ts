@@ -182,6 +182,8 @@ export interface ArtSet {
   viewArms?: {
     model: string;
     clip: string;
+    /** Arm pose for two-handed weapons in first person. */
+    twoClip?: string;
     /** Bones scaled to zero so they never block the view. */
     collapse: string[];
     /** Where the model's head bone sits relative to the camera (metres; x right, y up, z back). */
@@ -233,6 +235,7 @@ PROFILES.kenney = {
   viewArms: {
     model: 'kenney/characters/character-soldier.glb',
     clip: 'holding-right',
+    twoClip: 'holding-both',
     collapse: ['head', 'leg-left', 'leg-right', 'arm-left'],
     headBone: 'head',
     hand: 'arm-right',

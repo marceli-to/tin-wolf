@@ -83,8 +83,30 @@ export const EntitySchema = z.discriminatedUnion('type', [
     speed: z.number().positive().default(2),
     ...Base,
   }),
+  /**
+   * Distance marker (render-only): a painted line across the ground, `width` metres long through the
+   * point and square to `yaw`, with a sign showing `text` at each end facing `yaw`.
+   */
+  z.object({ type: z.literal('marker'), text: z.string(), width: z.number().positive().default(8), yaw: z.number().default(0), ...Base }),
 ]);
 export type EntityDef = z.output<typeof EntitySchema>;
+
+/**
+ * Pitched roof over a block of cells (render-only): walls seen from outside stop at `eave` and a gable
+ * roof rises `rise` metres to a ridge running along `ridge`. Cells `from`..`to` inclusive.
+ */
+export const RoofSchema = z.object({
+  from: CellRef,
+  to: CellRef,
+  eave: z.number().positive(),
+  rise: z.number().positive(),
+  ridge: z.enum(['x', 'z']).default('x'),
+  overhang: z.number().min(0).default(0.4),
+  mat: z.string().default('roof'),
+  /** Look of the gable ends (default: the wall look of the block's corner cell). */
+  gable: z.string().optional(),
+});
+export type RoofDef = z.output<typeof RoofSchema>;
 
 export const ObjectiveSchema = z.object({
   id: z.string(),
@@ -109,6 +131,7 @@ export const LevelSchema = z.object({
   map: z.array(z.string()).min(1),
   entities: z.array(EntitySchema).default([]),
   objectives: z.array(ObjectiveSchema).default([]),
+  roofs: z.array(RoofSchema).default([]),
   briefing: z.string().default(''),
   /** Weapons players start (and respawn) with; the first is drawn. */
   loadout: z.array(z.string()).min(1).default(['pistol']),

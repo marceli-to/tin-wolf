@@ -40,6 +40,12 @@ export function parseLevel(raw: unknown, source = 'level'): LevelDef {
     const [c, r] = e.cell;
     if (c < 0 || r < 0 || c >= width || r >= level.map.length) problems.push(`  entities.${i}.cell: [${c}, ${r}] is outside the map`);
   });
+  level.roofs.forEach((roof, i) => {
+    for (const key of ['from', 'to'] as const) {
+      const [c, r] = roof[key];
+      if (c < 0 || r < 0 || c >= width || r >= level.map.length) problems.push(`  roofs.${i}.${key}: [${c}, ${r}] is outside the map`);
+    }
+  });
   if (problems.length) throw new DataError(`Invalid data in ${source}:\n${problems.join('\n')}`);
   return level;
 }

@@ -16,6 +16,7 @@ import { rayGrid } from '../sim/raycast';
 import type { Grid } from '../sim/grid';
 import { configureCameraLayers, LAYER, setLayerDeep } from './layers';
 import { buildLevelMesh } from './levelMesh';
+import { buildMarker } from './markers';
 import { materialColor, PLAYER_COLORS } from './palette';
 import { shadeByNormal, worldUvBox } from './shapes';
 import { computeViewRects, type SplitMode, type ViewRect } from './views';
@@ -119,7 +120,7 @@ export class GameRenderer {
       this.snow = new Snow(world.grid);
       this.dynamic.add(this.snow.points);
     }
-    this.levelGroup = buildLevelMesh(world.grid, this.light);
+    this.levelGroup = buildLevelMesh(world.grid, this.light, world.level.roofs);
     this.scene.add(this.levelGroup);
 
     const litBox = (w: number, h: number, d: number, x: number, z: number, worldUv: boolean): THREE.BufferGeometry => {
@@ -230,6 +231,7 @@ export class GameRenderer {
       const rail = buildRail(t);
       if (rail) this.dynamic.add(rail);
     }
+    for (const e of world.level.entities) if (e.type === 'marker') this.dynamic.add(buildMarker(e, world.grid));
     for (const pk of world.pickups) this.addPickup(world, pk);
     this.cameras = world.players.map((p) => {
       const cam = new THREE.PerspectiveCamera(RENDER.fov, 1, 0.05, 200);
@@ -271,6 +273,7 @@ export class GameRenderer {
       if (va && armsInst) {
         vm = buildModelArmsViewModel(armsInst, this.heldGuns(world, Object.keys(world.data.weapons)), {
           clip: va.clip,
+          twoClip: va.twoClip,
           collapse: va.collapse,
           headOffset: va.headOffset,
           hand: va.hand,

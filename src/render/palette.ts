@@ -19,6 +19,7 @@ export const MATERIAL_COLORS: Record<string, string> = {
   door_blue: '#3a4e8a',
   hazard: '#c9a23a',
   carpet: '#5a3a3a',
+  roof: '#5d7a96',
 };
 
 export const PLAYER_COLORS = ['#2f5f8f', '#8f3a2f', '#3f7f3f', '#8f7f2f'];

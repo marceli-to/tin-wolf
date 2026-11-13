@@ -1911,6 +1911,46 @@
    "elevation": 4.5
   },
   {
+   "type": "marker",
+   "text": "10 m",
+   "cell": [
+    18,
+    17
+   ],
+   "yaw": 180,
+   "width": 55
+  },
+  {
+   "type": "marker",
+   "text": "20 m",
+   "cell": [
+    18,
+    12
+   ],
+   "yaw": 180,
+   "width": 55
+  },
+  {
+   "type": "marker",
+   "text": "30 m",
+   "cell": [
+    18,
+    7
+   ],
+   "yaw": 180,
+   "width": 55
+  },
+  {
+   "type": "marker",
+   "text": "40 m",
+   "cell": [
+    18,
+    2
+   ],
+   "yaw": 180,
+   "width": 55
+  },
+  {
    "type": "guard",
    "id": "dummy_1",
    "archetype": "guard_dummy",

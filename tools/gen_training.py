@@ -4,7 +4,8 @@
 The course runs from the start in the south up the field: warm-up targets on the west side, the
 grenade pit in the middle, a few targets on the east side. A raised shooting deck (3 m) crosses the
 field, with stairs at both ends. From the deck you shoot the long range to the north: moving
-targets, far targets and two on a 4.5 m tower in the north-west corner. You can walk under the deck,
+targets, far targets and two on a 4.5 m tower in the north-west corner, with distance markers
+every 10 m. You can walk under the deck,
 and up the tower's stairs. Five practice dummies (worker outfit) patrol the stations, under the deck
 and the long range; they never fire and count toward the course like targets.
 
@@ -96,6 +97,12 @@ target(22, 5, 'small')
 target(33, 3, 'small')
 target(4, 5, elevation=TOWER)
 target(6, 5, 'small', elevation=TOWER)
+
+# Distance markers across the long range, measured from a shooter at the deck railing (z = 45 m):
+# a painted line and a sign at each end at 10, 20, 30 and 40 m.
+for metres in (10, 20, 30, 40):
+    r = (45 - metres) / 2  # cell row whose centre lies `metres` north of the shooter
+    add({'type': 'marker', 'text': f'{metres} m', 'cell': [18, int(r)], 'yaw': 180, 'width': 55})
 
 # Practice dummies (guard_dummy: they patrol and flinch, never fire). Part of the course.
 for i, (a, b) in enumerate((

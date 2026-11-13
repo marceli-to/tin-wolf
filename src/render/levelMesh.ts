@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { RoofDef } from '../data/schema';
 import { cellAt, floorAt, type Cell, type Grid } from '../sim/grid';
 import type { LightField } from './lighting';
 import { materialColor, SHADE } from './palette';
@@ -45,6 +46,27 @@ class MeshBuilder {
     }
   }
 
+  /**
+   * Quad whose front side is picked from `out` (a direction pointing away from the solid), with the
+   * shade and world-space UVs taken from its normal. Repeat the last vertex for a triangle.
+   */
+  face(mat: string, v: [P, P, P, P], out: P): void {
+    const e1 = new THREE.Vector3(v[1][0] - v[0][0], v[1][1] - v[0][1], v[1][2] - v[0][2]);
+    const e2 = new THREE.Vector3(v[3][0] - v[0][0], v[3][1] - v[0][1], v[3][2] - v[0][2]);
+    if (e2.lengthSq() < 1e-8) e2.set(v[2][0] - v[0][0], v[2][1] - v[0][1], v[2][2] - v[0][2]);
+    const n = e1.cross(e2).normalize();
+    if (n.x * out[0] + n.y * out[1] + n.z * out[2] < 0) {
+      v = [v[0], v[3], v[2], v[1]];
+      n.negate();
+    }
+    const shade = n.y > 0.5 ? SHADE.top : n.y < -0.5 ? SHADE.bottom : Math.abs(n.x) > Math.abs(n.z) ? SHADE.ew : SHADE.ns;
+    const uv = (p: P): [number, number] => {
+      if (Math.abs(n.y) > 0.5) return [p[0] / TEX_SCALE, -p[2] / TEX_SCALE];
+      return [(Math.abs(n.x) > Math.abs(n.z) ? p[2] : p[0]) / TEX_SCALE, p[1] / TEX_SCALE];
+    };
+    this.quad(mat, v, v.map(uv) as [number, number][], [n.x, n.y, n.z], shade);
+  }
+
   build(): THREE.Group {
     const group = new THREE.Group();
     group.name = 'level';
@@ -73,9 +95,19 @@ const TEX_SCALE = 2;
  * Each shared edge compares this cell's floor/ceiling heights with the neighbour's at both edge
  * endpoints, so ramps produce correct sloped side faces without special cases.
  */
-export function buildLevelMesh(grid: Grid, light: LightField): THREE.Group {
+export function buildLevelMesh(grid: Grid, light: LightField, roofs: RoofDef[] = []): THREE.Group {
   const mb = new MeshBuilder(light);
   const s = grid.size;
+  /** Eave height of the roof over a cell (Infinity when there is none). */
+  const eaveAt = (cx: number, cz: number): number => {
+    let e = Infinity;
+    for (const r of roofs) {
+      const inX = cx >= Math.min(r.from[0], r.to[0]) && cx <= Math.max(r.from[0], r.to[0]);
+      const inZ = cz >= Math.min(r.from[1], r.to[1]) && cz <= Math.max(r.from[1], r.to[1]);
+      if (inX && inZ) e = Math.min(e, r.eave);
+    }
+    return e;
+  };
   for (let cz = 0; cz < grid.h; cz++) {
     for (let cx = 0; cx < grid.w; cx++) {
       const cell = cellAt(grid, cx, cz)!;
@@ -85,6 +117,7 @@ export function buildLevelMesh(grid: Grid, light: LightField): THREE.Group {
       const z0 = cz * s;
       const z1 = z0 + s;
       const fh = (x: number, z: number): number => floorAt(grid, cell, cx, cz, x, z);
+      const roofed = eaveAt(cx, cz) < Infinity;
       const h00 = fh(x0, z0);
       const h10 = fh(x1, z0);
       const h01 = fh(x0, z1);
@@ -155,20 +188,71 @@ export function buildLevelMesh(grid: Grid, light: LightField): THREE.Group {
             side.shade,
           );
         };
+        // Seen from outside, a roofed block's walls stop at the eaves and the roof takes over.
+        const top = roofed ? cell.ceil : Math.max(fa, fb, Math.min(cell.ceil, eaveAt(ncx, ncz)));
         if (!nb || nb.solid) {
           // Solid cells take the look of the room they face; an explicit wall look only shows outdoors,
           // so a brick exterior does not leak into the rooms behind it.
-          wall(nb?.wallExplicit && cell.sky ? nb.wallMat : cell.wallMat, fa, fb, cell.ceil, cell.ceil);
+          wall(nb?.wallExplicit && cell.sky ? nb.wallMat : cell.wallMat, fa, fb, top, top);
           continue;
         }
         const nfa = floorAt(grid, nb, ncx, ncz, ax, az);
         const nfb = floorAt(grid, nb, ncx, ncz, bx, bz);
         if (nfa > fa + 1e-4 || nfb > fb + 1e-4) wall(stepMat(nb, cell), fa, fb, Math.max(nfa, fa), Math.max(nfb, fb));
-        if (nb.ceil < cell.ceil - 1e-4) wall(cell.wallMat, nb.ceil, nb.ceil, cell.ceil, cell.ceil);
+        if (nb.ceil < top - 1e-4) wall(cell.wallMat, nb.ceil, nb.ceil, top, top);
       }
     }
   }
+  for (const r of roofs) buildRoof(mb, grid, r);
   return mb.build();
+}
+
+/** Roof thickness (m). */
+const ROOF_T = 0.16;
+
+/**
+ * Gable roof over a block of cells: two sloped slabs meeting at the ridge, overhanging the walls,
+ * and a gable triangle on each end wall. Built in roof space (u along the ridge, v across it).
+ */
+function buildRoof(mb: MeshBuilder, grid: Grid, r: RoofDef): void {
+  const s = grid.size;
+  const alongX = r.ridge === 'x';
+  const [fx, fz] = r.from;
+  const [tx, tz] = r.to;
+  const [fu, tu, fv, tv] = alongX ? [fx, tx, fz, tz] : [fz, tz, fx, tx];
+  const u0 = Math.min(fu, tu) * s;
+  const u1 = (Math.max(fu, tu) + 1) * s;
+  const v0 = Math.min(fv, tv) * s;
+  const v1 = (Math.max(fv, tv) + 1) * s;
+  const vm = (v0 + v1) / 2;
+  const k = r.rise / (vm - v0);
+  const o = r.overhang;
+  const peak = r.eave + r.rise;
+  const low = r.eave - o * k;
+  const at = (u: number, y: number, v: number): P => (alongX ? [u, y, v] : [v, y, u]);
+  const dir = (du: number, dy: number, dv: number): P => (alongX ? [du, dy, dv] : [dv, dy, du]);
+  // Each slope: from the eave edge (vEdge) up to the ridge; `side` is -1 for the v0 slope, +1 for v1.
+  for (const side of [-1, 1]) {
+    const ve = side < 0 ? v0 - o : v1 + o;
+    const ua = u0 - o;
+    const ub = u1 + o;
+    const top: P[] = [at(ua, low, ve), at(ub, low, ve), at(ub, peak, vm), at(ua, peak, vm)];
+    const bot: P[] = top.map((p) => [p[0], p[1] - ROOF_T, p[2]]);
+    const up = dir(0, 1, side * k);
+    mb.face(r.mat, [top[0]!, top[1]!, top[2]!, top[3]!], up);
+    mb.face(r.mat, [bot[0]!, bot[1]!, bot[2]!, bot[3]!], [-up[0], -up[1], -up[2]]);
+    // Fascia along the eave and up both gable edges.
+    mb.face(r.mat, [top[0]!, top[1]!, bot[1]!, bot[0]!], dir(0, 0, side));
+    mb.face(r.mat, [top[0]!, top[3]!, bot[3]!, bot[0]!], dir(-1, 0, 0));
+    mb.face(r.mat, [top[1]!, top[2]!, bot[2]!, bot[1]!], dir(1, 0, 0));
+  }
+  // Gable triangles on the end walls, tucked under the roof slabs.
+  const corner = cellAt(grid, Math.min(r.from[0], r.to[0]), Math.min(r.from[1], r.to[1]));
+  const gable = r.gable ?? corner?.wallMat ?? 'brick';
+  for (const [u, du] of [[u0, -1], [u1, 1]] as const) {
+    const apex = at(u, peak - ROOF_T, vm);
+    mb.face(gable, [at(u, r.eave, v0), at(u, r.eave, v1), apex, apex], dir(du, 0, 0));
+  }
 }
 
 /** Step faces belong to the higher cell visually, so use its step look. */

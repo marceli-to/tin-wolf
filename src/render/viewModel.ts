@@ -17,6 +17,8 @@ export interface ViewModel {
 
 export interface ViewArmsSpec {
   clip: string;
+  /** Arm pose for two-handed weapons (`hold: 'two'`); default: `clip`. */
+  twoClip?: string;
   collapse: string[];
   headOffset: [number, number, number];
   hand: string;
@@ -48,8 +50,12 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
     if ((o as THREE.SkinnedMesh).isSkinnedMesh) o.visible = false;
   });
   const mixer = new THREE.AnimationMixer(body);
-  const clip = arms.animations.find((c) => c.name === spec.clip);
-  if (clip) mixer.clipAction(clip).play();
+  const action = (name: string | undefined): THREE.AnimationAction | null => {
+    const clip = name ? arms.animations.find((c) => c.name === name) : undefined;
+    return clip ? mixer.clipAction(clip) : null;
+  };
+  const poses = { one: action(spec.clip), two: action(spec.twoClip) ?? action(spec.clip) };
+  poses.one?.play();
   mixer.update(0.5);
   // Put the head bone at the requested spot relative to the camera.
   gun.add(body);
@@ -80,12 +86,12 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
   f3.rotation.x = Math.PI / 2;
   flash.add(f2, f3);
   flash.visible = false;
-  const guns = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null }>();
+  const guns = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; two: boolean }>();
   for (const h of held) {
     if (!spec.grip) continue;
     const holder = attachHeldGun(hand, h.model.object, spec.grip, h.fit === 'hand' ? 0.45 : undefined);
     holder.visible = false;
-    guns.set(h.id, { holder, tip: h.fit === 'hand' ? null : findMuzzleIn(holder, hand) });
+    guns.set(h.id, { holder, tip: h.fit === 'hand' ? null : findMuzzleIn(holder, hand), two: h.hold === 'two' });
   }
   const tip = guns.size ? null : findMuzzle(body, hand);
   flash.scale.setScalar(1 / body.scale.x);
@@ -106,6 +112,13 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
     for (const [k, v] of guns) v.holder.visible = k === id;
     vm.muzzle = !!g.tip;
     if (g.tip) flash.position.copy(g.tip);
+    // Two-handed guns sit in the both-hands pose; the swap happens out of view, so no blend.
+    const want = g.two ? poses.two : poses.one;
+    if (want && !want.isRunning()) {
+      mixer.stopAllAction();
+      want.reset().play();
+      mixer.update(0.5);
+    }
   };
   const first = held[0];
   if (first) vm.setWeapon(first.id);

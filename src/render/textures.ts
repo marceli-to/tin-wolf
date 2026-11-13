@@ -316,6 +316,15 @@ const PAINTERS: Record<string, Paint> = {
     p.fill(n / 2 - 15, n / 2 - 15, 30, 30, '#e0281e');
     bevel(p, n / 2 - 15, n / 2 - 15, 30, 30, 1.3, 0.6);
   },
+  roof: (p, n, r) => {
+    surface(p, r, '#56687c', 0.1, 0.06);
+    const rh = n / 4;
+    for (let row = 0; row < 4; row++) {
+      const off = row % 2 ? n / 8 : 0;
+      for (let x = -n / 4; x < n; x += n / 4) p.shade(x + off, row * rh, n / 4 - 2, rh - 3, 0.9 + r() * 0.2);
+      p.shade(0, row * rh + rh - 3, n, 3, 0.7);
+    }
+  },
   carpet: (p, n, r) => {
     surface(p, r, '#5c3a3a', 0.18, 0.14, 3);
   },
@@ -425,6 +434,14 @@ const FLAT_PAINTERS: Record<string, Paint> = {
     for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
       const yellow = ((x + y) >> 4) % 2 === 0;
       p.set(x, y, yellow ? 246 : 58, yellow ? 197 : 62, yellow ? 66 : 70);
+    }
+  },
+  roof: (p, n) => {
+    p.fill(0, 0, n, n, '#5d7a96');
+    const rh = n / 4;
+    for (let row = 0; row < 4; row++) {
+      const off = row % 2 ? n / 8 : 0;
+      for (let i = -1; i < 4; i++) flatPanel(p, off + (i * n) / 4, row * rh, n / 4, rh, 2);
     }
   },
   carpet: (p, n) => {

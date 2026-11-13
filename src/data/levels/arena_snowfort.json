@@ -62,6 +62,21 @@
   "RssssssssssssssssssssR",
   "RRRRRRRRRRRRRRRRRRRRRR"
  ],
+ "roofs": [
+  {
+   "from": [
+    8,
+    8
+   ],
+   "to": [
+    13,
+    13
+   ],
+   "eave": 3.6,
+   "rise": 3.4,
+   "ridge": "x"
+  }
+ ],
  "entities": [
   {
    "type": "playerStart",
