@@ -1,10 +1,10 @@
 {
  "id": "arena_pumphouse",
- "name": "Pumphouse",
+ "name": "Space Station",
  "mode": "versus",
  "cellSize": 2,
  "fog": {
-  "color": "#1c2024",
+  "color": "#26345a",
   "near": 10,
   "far": 44
  },
@@ -15,90 +15,99 @@
   ",": {
    "floor": 0,
    "ceil": 3,
-   "floorMat": "grate",
-   "wall": "panel",
-   "ceilMat": "ceiling",
+   "floorMat": "space_strip",
+   "wall": "space_wall",
+   "ceilMat": "space_ceil",
    "light": 0.62
   },
   ".": {
    "floor": 0,
    "ceil": 4.5,
-   "floorMat": "concrete",
-   "wall": "brick",
-   "ceilMat": "ceiling",
+   "floorMat": "space_floor",
+   "wall": "space_wall",
+   "ceilMat": "space_ceil",
    "light": 0.85
   },
   "+": {
    "floor": 1.2,
    "ceil": 4.5,
-   "floorMat": "metal",
-   "wall": "brick",
-   "ceilMat": "ceiling",
+   "floorMat": "space_plate",
+   "wall": "space_wall",
+   "ceilMat": "space_ceil",
    "light": 0.95,
-   "step": "hazard"
+   "step": "space_hazard"
   },
   "a": {
    "ramp": "e",
    "floor": 0,
    "floorTo": 1.2,
    "ceil": 4.5,
-   "floorMat": "metal",
-   "wall": "brick",
+   "floorMat": "space_plate",
+   "wall": "space_wall",
    "light": 0.9,
-   "step": "hazard"
+   "step": "space_hazard",
+   "ceilMat": "space_ceil"
   },
   "b": {
    "ramp": "w",
    "floor": 0,
    "floorTo": 1.2,
    "ceil": 4.5,
-   "floorMat": "metal",
-   "wall": "brick",
+   "floorMat": "space_plate",
+   "wall": "space_wall",
    "light": 0.9,
-   "step": "hazard"
+   "step": "space_hazard",
+   "ceilMat": "space_ceil"
   },
   "c": {
    "ramp": "s",
    "floor": 0,
    "floorTo": 1.2,
    "ceil": 4.5,
-   "floorMat": "metal",
-   "wall": "brick",
+   "floorMat": "space_plate",
+   "wall": "space_wall",
    "light": 0.9,
-   "step": "hazard"
+   "step": "space_hazard",
+   "ceilMat": "space_ceil"
   },
   "d": {
    "ramp": "n",
    "floor": 0,
    "floorTo": 1.2,
    "ceil": 4.5,
-   "floorMat": "metal",
-   "wall": "brick",
+   "floorMat": "space_plate",
+   "wall": "space_wall",
    "light": 0.9,
-   "step": "hazard"
+   "step": "space_hazard",
+   "ceilMat": "space_ceil"
+  },
+  "W": {
+   "solid": true,
+   "wall": "space_window",
+   "wallInside": true
   }
  },
  "map": [
-  "####################",
+  "####W##W##W##W##W###",
   "#,,,,,,,,,,,,,,,,,,#",
   "#,#####,####,#####,#",
   "#,#...#,#..#,#...#,#",
-  "#,#...,,,..,,,...#,#",
+  "W,#...,,,..,,,...#,W",
   "#,#...#,#..#,#...#,#",
   "#,##.###....###.##,#",
-  "#,,,....+cc+....,,,#",
+  "W,,,....+cc+....,,,W",
   "#,#,...++++++...,#,#",
   "#,.,..a++++++b..,.,#",
-  "#,.,..a++++++b..,.,#",
+  "W,.,..a++++++b..,.,W",
   "#,#,...++++++...,#,#",
   "#,,,....+dd+....,,,#",
-  "#,##.###....###.##,#",
+  "W,##.###....###.##,W",
   "#,#...#,#..#,#...#,#",
   "#,#...,,,..,,,...#,#",
-  "#,#...#,#..#,#...#,#",
+  "W,#...#,#..#,#...#,W",
   "#,#####,####,#####,#",
   "#,,,,,,,,,,,,,,,,,,#",
-  "####################"
+  "####W##W##W##W##W###"
  ],
  "entities": [
   {
@@ -257,7 +266,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "space_crate",
    "cell": [
     5,
     8
@@ -265,7 +274,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "space_crate",
    "cell": [
     14,
     11
@@ -273,7 +282,7 @@
   },
   {
    "type": "prop",
-   "kind": "barrel",
+   "kind": "space_barrel",
    "cell": [
     4.4,
     11.6
@@ -281,7 +290,7 @@
   },
   {
    "type": "prop",
-   "kind": "barrel",
+   "kind": "space_barrel",
    "cell": [
     15.6,
     8.4
@@ -289,7 +298,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate_tall",
+   "kind": "space_crate_tall",
    "cell": [
     5.3,
     3.3
@@ -297,7 +306,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate_tall",
+   "kind": "space_crate_tall",
    "cell": [
     14.7,
     16.7
@@ -305,7 +314,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "space_crate",
    "cell": [
     8,
     9
@@ -313,7 +322,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "space_crate",
    "cell": [
     11,
     10
@@ -321,7 +330,7 @@
   },
   {
    "type": "prop",
-   "kind": "pillar",
+   "kind": "space_pillar",
    "cell": [
     1.5,
     1.5
@@ -329,7 +338,7 @@
   },
   {
    "type": "prop",
-   "kind": "pillar",
+   "kind": "space_pillar",
    "cell": [
     18.5,
     18.5
@@ -464,6 +473,40 @@
    "cell": [
     12,
     15
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "space_computer",
+   "cell": [
+    3.3,
+    5.7
+   ],
+   "yaw": 180
+  },
+  {
+   "type": "prop",
+   "kind": "space_computer",
+   "cell": [
+    16.7,
+    14.3
+   ],
+   "yaw": 0
+  },
+  {
+   "type": "prop",
+   "kind": "holo_table",
+   "cell": [
+    16.6,
+    5.6
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "holo_table",
+   "cell": [
+    3.4,
+    14.4
    ]
   }
  ],

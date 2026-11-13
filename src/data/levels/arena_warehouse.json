@@ -1,12 +1,17 @@
 {
  "id": "arena_warehouse",
- "name": "Warehouse",
+ "name": "Toy Factory",
  "mode": "versus",
  "cellSize": 2.0,
  "fog": {
-  "color": "#2a2f36",
+  "color": "#f3d9ff",
   "near": 22,
   "far": 80
+ },
+ "retexture": {
+  "grate": "toy_plank",
+  "metal": "toy_yellow",
+  "hazard": "toy_candy"
  },
  "match": {
   "killLimit": 10,
@@ -15,78 +20,83 @@
  "legend": {
   "#": {
    "solid": true,
-   "wall": "brick"
+   "wall": "toy_bricks",
+   "wallInside": true
+  },
+  "B": {
+   "solid": true,
+   "wall": "toy_wall"
   },
   ".": {
    "floor": 0,
-   "floorMat": "concrete",
-   "light": 0.9,
+   "floorMat": "toy_floor",
+   "light": 0.95,
    "ceil": 7,
-   "wall": "brick",
-   "ceilMat": "ceiling"
+   "wall": "toy_wall",
+   "ceilMat": "toy_ceil"
   },
   "p": {
    "floor": 1.2,
-   "floorMat": "metal",
+   "floorMat": "toy_top",
    "light": 1.0,
-   "step": "hazard",
+   "step": "toy_candy",
    "ceil": 7,
-   "wall": "brick",
-   "ceilMat": "ceiling"
+   "wall": "toy_wall",
+   "ceilMat": "toy_ceil"
   },
   ">": {
    "ramp": "e",
    "floor": 0,
    "floorTo": 1.2,
-   "floorMat": "metal",
+   "floorMat": "toy_top",
    "light": 0.95,
-   "step": "hazard",
+   "step": "toy_candy",
    "ceil": 7,
-   "wall": "brick",
-   "ceilMat": "ceiling"
+   "wall": "toy_wall",
+   "ceilMat": "toy_ceil"
   },
   "<": {
    "ramp": "w",
    "floor": 0,
    "floorTo": 1.2,
-   "floorMat": "metal",
+   "floorMat": "toy_top",
    "light": 0.95,
-   "step": "hazard",
+   "step": "toy_candy",
    "ceil": 7,
-   "wall": "brick",
-   "ceilMat": "ceiling"
+   "wall": "toy_wall",
+   "ceilMat": "toy_ceil"
   }
  },
  "map": [
-  "###################################",
-  "#.......................>ppppppppp#",
-  "#.......................>ppppppppp#",
-  "#........................ppppppppp#",
-  "#........................ppppppppp#",
-  "#.................................#",
-  "#.................................#",
-  "#.....##..................##......#",
-  "#.....##..................##......#",
-  "#....................##...........#",
-  "#....................##...........#",
-  "#.................................#",
-  "#..........##.....................#",
-  "#..........##................##...#",
-  "#...##.......................##...#",
-  "#...##................##..........#",
-  "#.....................##..........#",
-  "#.................................#",
-  "#...........##....................#",
-  "#...........##....................#",
-  "#......##..................##.....#",
-  "#......##..................##.....#",
-  "#.................................#",
-  "#.................................#",
-  "#ppppppppp........................#",
-  "#ppppppppp........................#",
-  "#ppppppppp<.......................#",
-  "#ppppppppp<.......................#",
-  "###################################"
+  "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+  "B.......................>pppppppppB",
+  "B.......................>pppppppppB",
+  "B........................pppppppppB",
+  "B........................pppppppppB",
+  "B.................................B",
+  "B.................................B",
+  "B.....##..................##......B",
+  "B.....##..................##......B",
+  "B....................##...........B",
+  "B....................##...........B",
+  "B.................................B",
+  "B..........##.....................B",
+  "B..........##................##...B",
+  "B...##.......................##...B",
+  "B...##................##..........B",
+  "B.....................##..........B",
+  "B.................................B",
+  "B...........##....................B",
+  "B...........##....................B",
+  "B......##..................##.....B",
+  "B......##..................##.....B",
+  "B.................................B",
+  "B.................................B",
+  "Bppppppppp........................B",
+  "Bppppppppp........................B",
+  "Bppppppppp<.......................B",
+  "Bppppppppp<.......................B",
+  "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
  ],
  "entities": [
   {
@@ -2647,6 +2657,40 @@
   },
   {
    "type": "prop",
+   "kind": "toy_hopper",
+   "cell": [
+    1.4,
+    16.3
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "toy_hopper",
+   "cell": [
+    33.6,
+    12.7
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "toy_machine",
+   "cell": [
+    1.4,
+    20.5
+   ],
+   "yaw": 90
+  },
+  {
+   "type": "prop",
+   "kind": "toy_machine",
+   "cell": [
+    33.6,
+    8.5
+   ],
+   "yaw": 90
+  },
+  {
+   "type": "prop",
    "kind": "shelf_wide",
    "cell": [
     8.5,
@@ -2695,7 +2739,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "toy_block_a",
    "cell": [
     9,
     3
@@ -2703,7 +2747,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "toy_block_a",
    "cell": [
     25,
     25
@@ -2711,7 +2755,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate_tall",
+   "kind": "toy_block_b",
    "cell": [
     14.6,
     11.4
@@ -2719,7 +2763,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate_tall",
+   "kind": "toy_block_b",
    "cell": [
     20.4,
     17.6
@@ -2727,7 +2771,7 @@
   },
   {
    "type": "prop",
-   "kind": "cargo",
+   "kind": "toy_block_1",
    "cell": [
     24,
     13
@@ -2736,7 +2780,7 @@
   },
   {
    "type": "prop",
-   "kind": "cargo",
+   "kind": "toy_block_1",
    "cell": [
     10,
     15
@@ -2745,7 +2789,7 @@
   },
   {
    "type": "prop",
-   "kind": "cargo",
+   "kind": "toy_block_1",
    "cell": [
     10,
     18
@@ -2753,7 +2797,7 @@
   },
   {
    "type": "prop",
-   "kind": "cargo",
+   "kind": "toy_block_1",
    "cell": [
     24,
     10
@@ -2761,7 +2805,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "toy_block_a",
    "cell": [
     28,
     6
@@ -2769,7 +2813,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "toy_block_a",
    "cell": [
     6,
     22
@@ -2777,7 +2821,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate_large",
+   "kind": "toy_block_c",
    "cell": [
     3,
     6.5
@@ -2785,7 +2829,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate_large",
+   "kind": "toy_block_c",
    "cell": [
     32,
     22.5
@@ -2793,7 +2837,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "toy_block_a",
    "cell": [
     27,
     2
@@ -2801,7 +2845,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate",
+   "kind": "toy_block_a",
    "cell": [
     7,
     26
@@ -2809,7 +2853,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate_tall",
+   "kind": "toy_block_b",
    "cell": [
     32.3,
     3.3
@@ -2817,7 +2861,7 @@
   },
   {
    "type": "prop",
-   "kind": "crate_tall",
+   "kind": "toy_block_b",
    "cell": [
     2.700000000000003,
     25.7
@@ -2825,7 +2869,7 @@
   },
   {
    "type": "prop",
-   "kind": "barrel",
+   "kind": "toy_drum",
    "cell": [
     16.4,
     4.4
@@ -2833,7 +2877,7 @@
   },
   {
    "type": "prop",
-   "kind": "barrel",
+   "kind": "toy_drum",
    "cell": [
     18.6,
     24.6
@@ -2841,7 +2885,7 @@
   },
   {
    "type": "prop",
-   "kind": "barrel",
+   "kind": "toy_drum",
    "cell": [
     7.6,
     12.3
@@ -2849,7 +2893,7 @@
   },
   {
    "type": "prop",
-   "kind": "barrel",
+   "kind": "toy_drum",
    "cell": [
     27.4,
     16.7

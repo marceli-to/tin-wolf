@@ -20,7 +20,7 @@ TOP = 3.0  # walking height of the mezzanine, bridge and platform
 OUT = Path(__file__).resolve().parent.parent / 'src/data/levels/arena_warehouse.json'
 
 kit = Kit(W, H, S, mirror=True)
-kit.border('#')
+kit.border('B')  # outer walls: calm pastel; the cover blocks inside keep the toy bricks
 put = kit.put
 
 # Loading dock in the north-east corner, 1.2 m up, with a ramp from the west.
@@ -93,19 +93,23 @@ pickup('ammo_rifle', 30, 2, 20)
 pickup('ammo_rifle', 19, 2, 20, TOP)
 
 for e in (
+    # Toy factory: machines along the west wall (mirrored to the east).
+    {'type': 'prop', 'kind': 'toy_hopper', 'cell': [1.4, 16.3]},
+    {'type': 'prop', 'kind': 'toy_machine', 'cell': [1.4, 20.5], 'yaw': 90},
     {'type': 'prop', 'kind': 'shelf_wide', 'cell': [8.5, 1.2]},
     {'type': 'prop', 'kind': 'shelf_wide', 'cell': [14.5, 1.2]},
     {'type': 'prop', 'kind': 'locker', 'cell': [19.6, 1.2]},
-    {'type': 'prop', 'kind': 'crate', 'cell': [9, 3]},
-    {'type': 'prop', 'kind': 'crate_tall', 'cell': [14.6, 11.4]},
-    {'type': 'prop', 'kind': 'cargo', 'cell': [24, 13], 'yaw': 90},
-    {'type': 'prop', 'kind': 'cargo', 'cell': [10, 18]},
-    {'type': 'prop', 'kind': 'crate', 'cell': [28, 6]},
-    {'type': 'prop', 'kind': 'crate_large', 'cell': [3, 6.5]},
-    {'type': 'prop', 'kind': 'crate', 'cell': [27, 2]},
-    {'type': 'prop', 'kind': 'crate_tall', 'cell': [32.3, 3.3]},
-    {'type': 'prop', 'kind': 'barrel', 'cell': [16.4, 4.4]},
-    {'type': 'prop', 'kind': 'barrel', 'cell': [7.6, 12.3]},
+    # Toy blocks instead of crates: A (small), B (tall), C (long), 1 (big).
+    {'type': 'prop', 'kind': 'toy_block_a', 'cell': [9, 3]},
+    {'type': 'prop', 'kind': 'toy_block_b', 'cell': [14.6, 11.4]},
+    {'type': 'prop', 'kind': 'toy_block_1', 'cell': [24, 13], 'yaw': 90},
+    {'type': 'prop', 'kind': 'toy_block_1', 'cell': [10, 18]},
+    {'type': 'prop', 'kind': 'toy_block_a', 'cell': [28, 6]},
+    {'type': 'prop', 'kind': 'toy_block_c', 'cell': [3, 6.5]},
+    {'type': 'prop', 'kind': 'toy_block_a', 'cell': [27, 2]},
+    {'type': 'prop', 'kind': 'toy_block_b', 'cell': [32.3, 3.3]},
+    {'type': 'prop', 'kind': 'toy_drum', 'cell': [16.4, 4.4]},
+    {'type': 'prop', 'kind': 'toy_drum', 'cell': [7.6, 12.3]},
     {'type': 'prop', 'kind': 'barrel_red', 'cell': [10, 5]},
     {'type': 'prop', 'kind': 'barrel_red', 'cell': [20, 11]},
     {'type': 'prop', 'kind': 'barrel_red', 'cell': [2, 13]},
@@ -118,20 +122,24 @@ for e in (
 ):
     add(e, yaw_flip=False)
 
-legend_base = {'ceil': 7, 'wall': 'brick', 'ceilMat': 'ceiling'}
+# Toy factory look: toy-brick walls, a checkered floor, a yellow studded dock, candy-striped edges.
+legend_base = {'ceil': 7, 'wall': 'toy_wall', 'ceilMat': 'toy_ceil'}
 level = {
     'id': 'arena_warehouse',
-    'name': 'Warehouse',
+    'name': 'Toy Factory',
     'mode': 'versus',
     'cellSize': S,
-    'fog': {'color': '#2a2f36', 'near': 22, 'far': 80},
+    'fog': {'color': '#f3d9ff', 'near': 22, 'far': 80},
+    # Catwalks, stairs, railings and supports are shared prop kinds; paint them in toy colours here.
+    'retexture': {'grate': 'toy_plank', 'metal': 'toy_yellow', 'hazard': 'toy_candy'},
     'match': {'killLimit': 10, 'timeLimit': 360},
     'legend': {
-        '#': {'solid': True, 'wall': 'brick'},
-        '.': {'floor': 0, 'floorMat': 'concrete', 'light': 0.9, **legend_base},
-        'p': {'floor': 1.2, 'floorMat': 'metal', 'light': 1.0, 'step': 'hazard', **legend_base},
-        '>': {'ramp': 'e', 'floor': 0, 'floorTo': 1.2, 'floorMat': 'metal', 'light': 0.95, 'step': 'hazard', **legend_base},
-        '<': {'ramp': 'w', 'floor': 0, 'floorTo': 1.2, 'floorMat': 'metal', 'light': 0.95, 'step': 'hazard', **legend_base},
+        '#': {'solid': True, 'wall': 'toy_bricks', 'wallInside': True},
+        'B': {'solid': True, 'wall': 'toy_wall'},
+        '.': {'floor': 0, 'floorMat': 'toy_floor', 'light': 0.95, **legend_base},
+        'p': {'floor': 1.2, 'floorMat': 'toy_top', 'light': 1.0, 'step': 'toy_candy', **legend_base},
+        '>': {'ramp': 'e', 'floor': 0, 'floorTo': 1.2, 'floorMat': 'toy_top', 'light': 0.95, 'step': 'toy_candy', **legend_base},
+        '<': {'ramp': 'w', 'floor': 0, 'floorTo': 1.2, 'floorMat': 'toy_top', 'light': 0.95, 'step': 'toy_candy', **legend_base},
     },
     'map': kit.map(),
     'entities': entities,

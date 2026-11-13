@@ -16,6 +16,8 @@ export const CellDefSchema = z.object({
   ceilMat: z.string().default('ceiling'),
   /** Wall look. On a solid cell it overrides the look of the room it faces. */
   wall: z.string().optional(),
+  /** Solid cells: show `wall` indoors too (windows, toy-brick pillars), not only to open-sky cells. */
+  wallInside: z.boolean().default(false),
   /** Look of the step face where this cell is higher than its neighbour (default: wall). */
   step: z.string().optional(),
   /** 0..1 baked light level for the cell (M6). */
@@ -136,6 +138,8 @@ export const LevelSchema = z.object({
   entities: z.array(EntitySchema).default([]),
   objectives: z.array(ObjectiveSchema).default([]),
   roofs: z.array(RoofSchema).default([]),
+  /** Arena theme: material names swapped for plain props in this level (e.g. catwalk 'grate' → 'toy_plank'). */
+  retexture: z.record(z.string(), z.string()).default({}),
   briefing: z.string().default(''),
   /** Weapons players start (and respawn) with; the first is drawn. */
   loadout: z.array(z.string()).min(1).default(['pistol']),

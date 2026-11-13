@@ -468,7 +468,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
           usable: kind.usable,
           used: false,
           alive: true,
-          mat: kind.mat,
+          mat: level.retexture[kind.mat] ?? kind.mat,
           drop: e.drop ?? null,
           respawn: e.respawn ?? (level.mode === 'versus' ? (kind.respawn ?? null) : null),
           dropped: null,

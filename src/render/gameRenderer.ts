@@ -230,7 +230,7 @@ export class GameRenderer {
       const cx = (b.minX + b.maxX) / 2;
       const cz = (b.minZ + b.maxZ) / 2;
       // Crates and consoles show their whole texture per face; panels tile in world units.
-      const perFace = p.mat === 'crate' || p.mat === 'console' || p.mat === 'barrel' || p.mat === 'alarm' || p.mat === 'surprise';
+      const perFace = p.mat === 'crate' || p.mat === 'console' || p.mat === 'barrel' || p.mat === 'alarm' || p.mat === 'surprise' || p.mat.startsWith('block_');
       const geo = litBox(w, h, d, cx, cz, !perFace);
       if (!p.destructible && !p.usable) {
         // Static plain boxes (catwalks, stairs, railings) merge into one mesh per material.

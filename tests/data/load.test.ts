@@ -17,8 +17,8 @@ describe('level loader', () => {
       /roofs\.0\.to: \[2, 0\] is outside the map/,
     );
   });
-  it('reads the Snowfort roof and the range markers', () => {
-    expect(loadLevel('arena_snowfort').roofs).toEqual([{ from: [8, 8], to: [13, 13], eave: 3.6, rise: 3.4, ridge: 'x', overhang: 0.4, mat: 'roof' }]);
+  it('reads the Castle keep roof and the range markers', () => {
+    expect(loadLevel('arena_snowfort').roofs).toEqual([{ from: [8, 8], to: [13, 13], eave: 3.6, rise: 3.4, ridge: 'x', overhang: 0.4, mat: 'castle_roof' }]);
     const markers = loadLevel('training').entities.filter((e) => e.type === 'marker');
     expect(markers.map((m) => m.type === 'marker' && m.text)).toEqual(['10 m', '20 m', '30 m', '40 m']);
   });

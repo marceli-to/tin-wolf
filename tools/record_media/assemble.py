@@ -1,7 +1,7 @@
 """Joins the recorded clips into one captioned video. Usage: python3 assemble.py <outDir> (the folder record.cjs wrote)."""
 import subprocess, os, re, sys
 os.chdir(sys.argv[1])
-clips = ['01_menu', '02_warehouse', '03_depot', '04_training_course', '05_training_deck', '06_snowfort']
+clips = ['01_menu', '02_toyfactory', '07_space', '03_depot', '04_training_course', '05_training_deck', '06_castle']
 parts = []
 for c in clips:
     lst = f'frames/{c}/list.ffconcat'

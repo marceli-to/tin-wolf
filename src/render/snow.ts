@@ -27,7 +27,7 @@ export class Snow {
   }
 
   static wanted(grid: Grid): boolean {
-    return grid.cells.some((c) => c.sky);
+    return grid.cells.some((c) => c.sky && c.floorMat === 'snow');
   }
 
   update(dt: number, cx: number, cz: number, time: number): void {

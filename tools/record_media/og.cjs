@@ -5,7 +5,7 @@ const root = require('path').join(__dirname, '../..');
 const font = fs.readFileSync(root + '/public/assets/fonts/Fredoka.ttf').toString('base64');
 const shot = fs.readFileSync(process.argv[2]).toString('base64');
 (async () => {
-  const b = await chromium.launch();
+  const b = await chromium.launch({ channel: process.env.CHANNEL });
   const pg = await b.newPage({ viewport: { width: 1200, height: 630 } });
   await pg.setContent(`<html><head><style>
     @font-face { font-family: F; src: url(data:font/ttf;base64,${font}); font-weight: 300 700; }

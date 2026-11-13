@@ -74,13 +74,13 @@ const scenes = {
     await ctx.close();
   },
 
-  async warehouse(browser) {
+  async toyfactory(browser) {
     const { ctx, pg } = await open(browser, '?level=arena_warehouse&players=2&debug=1&autostart=1&seed=3');
     await ev(pg, () => {
       D.tp(0, 50, 0, 4, 270, 0);
       D.tp(1, 22, 0, 44, 90, 0);
     });
-    const stop = await startClip(pg, '02_warehouse');
+    const stop = await startClip(pg, '02_toyfactory');
     await ev(pg, async () => {
       const p2 = (async () => {
         await D.walk(1, 52, 44);
@@ -111,7 +111,7 @@ const scenes = {
       D.tp(1, 30, 0, 16, 60, 8);
     });
     await pg.waitForTimeout(700);
-    await shot(pg, '02_warehouse_split');
+    await shot(pg, '02_toyfactory_split');
     await ctx.close();
   },
 
@@ -236,29 +236,91 @@ const scenes = {
     await ctx.close();
   },
 
-  async snowfort(browser) {
+  async castle(browser) {
     const { ctx, pg } = await open(browser, '?level=arena_snowfort&players=1&debug=1&autostart=1&seed=3');
-    await ev(pg, () => D.tp(0, 6, 0, 6, 110, 0));
-    const stop = await startClip(pg, '06_snowfort');
+    // From the south-east corner: catapult, keep, banners, trees and a corner tower; backing away slowly.
+    await ev(pg, () => D.tp(0, 37, 0, 37, 315, 4));
+    await pg.waitForTimeout(500);
+    await shot(pg, '06_castle');
+    await ev(pg, () => D.tp(0, 37, 0, 37, 295, 3));
+    const stop = await startClip(pg, '06_castle');
+    // A slow look round from the corner.
     await ev(pg, async () => {
       const p = D.P(0);
       const t0 = performance.now();
-      window.__game.setIntent(0, { moveZ: 0.55 });
       while (performance.now() - t0 < 4500) {
-        p.yaw += 0.0045;
+        p.yaw += 0.0022;
         await D.frame();
       }
-      D.idle(0);
     });
     await stop();
-    await shot(pg, '06_snowfort');
+    await ctx.close();
+  },
+
+  async space(browser) {
+    // One person against two computer players on the Space Station.
+    const { ctx, pg } = await open(browser, '?level=arena_pumphouse&players=1&bots=2&debug=1&autostart=1&seed=3');
+    await ev(pg, () => {
+      D.tp(0, 15, 0, 19, 90, 0);
+      // Easy computers, and the player's health kept topped up, so the clip does not end on a knockout.
+      const w = window.__game.world;
+      w.botSkill = 'easy';
+      window.__keepAlive = setInterval(() => (w.players[0].hp = 100), 50);
+    });
+    const stop = await startClip(pg, '07_space');
+    await ev(pg, async () => {
+      const w = window.__game.world;
+      const near = () => {
+        const p = D.P(0);
+        return w.players.filter((o) => o.bot && o.alive).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
+      };
+      await D.sleep(1800);
+      const t0 = performance.now();
+      while (performance.now() - t0 < 6500) {
+        const b = near();
+        if (!b) {
+          await D.sleep(100);
+          continue;
+        }
+        await D.shoot(0, () => [b.x, b.y + 1.0, b.z], 1, { settle: 250 });
+      }
+      D.idle(0);
+      await D.sleep(600);
+    });
+    await stop();
+    // Still: both computers posed in the starry-window corridor, the player taking aim.
+    await ev(pg, () => {
+      clearInterval(window.__keepAlive);
+      const w = window.__game.world;
+      window.__game.freeze(true);
+      const pose = (p, x, z, yaw) => {
+        p.alive = true;
+        p.hp = 100;
+        p.x = p.prev.x = x;
+        p.z = p.prev.z = z;
+        p.y = p.prev.y = 0;
+        p.vx = p.vz = 0;
+        p.yaw = (yaw * Math.PI) / 180;
+        for (const k of Object.keys(p.power)) p.power[k] = 0;
+      };
+      pose(w.players[1], 11.5, 2.55, 255);
+      pose(w.players[2], 17.5, 3.55, 290);
+      D.tp(0, 5, 0, 3.1, 90, 0);
+      const p = w.players[0];
+      p.yaw = Math.atan2(11.5 - 5, -(2.55 - 3.1));
+      p.pitch = -0.02;
+      p.hurtTimer = 0;
+      for (const k of Object.keys(p.power)) p.power[k] = 0;
+    });
+    await pg.waitForTimeout(700);
+    await shot(pg, '11_space_bots');
     await ctx.close();
   },
 };
 
 (async () => {
   fs.mkdirSync(path.join(OUT, 'shots'), { recursive: true });
-  const browser = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
+  const browser = await chromium.launch({ channel: process.env.CHANNEL, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
   for (const [name, fn] of Object.entries(scenes)) {
     if (ONLY.length && !ONLY.includes(name)) continue;
     console.log(name);

@@ -427,5 +427,268 @@
       "power_shrink"
     ],
     "respawn": 30
+  },
+  "space_crate": {
+    "size": [
+      0.97,
+      0.93,
+      0.93
+    ],
+    "mat": "space_wall",
+    "model": "kenney/space-station/container.glb",
+    "modelFit": "stretch"
+  },
+  "space_crate_tall": {
+    "size": [
+      1.55,
+      1.41,
+      1.54
+    ],
+    "mat": "space_wall",
+    "model": "kenney/space-station/container-tall.glb",
+    "modelFit": "stretch"
+  },
+  "space_barrel": {
+    "size": [
+      0.72,
+      0.9,
+      0.62
+    ],
+    "mat": "space_wall",
+    "model": "kenney/space/barrel.glb",
+    "modelFit": "footprint",
+    "colors": {
+      "metalRed": "#e9eef5",
+      "metal": "#3b82d6"
+    }
+  },
+  "space_computer": {
+    "size": [
+      0.6,
+      1.0,
+      0.66
+    ],
+    "mat": "console",
+    "model": "kenney/space-station/computer.glb",
+    "modelFit": "stretch"
+  },
+  "holo_table": {
+    "size": [
+      1.0,
+      0.8,
+      1.0
+    ],
+    "mat": "console",
+    "model": "kenney/space-station/table-display-planet.glb",
+    "modelFit": "stretch"
+  },
+  "space_pillar": {
+    "size": [
+      0.6,
+      3.0,
+      0.6
+    ],
+    "mat": "space_wall"
+  },
+  "toy_block_a": {
+    "size": [
+      0.97,
+      0.93,
+      0.93
+    ],
+    "mat": "block_a"
+  },
+  "toy_block_b": {
+    "size": [
+      1.55,
+      1.41,
+      1.54
+    ],
+    "mat": "block_b"
+  },
+  "toy_block_c": {
+    "size": [
+      2.15,
+      0.93,
+      0.93
+    ],
+    "mat": "block_c"
+  },
+  "toy_block_1": {
+    "size": [
+      2.9,
+      1.41,
+      1.55
+    ],
+    "mat": "block_1"
+  },
+  "toy_drum": {
+    "size": [
+      0.72,
+      0.9,
+      0.62
+    ],
+    "mat": "toy_blue",
+    "model": "kenney/space/barrel.glb",
+    "modelFit": "footprint",
+    "colors": {
+      "metalRed": "#3b82d6",
+      "metal": "#ffc93c"
+    }
+  },
+  "toy_machine": {
+    "size": [
+      1.2,
+      1.3,
+      1.5
+    ],
+    "mat": "toy_red",
+    "model": "kenney/factory/machine.glb",
+    "modelFit": "stretch"
+  },
+  "toy_hopper": {
+    "size": [
+      1.12,
+      1.5,
+      1.12
+    ],
+    "mat": "toy_yellow",
+    "model": "kenney/factory/hopper-high-round.glb",
+    "modelFit": "stretch"
+  },
+  "tower_base": {
+    "size": [
+      2.4,
+      2.42,
+      2.4
+    ],
+    "mat": "castle_stone",
+    "model": "kenney/castle/tower-square-base.glb",
+    "modelScale": 2.4
+  },
+  "tower_mid": {
+    "size": [
+      2.23,
+      2.42,
+      2.23
+    ],
+    "mat": "castle_stone",
+    "model": "kenney/castle/tower-square-mid-windows.glb",
+    "modelScale": 2.4
+  },
+  "tower_top": {
+    "size": [
+      2.4,
+      3.24,
+      2.4
+    ],
+    "mat": "castle_stone",
+    "model": "kenney/castle/tower-square-top-roof-high.glb",
+    "modelScale": 2.4
+  },
+  "banner": {
+    "size": [
+      0.06,
+      2.6,
+      0.75
+    ],
+    "mat": "castle_roof",
+    "model": "kenney/castle/flag-banner-long.glb",
+    "modelFit": "stretch",
+    "solid": false
+  },
+  "catapult": {
+    "size": [
+      2.6,
+      1.8,
+      1.8
+    ],
+    "mat": "wood",
+    "model": "kenney/castle/siege-catapult.glb",
+    "modelFit": "stretch"
+  },
+  "tree_castle": {
+    "size": [
+      0.5,
+      3.6,
+      0.5
+    ],
+    "mat": "wood",
+    "model": "kenney/castle/tree-large.glb",
+    "modelScale": 2.0
+  },
+  "tree_oak": {
+    "size": [
+      0.5,
+      3.0,
+      0.5
+    ],
+    "mat": "wood",
+    "model": "kenney/nature/tree_oak.glb",
+    "modelScale": 2.6
+  },
+  "tree_round": {
+    "size": [
+      0.5,
+      3.4,
+      0.5
+    ],
+    "mat": "wood",
+    "model": "kenney/nature/tree_default.glb",
+    "modelScale": 2.0
+  },
+  "bush": {
+    "size": [
+      0.9,
+      0.6,
+      0.85
+    ],
+    "mat": "grass",
+    "model": "kenney/nature/plant_bushLarge.glb",
+    "modelFit": "footprint",
+    "solid": false
+  },
+  "flowers_red": {
+    "size": [
+      0.5,
+      0.8,
+      0.5
+    ],
+    "mat": "grass",
+    "model": "kenney/nature/flower_redA.glb",
+    "modelFit": "footprint",
+    "solid": false
+  },
+  "flowers_yellow": {
+    "size": [
+      0.5,
+      0.6,
+      0.5
+    ],
+    "mat": "grass",
+    "model": "kenney/nature/flower_yellowA.glb",
+    "modelFit": "footprint",
+    "solid": false
+  },
+  "mushrooms": {
+    "size": [
+      0.6,
+      0.6,
+      0.6
+    ],
+    "mat": "grass",
+    "model": "kenney/nature/mushroom_redGroup.glb",
+    "modelFit": "footprint",
+    "solid": false
+  },
+  "log_pile": {
+    "size": [
+      2.9,
+      1.41,
+      1.55
+    ],
+    "mat": "wood",
+    "model": "kenney/nature/log_stackLarge.glb",
+    "modelFit": "stretch"
   }
 }

@@ -15,6 +15,8 @@ export interface Cell {
   stepMat: string;
   /** Solid cells with an explicit wall material show it on every face. */
   wallExplicit: boolean;
+  /** ...and indoors too (otherwise only toward open-sky cells). */
+  wallInside: boolean;
   light: number;
 }
 
@@ -44,6 +46,7 @@ export function buildGrid(level: LevelDef): Grid {
         wallMat: d.wall ?? 'concrete',
         stepMat: d.step ?? d.wall ?? 'concrete',
         wallExplicit: d.wall !== undefined,
+        wallInside: d.wall !== undefined && d.wallInside,
         light: d.light,
       });
     }

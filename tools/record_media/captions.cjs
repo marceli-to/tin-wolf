@@ -5,14 +5,15 @@ const out = process.argv[2];
 const font = fs.readFileSync(require('path').join(__dirname, '../../public/assets/fonts/Fredoka.ttf')).toString('base64');
 const caps = {
   '01_menu': ['Tin Fox', 'A toy-box shooter for the couch'],
-  '02_warehouse': ['Split-screen versus', 'Warehouse: mezzanine, bridge and the Heron LR'],
+  '02_toyfactory': ['Split-screen versus', 'Toy Factory: catwalks, a bridge and the Heron LR'],
+  '07_space': ['Versus the computer', 'Space Station: up to three computer players'],
   '03_depot': ['Mission: Halvard Depot', 'One shot, one red barrel'],
   '04_training_course': ['Training Ground', 'Timed course, practice dummies and the grenade pit'],
   '05_training_deck': ['Shooting deck', 'Moving targets and the tower, 4× scope'],
-  '06_snowfort': ['Snowfort', 'Outdoor arena'],
+  '06_castle': ['Castle', 'Towers, a catapult and a keep in the middle'],
 };
 (async () => {
-  const b = await chromium.launch();
+  const b = await chromium.launch({ channel: process.env.CHANNEL });
   const pg = await b.newPage({ viewport: { width: 1920, height: 1080 } });
   for (const [k, [title, sub]] of Object.entries(caps)) {
     await pg.setContent(`<html><head><style>

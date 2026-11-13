@@ -192,8 +192,9 @@ export function buildLevelMesh(grid: Grid, light: LightField, roofs: RoofDef[] =
         const top = roofed ? cell.ceil : Math.max(fa, fb, Math.min(cell.ceil, eaveAt(ncx, ncz)));
         if (!nb || nb.solid) {
           // Solid cells take the look of the room they face; an explicit wall look only shows outdoors,
-          // so a brick exterior does not leak into the rooms behind it.
-          wall(nb?.wallExplicit && cell.sky ? nb.wallMat : cell.wallMat, fa, fb, top, top);
+          // so a brick exterior does not leak into the rooms behind it, unless the cell asks to show it
+          // inside as well (windows, decorated pillars).
+          wall(nb?.wallExplicit && (cell.sky || nb.wallInside) ? nb.wallMat : cell.wallMat, fa, fb, top, top);
           continue;
         }
         const nfa = floorAt(grid, nb, ncx, ncz, ax, az);

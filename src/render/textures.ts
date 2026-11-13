@@ -116,8 +116,208 @@ function rivet(p: Pix, x: number, y: number): void {
 
 type Paint = (p: Pix, n: number, rnd: () => number) => void;
 
-const PAINTERS: Record<string, Paint> = {
+/** 5×7 pixel glyphs for toy blocks. */
+const GLYPHS: Record<string, string[]> = {
+  A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  B: ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
+  C: ['.####', '#....', '#....', '#....', '#....', '#....', '.####'],
+  '1': ['..#..', '.##..', '..#..', '..#..', '..#..', '..#..', '.###.'],
+};
+
+function glyph(p: Pix, n: number, ch: string, color: string, u = 12): void {
+  const rows = GLYPHS[ch] ?? [];
+  const x0 = Math.round((n - 5 * u) / 2);
+  const y0 = Math.round((n - 7 * u) / 2);
+  rows.forEach((row, gy) => {
+    for (let gx = 0; gx < 5; gx++) if (row[gx] === '#') p.fill(x0 + gx * u, y0 + gy * u, u, u, color);
+  });
+}
+
+/** A toy block face: colour, a white rim and a letter. */
+function toyBlock(bg: string, ch: string, fg: string): Paint {
+  return (p, n) => {
+    p.fill(0, 0, n, n, '#fff8e8');
+    p.fill(10, 10, n - 20, n - 20, bg);
+    flatPanel(p, 0, 0, n, n, 5);
+    flatPanel(p, 10, 10, n - 20, n - 20, 4);
+    glyph(p, n, ch, fg);
+  };
+}
+
+const plain = (color: string, edge = 4): Paint => (p, n) => {
+  p.fill(0, 0, n, n, color);
+  flatPanel(p, 0, 0, n, n, edge);
+};
+
+/**
+ * Arena themes (both render styles): space station (Pumphouse), toy factory (Warehouse).
+ * One texture spans 2 m of wall or floor.
+ */
+const THEMED: Record<string, Paint> = {
   surprise: (p, n) => paintSurprise(p, n),
+  // ---- space station
+  space_wall: (p, n) => {
+    p.fill(0, 0, n, n, '#e9eef5');
+    flatPanel(p, 0, 0, n / 2, n, 3);
+    flatPanel(p, n / 2, 0, n / 2, n, 3);
+    p.fill(0, n * 0.62, n, n * 0.1, '#3b82d6');
+    p.fill(0, n * 0.62, n, 2, '#8cc4ff');
+    p.fill(0, n * 0.9, n, 3, '#c3ccd8');
+  },
+  space_window: (p, n, r) => {
+    p.fill(0, 0, n, n, '#e9eef5');
+    p.fill(14, 18, n - 28, n - 36, '#0d1530');
+    for (let i = 0; i < 40; i++) {
+      const x = 16 + r() * (n - 32);
+      const y = 20 + r() * (n - 40);
+      p.fill(x, y, r() > 0.8 ? 2 : 1, r() > 0.8 ? 2 : 1, r() > 0.85 ? '#ffe9a0' : '#ffffff');
+    }
+    flatPanel(p, 0, 0, n, n, 4);
+    flatPanel(p, 14, 18, n - 28, n - 36, 3);
+    p.fill(n / 2 - 2, 18, 4, n - 36, '#e9eef5');
+  },
+  space_floor: (p, n) => {
+    p.fill(0, 0, n, n, '#4a5670');
+    for (const x of [0, n / 2]) for (const y of [0, n / 2]) flatPanel(p, x, y, n / 2, n / 2, 3);
+    for (const x of [0, n / 2]) for (const y of [0, n / 2]) p.fill(x + n / 4 - 3, y + n / 4 - 3, 6, 6, '#5fd0f0');
+  },
+  space_strip: (p, n) => {
+    p.fill(0, 0, n, n, '#3c465c');
+    flatPanel(p, 0, 0, n, n, 3);
+    p.fill(n / 2 - 5, 0, 10, n, '#5fd0f0');
+    p.fill(n / 2 - 2, 0, 4, n, '#d8f6ff');
+  },
+  space_ceil: (p, n) => {
+    p.fill(0, 0, n, n, '#cfd8e3');
+    flatPanel(p, 0, 0, n, n, 3);
+    p.fill(n / 4, n / 4, n / 2, n / 2, '#ffffff');
+    flatPanel(p, n / 4, n / 4, n / 2, n / 2, 3);
+  },
+  space_plate: (p, n) => {
+    p.fill(0, 0, n, n, '#9fb3c8');
+    for (let y = 8; y < n; y += 16) for (let x = (y / 16) % 2 ? 0 : 8; x < n; x += 16) p.shade(x, y, 6, 3, 1.15);
+    flatPanel(p, 0, 0, n, n, 4);
+  },
+  space_hazard: (p, n) => {
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const on = ((x + y) >> 4) % 2 === 0;
+      p.set(x, y, on ? 95 : 233, on ? 208 : 238, on ? 240 : 245);
+    }
+  },
+  // ---- castle
+  castle_stone: (p, n, r) => {
+    p.fill(0, 0, n, n, '#857f75');
+    const rh = n / 4;
+    for (let row = 0; row < 4; row++) {
+      const off = row % 2 ? n / 4 : 0;
+      for (let i = -1; i < 2; i++) {
+        const x = off + i * (n / 2);
+        const k = 0.9 + r() * 0.18;
+        const g = Math.round(0xb3 * k);
+        p.fill(x + 2, row * rh + 2, n / 2 - 4, rh - 4, `#${g.toString(16).padStart(2, '0')}${Math.round(0xad * k).toString(16).padStart(2, '0')}${Math.round(0xa2 * k).toString(16).padStart(2, '0')}`);
+        flatPanel(p, x + 2, row * rh + 2, n / 2 - 4, rh - 4, 4);
+      }
+    }
+  },
+  grass: (p, n, r) => {
+    p.fill(0, 0, n, n, '#7cc76a');
+    for (let i = 0; i < 260; i++) {
+      const x = r() * n;
+      const y = r() * n;
+      p.fill(x, y, 2, 3, r() > 0.5 ? '#6ab55a' : '#8fd47b');
+    }
+    for (let i = 0; i < 6; i++) {
+      // A few flowers.
+      const x = r() * (n - 4);
+      const y = r() * (n - 4);
+      p.fill(x, y, 4, 4, r() > 0.5 ? '#ffffff' : '#ffd23a');
+    }
+  },
+  castle_floor: (p, n, r) => {
+    p.fill(0, 0, n, n, '#8f8778');
+    const c = n / 3;
+    for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
+      const k = 0.92 + r() * 0.14;
+      p.fill(x * c + 2, y * c + 2, c - 4, c - 4, '#cbc3b2');
+      p.shade(x * c + 2, y * c + 2, c - 4, c - 4, k);
+      flatPanel(p, x * c + 2, y * c + 2, c - 4, c - 4, 3);
+    }
+  },
+  castle_roof: (p, n) => {
+    p.fill(0, 0, n, n, '#c9483c');
+    const rh = n / 6;
+    for (let row = 0; row < 6; row++) {
+      const off = row % 2 ? n / 8 : 0;
+      for (let x = -n / 4; x < n; x += n / 4) flatPanel(p, x + off, row * rh, n / 4, rh, 3);
+    }
+  },
+  // ---- toy factory
+  toy_bricks: (p, n) => {
+    const colors = ['#e9453a', '#ffc93c', '#3b82d6', '#3fb56b'];
+    const rh = n / 4;
+    for (let row = 0; row < 4; row++) {
+      const off = row % 2 ? n / 4 : 0;
+      for (let i = -1; i < 2; i++) {
+        const x = off + i * (n / 2);
+        const c = colors[(row * 3 + i + 4) % colors.length]!;
+        p.fill(x, row * rh, n / 2, rh, c);
+        flatPanel(p, x, row * rh, n / 2, rh, 4);
+        p.shade(x, row * rh, 2, rh, 0.55);
+      }
+      p.shade(0, row * rh + rh - 2, n, 2, 0.55);
+    }
+  },
+  toy_wall: (p, n) => {
+    p.fill(0, 0, n, n, '#bfe3ff');
+    flatPanel(p, 0, 0, n / 2, n, 4);
+    flatPanel(p, n / 2, 0, n / 2, n, 4);
+    const colors = ['#e9453a', '#ffc93c', '#3fb56b', '#3b82d6'];
+    for (let i = 0; i < 4; i++) {
+      p.fill(i * (n / 4), n * 0.58, n / 4, n * 0.1, colors[i]!);
+      flatPanel(p, i * (n / 4), n * 0.58, n / 4, n * 0.1, 3);
+    }
+  },
+  toy_floor: (p, n) => {
+    for (const x of [0, n / 2]) for (const y of [0, n / 2]) {
+      p.fill(x, y, n / 2, n / 2, (x + y) % n === 0 ? '#fff4dc' : '#bfe9d9');
+      flatPanel(p, x, y, n / 2, n / 2, 3);
+    }
+  },
+  toy_top: (p, n) => {
+    p.fill(0, 0, n, n, '#ffc93c');
+    for (const x of [0, n / 2]) for (const y of [0, n / 2]) {
+      flatPanel(p, x, y, n / 2, n / 2, 4);
+      // Studs, like a toy brick seen from above.
+      p.fill(x + n / 4 - 10, y + n / 4 - 10, 20, 20, '#ffd95e');
+      flatPanel(p, x + n / 4 - 10, y + n / 4 - 10, 20, 20, 3);
+    }
+  },
+  toy_ceil: (p, n) => {
+    p.fill(0, 0, n, n, '#cfe8ff');
+    flatPanel(p, 0, 0, n, n, 4);
+    p.fill(n / 4, n / 4, n / 2, n / 2, '#ffffff');
+  },
+  toy_plank: (p, n) => {
+    p.fill(0, 0, n, n, '#3b82d6');
+    for (let y = 0; y < n; y += n / 4) flatPanel(p, 0, y, n, n / 4, 3);
+  },
+  toy_candy: (p, n) => {
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const red = ((x + y) >> 4) % 2 === 0;
+      p.set(x, y, red ? 233 : 255, red ? 69 : 248, red ? 58 : 232);
+    }
+  },
+  toy_red: plain('#e9453a'),
+  toy_yellow: plain('#ffc93c'),
+  toy_blue: plain('#3b82d6'),
+  block_a: toyBlock('#e9453a', 'A', '#ffc93c'),
+  block_b: toyBlock('#3b82d6', 'B', '#ffffff'),
+  block_c: toyBlock('#3fb56b', 'C', '#fff8e8'),
+  block_1: toyBlock('#ffc93c', '1', '#e9453a'),
+};
+
+const PAINTERS: Record<string, Paint> = {
+  ...THEMED,
   concrete: (p, n, r) => {
     surface(p, r, '#8f8c84', 0.22, 0.1);
     // Formwork seams and tie holes, as on poured concrete walls.
@@ -339,7 +539,6 @@ function flatPanel(p: Pix, x: number, y: number, w: number, h: number, edge = 3)
   p.shade(x + w - edge, y, edge, h - edge, 0.94);
 }
 
-/** Clean, flat-coloured surfaces (no grime, grain or rivets) to sit next to Kenney models. */
 /** Surprise box face: purple with a gold rim and a big white question mark. */
 function paintSurprise(p: Pix, n: number): void {
   p.fill(0, 0, n, n, '#8a5cf0');
@@ -358,7 +557,9 @@ function paintSurprise(p: Pix, n: number): void {
   });
 }
 
+/** Clean, flat-coloured surfaces (no grime, grain or rivets) to sit next to Kenney models. */
 const FLAT_PAINTERS: Record<string, Paint> = {
+  ...THEMED,
   concrete: (p, n) => {
     p.fill(0, 0, n, n, '#c4bfb3');
     flatPanel(p, 0, 0, n, n / 2);
