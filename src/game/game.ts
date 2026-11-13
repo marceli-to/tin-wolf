@@ -7,6 +7,7 @@ import { levelIds, loadGameData, loadLevel, type GameData } from '../data';
 import { DataError } from '../data/load';
 import type { LevelDef } from '../data/schema';
 import { deviceLabel, InputManager, type DeviceId } from '../input/manager';
+import { PAD } from '../input/gamepad';
 import { GameRenderer, type ViewLook } from '../render/gameRenderer';
 import { interactTarget } from '../sim/doors';
 import { zoomFactor } from '../sim/player';
@@ -44,6 +45,8 @@ const VERSUS_LEVEL = 'arena_pumphouse';
 const TRAINING_LEVEL = 'training';
 /** Seconds between the mission ending and the debrief, so the moment can land. */
 const DEBRIEF_DELAY = 1.8;
+/** Most players in one match, people and computers together (four player colours, four spawns). */
+const MAX_PLAYERS = 4;
 
 /** Owns the loop and wires input → sim → render/ui/audio. */
 /** Mouse look not yet applied by the sim, slowed like the sim slows it while scoped in. */
@@ -63,7 +66,13 @@ export class Game {
   state: GameState = 'menu';
   world: World | null = null;
   levelId = VERSUS_LEVEL;
+  /** People in the match (each with a view); computer players come after them. */
   playerCount = 2;
+  botCount = 0;
+  /** Lobby: people who joined, computers added, and how many open slots it shows at least. */
+  private lobbyHumans: DeviceId[] = [];
+  private lobbyBots = 0;
+  private lobbySize = 2;
   /** Debug overrides per slot; when set they replace device input. */
   debugIntents: (PlayerIntent | null)[] = [];
   /** When true the loop renders but does not tick; drive the sim with `step(n)`. */
@@ -98,6 +107,18 @@ export class Game {
     this.lobby = new LobbyView(this.uiLayer);
     this.lobby.onBack = () => {
       if (this.state === 'lobby') this.lobbyBack();
+    };
+    this.lobby.onAddBot = () => {
+      if (this.state === 'lobby') this.addBot();
+    };
+    this.lobby.onStart = () => {
+      if (this.state === 'lobby') this.lobbyStart();
+    };
+    this.lobby.onSkill = () => {
+      if (this.state !== 'lobby') return;
+      this.cycleDifficulty(1);
+      this.sfx.play('ui_select', 0.3);
+      this.renderLobby();
     };
     this.lobby.show(false);
     this.screen = new ScreenView(this.uiLayer);
@@ -238,7 +259,7 @@ export class Game {
         },
         {
           label: 'Versus',
-          hint: 'Two players, split-screen',
+          hint: 'Split-screen, or against the computer',
           action: () => this.showMapPicker(),
         },
         {
@@ -325,21 +346,38 @@ export class Game {
 
   enterLobby(players: number): void {
     this.state = 'lobby';
-    this.playerCount = players;
+    this.lobbySize = players;
+    this.lobbyHumans = [];
+    this.lobbyBots = 0;
     this.world = null;
     this.clearHuds();
     this.renderer.clear();
     this.screen.hide();
     this.input.kbm.exitLock();
-    this.input.slots = new Array(players).fill(null);
+    this.input.slots = [];
     if (this.params.autostart) {
-      this.input.slots[0] = { kind: 'kbm' };
-      for (let s = 1; s < players; s++) this.input.slots[s] = { kind: 'pad', index: s - 1 };
-      this.startLevel();
+      // `players` people (keyboard + mouse, then gamepads) and `bots` computers from the URL.
+      this.lobbyHumans = [{ kind: 'kbm' }];
+      for (let s = 1; s < players; s++) this.lobbyHumans.push({ kind: 'pad', index: s - 1 });
+      this.lobbyBots = this.isVersus() ? Math.min(this.params.bots, MAX_PLAYERS - players) : 0;
+      this.lobbyStart(true);
       return;
     }
     this.lobby.show(true);
     this.renderLobby();
+  }
+
+  private isVersus(): boolean {
+    try {
+      return loadLevel(this.levelId).mode === 'versus';
+    } catch {
+      return false;
+    }
+  }
+
+  /** Open slots still shown in the lobby (the lobby always shows at least `lobbySize` rows). */
+  private lobbyOpen(): number {
+    return Math.max(0, this.lobbySize - this.lobbyHumans.length - this.lobbyBots);
   }
 
   private renderLobby(): void {
@@ -350,37 +388,68 @@ export class Game {
         return this.levelId;
       }
     })();
+    const versus = this.isVersus();
+    const total = this.lobbyHumans.length + this.lobbyBots;
+    const rows = [
+      ...this.lobbyHumans.map((d) => ({ label: deviceLabel(d) })),
+      ...new Array(this.lobbyOpen()).fill(0).map(() => ({ label: null })),
+      ...new Array(this.lobbyBots).fill(0).map(() => ({ label: null, bot: true })),
+    ];
+    const canStart = this.lobbyBots > 0 && this.lobbyHumans.length > 0;
     this.lobby.render(
-      `${name} — ${this.playerCount} player${this.playerCount > 1 ? 's' : ''}`,
-      this.input.slots.map((d) => ({ label: d ? deviceLabel(d) : null })),
-      (this.playerCount > 1
-        ? 'Keyboard + mouse: click or press any key.<br>Gamepad: press A / Cross.<br>Only one mouse can be captured, so the second player needs a gamepad.'
-        : 'Click or press any key to start with keyboard + mouse, or press A on a gamepad.') +
-        '<br>Esc / B: the last player to join leaves; with nobody joined, back to the menu.',
+      `${name} — ${versus ? 'Versus' : `${this.lobbySize} player${this.lobbySize > 1 ? 's' : ''}`}`,
+      rows,
+      (versus
+        ? 'Keyboard + mouse: click or press any key. Gamepad: press A / Cross.<br>Add computer: C · X on a gamepad (up to 3). Computer skill: left / right.' +
+          (canStart ? '<br>Start: Enter · A' : '')
+        : this.lobbySize > 1
+          ? 'Keyboard + mouse: click or press any key.<br>Gamepad: press A / Cross.<br>Only one mouse can be captured, so the second player needs a gamepad.'
+          : 'Click or press any key to start with keyboard + mouse, or press A on a gamepad.') +
+        '<br>Esc / B: the last player leaves; with nobody left, back to the menu.',
+      { addBot: versus && total < MAX_PLAYERS, start: canStart, skill: this.lobbyBots ? this.difficultyName() : null },
     );
   }
 
-  /** Back in the lobby: the last player to join leaves; with nobody left, back to the menu. */
+  /** Back in the lobby: the bottom row leaves (computers first); with nobody left, back to the menu. */
   private lobbyBack(): void {
-    const slots = this.input.slots;
-    const last = slots.reduce((n, s, i) => (s ? i : n), -1);
-    if (last < 0) {
+    if (this.lobbyBots > 0) this.lobbyBots--;
+    else if (this.lobbyHumans.length) this.lobbyHumans.pop();
+    else {
       this.enterMenu();
       return;
     }
-    slots[last] = null;
+    this.input.slots = [...this.lobbyHumans];
     this.sfx.play('ui_select', 0.3);
     this.renderLobby();
   }
 
   private join(dev: DeviceId): void {
-    const free = this.input.slots.indexOf(null);
-    if (free < 0) return;
-    this.input.slots[free] = dev;
+    const total = this.lobbyHumans.length + this.lobbyBots;
+    // Versus takes more people than its open slots while there is room; other modes stop at their size.
+    if (this.lobbyOpen() === 0 && !(this.isVersus() && total < MAX_PLAYERS)) return;
+    this.lobbyHumans.push(dev);
+    this.input.slots = [...this.lobbyHumans];
     this.sfx.play('ui_select', 0.5);
+    // People only: the match starts when the last slot fills. With computers, on Start.
     // No pointer lock yet: Esc and the Back button must keep working in the lobby (startLevel locks).
-    if (this.input.slots.every((s) => s)) this.startLevel();
+    if (this.lobbyBots === 0 && this.lobbyOpen() === 0) this.lobbyStart();
     else this.renderLobby();
+  }
+
+  private addBot(): void {
+    if (!this.isVersus() || this.lobbyHumans.length + this.lobbyBots >= MAX_PLAYERS) return;
+    this.lobbyBots++;
+    this.sfx.play('ui_select', 0.5);
+    this.renderLobby();
+  }
+
+  /** From the lobby into the match: people take the first slots, computers the rest. */
+  private lobbyStart(force = false): void {
+    if (!force && (this.lobbyHumans.length === 0 || this.lobbyHumans.length + this.lobbyBots < 2)) return;
+    this.input.slots = [...this.lobbyHumans];
+    this.playerCount = this.lobbyHumans.length;
+    this.botCount = this.lobbyBots;
+    this.startLevel();
   }
 
   enterBriefing(): void {
@@ -394,6 +463,7 @@ export class Game {
     if (!level) return;
     if (this.params.autostart) {
       this.input.slots = [{ kind: 'kbm' }];
+      this.botCount = 0;
       this.screen.hide();
       this.startLevel();
       return;
@@ -432,6 +502,7 @@ export class Game {
   private beginMission(dev: DeviceId): void {
     if (this.state !== 'briefing') return;
     this.input.slots = [dev];
+    this.botCount = 0;
     this.sfx.play('ui_select', 0.5);
     this.startLevel();
   }
@@ -454,11 +525,12 @@ export class Game {
     this.sirenUntil = 0;
     // The Kenney figures have big heads; their hit zones follow suit.
     const body = this.params.art === 'kenney' ? 'chibi' : 'human';
-    // Difficulty only changes guards, so it applies to missions; versus has none.
-    this.world = createWorld(level, this.data, { players: this.playerCount, seed: this.params.seed, body, difficulty: this.settings.difficulty });
+    // Difficulty sets the guards in missions and the computer players' skill in versus.
+    const bots = level.mode === 'versus' ? this.botCount : 0;
+    this.world = createWorld(level, this.data, { players: this.playerCount, bots, seed: this.params.seed, body, difficulty: this.settings.difficulty });
     this.renderer.load(this.world, this.params.debug);
     this.clearHuds();
-    this.huds = this.world.players.map(() => new PlayerHud(this.uiLayer));
+    this.huds = this.world.players.filter((p) => !p.bot).map(() => new PlayerHud(this.uiLayer));
     this.notices = [];
     this.objectivesUntil = [];
     this.debugIntents = [];
@@ -515,11 +587,12 @@ export class Game {
     this.state = 'results';
     this.input.kbm.exitLock();
     const m = w.match;
-    const title = !m || m.winner === null ? 'DRAW' : `PLAYER ${m.winner + 1} WINS`;
+    const winner = m?.winner != null ? w.players[m.winner] : null;
+    const title = !winner ? 'DRAW' : winner.bot ? 'THE COMPUTER WINS' : `PLAYER ${winner.slot + 1} WINS`;
     const rows = w.players
       .map((p) => {
         const acc = p.shotsFired ? Math.round((100 * p.shotsHit) / p.shotsFired) : 0;
-        return `<tr${m?.winner === p.slot ? ' class="win"' : ''}><td>P${p.slot + 1}</td><td>${p.kills}</td><td>${p.deaths}</td><td>${acc}%</td></tr>`;
+        return `<tr${m?.winner === p.slot ? ' class="win"' : ''}><td>P${p.slot + 1}${p.bot ? ' 🤖' : ''}</td><td>${p.kills}</td><td>${p.deaths}</td><td>${acc}%</td></tr>`;
       })
       .join('');
     this.screen.show({
@@ -529,7 +602,7 @@ export class Game {
       body: `<table class="stats"><thead><tr><th></th><th>Kills</th><th>Deaths</th><th>Accuracy</th></tr></thead><tbody>${rows}</tbody></table>`,
       items: [
         { label: 'Rematch', action: () => this.startLevel() },
-        { label: 'Change players', action: () => this.enterLobby(this.playerCount) },
+        { label: 'Change players', action: () => this.enterLobby(this.lobbySize) },
         { label: 'Menu', action: () => this.enterMenu() },
       ],
     });
@@ -590,8 +663,24 @@ export class Game {
           this.lobbyBack();
           break;
         }
+        // C on the keyboard, X on any gamepad: add a computer player (before joining, so C does not also join).
+        const k = this.input.kbm;
+        if (k.pressed('KeyC') || this.input.pads.connected().some((i) => this.input.pads.pressed(i, PAD.X))) {
+          this.addBot();
+          break;
+        }
         const dev = this.input.pollJoin();
-        if (dev) this.join(dev);
+        if (dev) {
+          this.join(dev);
+          break;
+        }
+        if (this.lobbyBots > 0 && (k.pressed('ArrowLeft') || k.pressed('ArrowRight') || m.left || m.right)) {
+          this.cycleDifficulty(m.left ? -1 : 1);
+          this.sfx.play('ui_select', 0.3);
+          this.renderLobby();
+          break;
+        }
+        if (m.confirm || m.pause) this.lobbyStart();
         break;
       }
       case 'briefing': {
@@ -696,7 +785,10 @@ export class Game {
         break;
       }
       case 'shrunk':
-        if (e.target.kind === 'player') this.notify(e.target.slot, `Shrunk!<br><small>Player ${e.by + 1} used a Shrink Ray</small>`, 2.2);
+        if (e.target.kind === 'player') {
+          const by = w.players[e.by]?.bot ? 'The computer' : `Player ${e.by + 1}`;
+          this.notify(e.target.slot, `Shrunk!<br><small>${by} used a Shrink Ray</small>`, 2.2);
+        }
         break;
       case 'doorLocked': {
         const item = w.data.items[e.requires];
@@ -736,8 +828,9 @@ export class Game {
           const victim = e.target.slot;
           const k = e.killer;
           if (k?.kind === 'player' && k.slot !== victim) {
-            this.notify(k.slot, `You took down P${victim + 1}`);
-            this.notify(victim, `P${k.slot + 1} got you`);
+            const name = (slot: number): string => (w.players[slot]?.bot ? `the computer (P${slot + 1})` : `P${slot + 1}`);
+            this.notify(k.slot, `You took down ${name(victim)}`);
+            this.notify(victim, `${name(k.slot)} got you`.replace(/^t/, 'T'));
           }
         }
         break;
@@ -833,7 +926,9 @@ export class Game {
       return best !== null ? `<span class="timer chip">Record ${formatTime(best)}</span>` : '';
     }
     if (!w?.match) return '';
-    const scores = w.players.map((p) => `<span class="score chip p${p.slot + 1}${p.slot === slot ? ' me' : ''}">P${p.slot + 1} · ${p.kills}</span>`).join('');
+    const scores = w.players
+      .map((p) => `<span class="score chip p${p.slot + 1}${p.slot === slot ? ' me' : ''}">${p.bot ? '🤖' : `P${p.slot + 1}`} · ${p.kills}</span>`)
+      .join('');
     const t = Math.ceil(w.match.timeLeft);
     const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
     return `${scores}<span class="timer chip">${clock}</span>`;

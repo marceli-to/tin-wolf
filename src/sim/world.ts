@@ -5,6 +5,7 @@ import type { GameData } from '../data';
 import { scaleEnemy, type EnemyDef, type EntityDef, type LevelDef } from '../data/schema';
 import type { Box, Terrain } from './collision';
 import type { CourseState, Target } from './targets';
+import { createBrain, type BotBrain } from './bot';
 import type { ActorRef, SimEvent } from './events';
 import type { BodyShape } from './hitbox';
 import { buildGrid, cellCenter, floorAtWorld, type Grid } from './grid';
@@ -63,6 +64,8 @@ export interface Player {
   jumpPrev: boolean;
   /** 0 hip .. 1 fully scoped in (weapons with `zoom`). */
   zoom: number;
+  /** A computer player: the sim makes its intents (src/sim/bot.ts). */
+  bot: boolean;
   /** Seconds left on each timed power-up (0 = off). `tiny` is set on the victim of a Shrink Ray. */
   power: PowerTimers;
   kills: number;
@@ -281,6 +284,10 @@ export interface World {
   /** Training: target boards and the timed course. */
   targets: Target[];
   course: CourseState | null;
+  /** Computer players' brains, by slot (null for people). */
+  brains: (BotBrain | null)[];
+  /** Key of BOT_SKILL the computer players use. */
+  botSkill: string;
 }
 
 export type GuardEntity = Extract<EntityDef, { type: 'guard' }>;
@@ -305,8 +312,10 @@ export interface WorldOptions {
   seed?: number;
   /** Body proportions for hit zones (default 'human'). */
   body?: BodyShape;
-  /** Key of data.difficulty (default 'normal'). */
+  /** Key of data.difficulty (default 'normal'); also the computer players' skill. */
   difficulty?: string;
+  /** Computer players, after the `players` people (versus). */
+  bots?: number;
 }
 
 export function createPlayer(slot: number, loadout: readonly string[], data: GameData): Player {
@@ -345,6 +354,7 @@ export function createPlayer(slot: number, loadout: readonly string[], data: Gam
     sprinting: false,
     jumpPrev: false,
     zoom: 0,
+    bot: false,
     power: noPowers(),
     kills: 0,
     deaths: 0,
@@ -419,6 +429,8 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     targets: [],
     course: null,
     reserves: [],
+    brains: [],
+    botSkill: opts.difficulty ?? 'normal',
   };
   const s = grid.size;
   let auto = 0;
@@ -539,14 +551,31 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
         break;
     }
   }
-  for (let slot = 0; slot < opts.players; slot++) {
+  const total = opts.players + (opts.bots ?? 0);
+  for (let slot = 0; slot < total; slot++) {
     const p = createPlayer(slot, level.loadout, data);
-    const sp = world.starts[slot] ?? world.spawns[slot] ?? world.starts[0] ?? { ...cellCenter(grid, 1, 1), yaw: 0 };
+    p.bot = slot >= opts.players;
+    // Levels have starts for two; further players take the spawn farthest from everyone placed so far.
+    const sp = world.starts[slot] ?? farthestSpawn(world) ?? world.starts[0] ?? { ...cellCenter(grid, 1, 1), yaw: 0 };
     placePlayer(world, p, sp);
     world.players.push(p);
+    world.brains.push(p.bot ? createBrain() : null);
   }
   rebuildBoxes(world);
   return world;
+}
+
+function farthestSpawn(world: World): SpawnPoint | null {
+  let best: SpawnPoint | null = null;
+  let bestD = -1;
+  for (const sp of world.spawns) {
+    const d = Math.min(Infinity, ...world.players.map((p) => Math.hypot(p.x - sp.x, p.z - sp.z)));
+    if (d > bestD) {
+      bestD = d;
+      best = sp;
+    }
+  }
+  return best;
 }
 
 /** Adds a guard from its level entity (also used for reinforcements when the alarm goes off). */

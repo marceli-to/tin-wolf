@@ -1,5 +1,6 @@
 import { DT } from '../config';
 import { emptyIntent, type PlayerIntent } from '../core/intent';
+import { botIntent } from './bot';
 import { separateBodies } from './collision';
 import { updatePlayerMovement } from './player';
 import { updateGuards } from './ai';
@@ -27,7 +28,7 @@ export function stepWorld(world: World, intents: readonly PlayerIntent[]): void 
     p.prev.crouch = p.crouch;
   }
   for (const p of world.players) {
-    const intent = intents[p.slot] ?? emptyIntent();
+    const intent = p.bot ? botIntent(world, p) : (intents[p.slot] ?? emptyIntent());
     p.hurtTimer = Math.max(0, p.hurtTimer - DT);
     p.protect = Math.max(0, p.protect - DT);
     if (p.alive) {

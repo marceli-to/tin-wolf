@@ -35,6 +35,32 @@ export const POWER = {
   shrinkRadius: 25,
 };
 
+/** Computer players (src/sim/bot.ts), per difficulty. Angles in degrees, times in seconds. */
+export interface BotSkill {
+  /** Delay before the first shot at someone newly spotted. */
+  reaction: number;
+  /** Fastest turn, degrees per second. */
+  turnRate: number;
+  /** Typical aim error; it wanders, so some shots land and some miss. */
+  aimError: number;
+  /** Field of view for spotting someone (anyone very close is noticed anyway). */
+  fov: number;
+  /** Seconds between rough guesses of where an unseen opponent is, so bots do not wander forever. */
+  huntEvery: number;
+  /** Uses the rifle's scope at range. */
+  scope: boolean;
+  /** Side-steps while fighting. */
+  strafe: boolean;
+  /** Pauses between shots of an automatic weapon (0 = hold the trigger). */
+  burstPause: number;
+}
+
+export const BOT_SKILL: Record<string, BotSkill> = {
+  easy: { reaction: 0.9, turnRate: 160, aimError: 7, fov: 100, huntEvery: 22, scope: false, strafe: false, burstPause: 0.7 },
+  normal: { reaction: 0.45, turnRate: 300, aimError: 3.2, fov: 130, huntEvery: 12, scope: true, strafe: true, burstPause: 0.35 },
+  hard: { reaction: 0.22, turnRate: 480, aimError: 1.4, fov: 160, huntEvery: 7, scope: true, strafe: true, burstPause: 0 },
+};
+
 export const WORLD = {
   stepHeight: 0.4,
   gravity: 22,

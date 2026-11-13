@@ -18,6 +18,8 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
     const vol = base / (1 + best / 7);
     sfx.play(name, vol, pan, delay);
   };
+  // Sounds that belong to one player's own head (hurt, reload, pickups) are for people, not bots.
+  const human = (slot: number): boolean => !world.players[slot]?.bot;
   switch (e.type) {
     case 'shotFired': {
       const def = world.data.weapons[e.weapon];
@@ -29,14 +31,15 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
       else at('impact', e.x, e.z, 0.5);
       break;
     case 'hit':
-      if (e.target.kind === 'player') sfx.play('hurt', 0.8);
-      if (e.shooter?.kind === 'player') sfx.play('hit_marker', 0.5);
+      if (e.target.kind === 'player' && human(e.target.slot)) sfx.play('hurt', 0.8);
+      if (e.shooter?.kind === 'player' && human(e.shooter.slot)) sfx.play('hit_marker', 0.5);
       break;
     case 'died':
-      if (e.target.kind === 'player') sfx.play('death', 0.8);
+      if (e.target.kind === 'player' && human(e.target.slot)) sfx.play('death', 0.8);
       else at('death', e.x ?? 0, e.z ?? 0, 0.6);
       break;
     case 'reloadStart': {
+      if (!human(e.slot)) break;
       const p = world.players[e.slot];
       const def = p && world.data.weapons[p.weapon.id];
       sfx.play('reload_out', 0.6);
@@ -53,10 +56,10 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
       at('explosion', e.x, e.z, 1.4);
       break;
     case 'weaponSwitched':
-      sfx.play('switch', 0.5);
+      if (human(e.slot)) sfx.play('switch', 0.5);
       break;
     case 'dryFire':
-      sfx.play('dry', 0.6);
+      if (human(e.slot)) sfx.play('dry', 0.6);
       break;
     case 'footstep':
       at('footstep', e.x, e.z, e.loud ? 0.5 : 0.35);
@@ -66,20 +69,21 @@ export function playSimEvent(sfx: Sfx, world: World, e: SimEvent): void {
       break;
     case 'pickup':
       // Power-ups have their own fanfare (the 'powerup' event).
-      if (world.data.items[e.item]?.kind !== 'powerup') sfx.play('pickup', 0.6);
+      if (human(e.slot) && world.data.items[e.item]?.kind !== 'powerup') sfx.play('pickup', 0.6);
       break;
     case 'powerup':
-      sfx.play('powerup', 0.7);
+      if (human(e.slot)) sfx.play('powerup', 0.7);
+      else at('powerup', e.x, e.z, 0.5);
       break;
     case 'powerEnded':
-      sfx.play(e.power === 'tiny' ? 'grow' : 'power_end', 0.5);
+      if (human(e.slot)) sfx.play(e.power === 'tiny' ? 'grow' : 'power_end', 0.5);
       break;
     case 'shrunk':
-      if (e.target.kind === 'player') sfx.play('shrink', 0.7);
+      if (e.target.kind === 'player' && human(e.target.slot)) sfx.play('shrink', 0.7);
       else at('shrink', e.x, e.z, 0.6);
       break;
     case 'shieldBlock':
-      sfx.play('shield_block', 0.5);
+      if (human(e.slot)) sfx.play('shield_block', 0.5);
       break;
     case 'propRespawned':
       at('box_back', e.x, e.z, 0.6);

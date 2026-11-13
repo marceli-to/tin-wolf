@@ -279,6 +279,8 @@ export class ModelCharacter {
   /** Held weapons by id, with the barrel tip in hand space (null for thrown weapons). */
   private held = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; style: HoldStyle }>();
   private weaponId = '';
+  private inner: THREE.Object3D;
+  private height: number;
 
   /**
    * `held` lists the weapons this character can draw (one for guards, every weapon for players).
@@ -291,6 +293,8 @@ export class ModelCharacter {
     held: HeldGun[] = [],
   ) {
     const inner = model.object;
+    this.inner = inner;
+    this.height = height;
     for (const name of profile.hide ?? []) {
       const o = findNode(inner, name);
       if (o) o.visible = false;
@@ -358,6 +362,23 @@ export class ModelCharacter {
   }
 
   /** Shows the held model for a weapon and moves the muzzle flash to its barrel. */
+  /** Puts `obj` on top of the head (it follows the head's animation), in metres. False without a head node. */
+  attachOnHead(obj: THREE.Object3D, bone = 'head'): boolean {
+    const head = findNode(this.inner, bone);
+    if (!head) return false;
+    // A skinned mesh has no usable bounds before its first pose, so go by the figure's height:
+    // the top of the head is the top of the figure, straight above the head bone in the bind pose.
+    this.root.updateMatrixWorld(true);
+    const at = head.getWorldPosition(new THREE.Vector3());
+    const k = this.inner.scale.x;
+    const holder = new THREE.Group();
+    holder.scale.setScalar(1 / k);
+    holder.position.set(0, (this.height - at.y) / k, 0);
+    holder.add(obj);
+    head.add(holder);
+    return Number.isFinite(at.y);
+  }
+
   setWeapon(id: string): void {
     if (id === this.weaponId || !this.held.has(id)) return;
     this.weaponId = id;

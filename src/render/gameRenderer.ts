@@ -43,6 +43,8 @@ interface ActorVisual {
   size?: number;
   /** Bubble Shield around a player. */
   bubble?: THREE.Mesh;
+  /** Computer players: the blinking light on the antenna. */
+  antennaLight?: THREE.Mesh;
 }
 
 
@@ -53,6 +55,23 @@ const STATE_COLORS: Record<string, string> = {
   search: '#ff9a30',
   dead: '#555555',
 };
+
+/** Computer players' figures: different from the people's, and from the depot guards' (no guards in versus). */
+const BOT_MODELS = ['kenney/characters/character-male-d.glb', 'kenney/characters/character-worker.glb', 'kenney/characters/character-male-c.glb'];
+
+/** A little robot antenna with a blinking red light, so kids can tell the computer players apart. */
+function buildAntenna(): { root: THREE.Group; light: THREE.Mesh } {
+  const root = new THREE.Group();
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.2, 6), flatMaterial('#9aa3ad'));
+  stick.position.y = 0.1;
+  const light = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), new THREE.MeshBasicMaterial({ color: '#ff3b2f' }));
+  light.position.y = 0.22;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.03, 10), flatMaterial('#5a6470'));
+  root.add(stick, light, base);
+  // Big enough to spot across an arena.
+  root.scale.setScalar(1.6);
+  return { root, light };
+}
 
 /** Owns the Three.js scene. Reads world state each frame; never writes to it. */
 /** Degrees of extra field of view at full sprint. */
@@ -252,7 +271,9 @@ export class GameRenderer {
     }
     for (const e of world.level.entities) if (e.type === 'marker') this.dynamic.add(buildMarker(e, world.grid));
     for (const pk of world.pickups) this.addPickup(world, pk);
-    this.cameras = world.players.map((p) => {
+    // People get a camera and a gun in hand; computer players (after them) only a body.
+    const people = world.players.filter((p) => !p.bot);
+    this.cameras = people.map((p) => {
       const cam = new THREE.PerspectiveCamera(RENDER.fov, 1, 0.05, 200);
       cam.rotation.order = 'YXZ';
       configureCameraLayers(cam, p.slot);
@@ -262,22 +283,32 @@ export class GameRenderer {
     this.players = world.players.map((p) => {
       const color = PLAYER_COLORS[p.slot] ?? '#888';
       const prof = set?.player;
-      const file = set?.playerModels?.[p.slot % set.playerModels.length] ?? prof?.model;
+      const models = p.bot ? BOT_MODELS : (set?.playerModels ?? []);
+      const file = models.length ? models[p.slot % models.length] : prof?.model;
       const inst = prof && file && this.models ? this.models.instance(file) : null;
+      const antenna = p.bot ? buildAntenna() : null;
       if (prof && inst) {
         const model = new ModelCharacter(inst, prof, p.height, this.flashMat, this.heldGuns(world, Object.keys(world.data.weapons)));
+        if (antenna && !model.attachOnHead(antenna.root)) {
+          antenna.root.position.y = p.height;
+          model.root.add(antenna.root);
+        }
         setLayerDeep(model.root, LAYER.BODY + p.slot);
         this.dynamic.add(model.root);
-        return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
+        return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model, antennaLight: antenna?.light };
       }
       const h = buildHumanoid({ body: color, legs: '#2a2a2e', skin: '#c99a7a' });
+      if (antenna) {
+        antenna.root.position.y = p.height;
+        h.root.add(antenna.root);
+      }
       const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), this.flashMat);
       flash.position.set(0, 0, -0.2);
       flash.visible = false;
       h.gun.add(flash);
       setLayerDeep(h.root, LAYER.BODY + p.slot);
       this.dynamic.add(h.root);
-      return { h, phase: 0, flash };
+      return { h, phase: 0, flash, antennaLight: antenna?.light };
     });
     // Bubble Shields: seen by everyone but the player inside (they get the HUD tint instead).
     this.players.forEach((v, i) => {
@@ -294,7 +325,7 @@ export class GameRenderer {
     const vmSun = new THREE.DirectionalLight('#fff4e0', 1.2);
     vmSun.position.set(0.5, 1, 0.8);
     this.vmScene.add(vmSun);
-    this.viewModels = world.players.map((p) => {
+    this.viewModels = people.map((p) => {
       const va = set?.viewArms;
       const armsInst = va && this.models ? this.models.instance(va.model) : null;
       let vm: ViewModel;
@@ -721,6 +752,7 @@ export class GameRenderer {
       const size = (v.size ?? 1) + (sizeScale(p.power.tiny) - (v.size ?? 1)) * Math.min(1, frameTime * 8);
       v.size = size;
       v.h.root.scale.setScalar(size);
+      if (v.antennaLight) v.antennaLight.visible = Math.sin(this.time * 6 + i) > -0.3;
       if (v.bubble) {
         const left = p.power.shield;
         // Blinks in its last second and a half.

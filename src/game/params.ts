@@ -5,6 +5,8 @@ export interface GameParams {
   /** Skip the lobby (debug/testing): slot 0 gets keyboard+mouse, others the first free gamepads. */
   autostart: boolean;
   seed: number;
+  /** Computer players to add in versus (debug/testing, with autostart). */
+  bots: number;
   /** Model art set: '' (default, Kenney), 'kenney' or 'none' (code-built figures). */
   art: string;
 }
@@ -19,5 +21,6 @@ export function readParams(search: string): GameParams {
     autostart: q.get('autostart') === '1',
     seed: Number(q.get('seed') ?? '') || Math.floor(Math.random() * 2 ** 31),
     art: q.get('art') ?? '',
+    bots: Math.max(0, Math.min(3, Number(q.get('bots') ?? '') || 0)),
   };
 }

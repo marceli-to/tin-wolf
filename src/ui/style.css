@@ -119,6 +119,9 @@ canvas { display: block; image-rendering: pixelated; }
 .slots li:nth-child(2) .slot { background: var(--p2); }
 .slots li:nth-child(3) .slot { background: var(--p3); }
 .slots li:nth-child(4) .slot { background: var(--p4); }
+.slots li.bot { background: #eef3ff; }
+.slots .bot-tag { margin-right: -6px; }
+.lobby .difficulty { margin: -6px 0 16px; }
 .blink { animation: pulse 1.2s ease-in-out infinite; color: var(--dim); font-weight: 500; }
 @keyframes pulse { 50% { opacity: 0.35; } }
 

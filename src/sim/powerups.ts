@@ -30,7 +30,7 @@ export function applyPowerup(world: World, p: Player, itemId: string, item: Item
     default:
       return false;
   }
-  emit(world, { type: 'powerup', slot: p.slot, item: itemId });
+  emit(world, { type: 'powerup', slot: p.slot, item: itemId, x: p.x, z: p.z });
   return true;
 }
 
