@@ -82,5 +82,27 @@
     "drop": "weapon_smg",
     "dropAmount": 20,
     "cover": 0.35
+  },
+  "guard_dummy": {
+    "name": "Practice dummy",
+    "hp": 40,
+    "weapon": "pistol",
+    "walkSpeed": 1.8,
+    "runSpeed": 3.8,
+    "visionRange": 1,
+    "visionFovDeg": 1,
+    "noticeTime": 99,
+    "hearingScale": 0,
+    "reactionTime": 1,
+    "aimSpreadDeg": 0,
+    "burstPause": [
+      1,
+      1
+    ],
+    "searchTime": 1,
+    "damageScale": 1,
+    "color": "#d9822b",
+    "legs": "#5a3a1e",
+    "dummy": true
   }
 }

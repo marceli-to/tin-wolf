@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadLevel } from '../../src/data';
+import { clearLine } from '../../src/sim/los';
 import { placePlayer, createWorld, type World } from '../../src/sim/world';
 import { data, intent, place, run } from './helpers';
 
@@ -73,5 +74,47 @@ describe('warehouse mezzanine', () => {
     placePlayer(w, w.players[0]!, sp);
     run(w, 30, [intent()]);
     expect(w.players[0]!.y).toBeCloseTo(TOP, 2);
+  });
+});
+
+describe('training ground deck and tower', () => {
+  const ground = (): World => createWorld(loadLevel('training'), data, { players: 1, seed: 1 });
+
+  it('climbs the deck stairs and the tower stairs', () => {
+    const w = ground();
+    at(w, 10, 0, 53, 0);
+    run(w, secs(1.5), [intent({ moveZ: 1 })]);
+    expect(w.players[0]!.y).toBeCloseTo(3, 2);
+    at(w, 23, 0, 8, 270);
+    run(w, secs(2), [intent({ moveZ: 1 })]);
+    expect(w.players[0]!.y).toBeCloseTo(4.5, 2);
+  });
+
+  it('every target outside the grenade pit can be shot from the field or the deck', () => {
+    const w = ground();
+    const eyes: [number, number, number][] = [];
+    for (let x = 6; x <= 66; x += 6) {
+      eyes.push([x, 1.6, 80], [x, 1.6, 58], [x, 3 + 1.6, 45]);
+    }
+    const pit = (t: { z: number; x: number }) => t.z > 60 && t.z < 64 && t.x > 33 && t.x < 40;
+    for (const t of w.targets) {
+      if (pit(t)) continue;
+      const seen = eyes.some(([x, y, z]) => clearLine(w, x, y, z, t.x, t.y, t.z));
+      expect(seen, `target at ${t.x}, ${t.z}`).toBe(true);
+    }
+  });
+
+  it('practice dummies walk their whole patrol without getting stuck', () => {
+    const w = ground();
+    expect(w.guards.length).toBe(5);
+    const reached = w.guards.map(() => 0);
+    for (let i = 0; i < secs(30); i++) {
+      run(w, 1, [intent()]);
+      w.guards.forEach((g, k) => {
+        const far = g.patrol[0]!;
+        if (Math.hypot(g.x - far.x, g.z - far.z) < 1) reached[k] = 1;
+      });
+    }
+    expect(reached).toEqual([1, 1, 1, 1, 1]);
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SimEvent } from '../../src/sim/events';
-import { TARGET_POP_TIME } from '../../src/sim/targets';
+import { GUARD_REVIVE_TIME, TARGET_POP_TIME } from '../../src/sim/targets';
 import type { World } from '../../src/sim/world';
 import { intent, makeWorld, place, run } from './helpers';
 
@@ -136,5 +136,61 @@ describe('training course', () => {
     expect(w.course?.running).toBe(false);
     run(w, secs(3), [intent()]);
     expect(w.targets.every((t) => t.standing)).toBe(true);
+  });
+});
+
+describe('practice dummies', () => {
+  const dummy = (extra: Record<string, unknown> = {}) => ({ type: 'guard', id: 'd', archetype: 'guard_dummy', cell: [12, 2], yaw: 270, ...extra });
+
+  it('walk their patrol in plain view and never notice or shoot', () => {
+    const w = range([], [dummy({ patrol: [[18, 2], [12, 2]] })]);
+    const g = w.guards[0]!;
+    const x0 = g.x;
+    let farthest = 0;
+    for (let i = 0; i < secs(8); i++) {
+      run(w, 1, [intent()]);
+      farthest = Math.max(farthest, g.x - x0);
+      expect(g.state).toBe('patrol');
+    }
+    expect(farthest).toBeGreaterThan(6);
+    expect(g.sinceShot).toBeGreaterThan(7);
+    expect(w.players[0]!.hp).toBe(100);
+  });
+
+  it('go down when shot and are back at their post a few seconds later', () => {
+    const w = range([], [dummy()]);
+    const g = w.guards[0]!;
+    shootAt(w, g.x, g.y + 1.2, g.z);
+    expect(w.guards[0]!.state).toBe('dead');
+    run(w, secs(GUARD_REVIVE_TIME + 0.5), [intent()]);
+    const back = w.guards[0]!;
+    expect(back.state).toBe('patrol');
+    expect(back.hp).toBeGreaterThan(0);
+    expect(back.x).toBeCloseTo(25, 1);
+  });
+
+  it('count toward the course, and a new run brings them back', () => {
+    const w = range(
+      [{ type: 'target', id: 'a', cell: [10, 6], yaw: 270 }],
+      [dummy(), { type: 'prop', kind: 'start_panel', id: 'start', cell: [2, 4], elevation: 0.8 }],
+    );
+    const p = w.players[0]!;
+    // Down before the run: the run stands it up again.
+    shootAt(w, w.guards[0]!.x, w.guards[0]!.y + 1.2, w.guards[0]!.z);
+    expect(w.guards[0]!.state).toBe('dead');
+    const pb = w.props.find((x) => x.id === 'start')!.box;
+    p.yaw = Math.atan2((pb.minX + pb.maxX) / 2 - p.x, -((pb.minZ + pb.maxZ) / 2 - p.z));
+    p.pitch = Math.atan2((pb.minY + pb.maxY) / 2 - 1.6, Math.hypot((pb.minX + pb.maxX) / 2 - p.x, (pb.minZ + pb.maxZ) / 2 - p.z));
+    run(w, 1, [intent({ interact: true })]);
+    expect(w.course?.total).toBe(2);
+    expect(w.guards[0]!.state).toBe('patrol');
+    run(w, 30, [intent()]);
+    const t = w.targets[0]!;
+    shootAt(w, t.x, t.y, t.z);
+    expect(w.course?.running).toBe(true);
+    // The last one down finishes the run.
+    const g = w.guards[0]!;
+    const ev = shootAt(w, g.x, g.y + 1.2, g.z);
+    expect(ev.some((e) => e.type === 'courseDone')).toBe(true);
   });
 });

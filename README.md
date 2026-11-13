@@ -17,7 +17,7 @@ npm run build
 
 `./deploy.sh` publishes the committed state to https://tinfox.kimiyu.ch (Hostpoint, same account as the other kimiyu sites, over SSH with your own key). It refuses to run with uncommitted changes, runs the tests, builds, and mirrors `dist/` (including `.htaccess`) into `www/tinfox.kimiyu.ch/public`, deleting files that are no longer part of the build.
 
-Levels: `depot` (mission, Halvard Depot), versus arenas `arena_pumphouse`, `arena_warehouse` (raised corner platforms, pillar blocks) and `arena_snowfort` (outdoors, a hut in the middle), `training` (Training Ground: target practice, see below), `test_room` (sandbox with two guards). Versus in the menu lets you pick the map. The two new arenas are point-symmetric so neither start is better; they were generated with a small script and are plain level JSON.
+Levels: `depot` (mission, Halvard Depot), versus arenas `arena_pumphouse`, `arena_warehouse` (70×58 m, a mezzanine, a bridge and a centre platform 3 m up, loading docks) and `arena_snowfort` (outdoors, a hut in the middle), `training` (Training Ground: target practice, see below), `test_room` (sandbox with two guards). Versus in the menu lets you pick the map. The two new arenas are point-symmetric so neither start is better; they were generated with a small script and are plain level JSON. The Warehouse and the Training Ground come from `tools/gen_warehouse.py` and `tools/gen_training.py` (shared helpers in `tools/levelkit.py`): edit the script and re-run it rather than editing their JSON. Upper levels are walkable props (`catwalk`, `stair`, `railing`, `rail_post`, `support`, sized per entity with `size` and `elevation`); spawns, starts and pickups take `elevation` to stand on them.
 
 URL parameters:
 
@@ -40,9 +40,9 @@ Red barrels with a yellow band (`barrel_red`, the Space Kit barrel) blow up afte
 
 ## Training
 
-Menu → Training (one or two players). An outdoor range with 17 round targets: close, mid and far lanes (the far ones are for the Heron LR), two moving targets on rails, a couple up on crates, and three small ones hidden behind tall crates that need a grenade lobbed over from close up. Targets tip over when hit (a centre hit is a *Bullseye!*) and stand up again after 2.5 s. You carry every weapon and reserves never run out.
+Menu → Training (one or two players). An outdoor range (72×92 m) with 19 round targets: warm-up targets on the west side (two up on crates), three small ones hidden behind tall crates in the middle that need a grenade lobbed over from close up, and a few on the east side. A 3 m shooting deck crosses the field (stairs at both ends, you can walk under it); from there you take the long range with the Heron LR: two moving targets on rails, far targets, and two on a 4.5 m tower in the north-west corner, which has its own stairs. Five practice dummies in worker outfits (`guard_dummy`, enemy flag `dummy`) patrol the stations, the space under the deck and the long range: they flinch when hit but never notice you or fire, and are back at their post 5 s after going down. Targets tip over when hit (a centre hit is a *Bullseye!*) and stand up again after 2.5 s. You carry every weapon and reserves never run out.
 
-The yellow button on the crate in front of the start runs a timed course: all targets stand up, hit ones stay down, and when the last one falls you get your time and hit rate. The best time is kept in the browser (`localStorage`) and shown on the range and in the Training menu. Targets are level entities (`"type": "target"`, optional `size: "small"`, `elevation`, and `to` + `speed` for a rail); the button is the `start_panel` prop.
+The yellow button on the crate in front of the start runs a timed course: all targets stand up and every dummy is back at its post, hit ones stay down (dummies count like targets: 24 in all), and when the last one falls you get your time and hit rate. The best time is kept in the browser (`localStorage`) and shown on the range and in the Training menu. Targets are level entities (`"type": "target"`, optional `size: "small"`, `elevation`, and `to` + `speed` for a rail); the button is the `start_panel` prop.
 
 ## Weapons
 

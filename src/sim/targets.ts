@@ -1,8 +1,10 @@
 import type { Ray } from './raycast';
-import { emit, type Player, type World } from './world';
+import { emit, reviveGuard, type Player, type World } from './world';
 
 /** Seconds a hit target lies flat before it pops up again (outside a course run). */
 export const TARGET_POP_TIME = 2.5;
+/** Seconds a downed guard (practice dummy) lies there before it is back at its post (outside a course run). */
+export const GUARD_REVIVE_TIME = 5;
 /** Rates at which a target falls and stands up (fraction per second). */
 const FALL_RATE = 7;
 const RISE_RATE = 3.5;
@@ -34,7 +36,7 @@ export interface Target {
   done: boolean;
 }
 
-/** The timed course of a training ground: started at a start panel, done when every target is down. */
+/** The timed course of a training ground: started at a start panel, done when every target and guard is down. */
 export interface CourseState {
   running: boolean;
   slot: number;
@@ -87,6 +89,14 @@ export function hitTarget(world: World, index: number, shooter: Player | null, o
   if (c?.running && c.hits >= c.total) finishCourse(world);
 }
 
+/** A guard went down: counts toward a running course like a target. */
+function guardDown(world: World): void {
+  const c = world.course;
+  if (!c?.running) return;
+  c.hits++;
+  if (c.hits >= c.total) finishCourse(world);
+}
+
 function startCourse(world: World, slot: number): void {
   const p = world.players[slot];
   if (!p) return;
@@ -95,8 +105,11 @@ function startCourse(world: World, slot: number): void {
     t.timer = 0;
     t.done = false;
   }
-  world.course = { running: true, slot, time: 0, hits: 0, total: world.targets.length, shots0: p.shotsFired, hits0: p.shotsHit };
-  emit(world, { type: 'courseStarted', slot, total: world.targets.length });
+  // Every guard is back at its post for a fresh run.
+  world.guards.forEach((_, i) => reviveGuard(world, i));
+  const total = world.targets.length + world.guards.length;
+  world.course = { running: true, slot, time: 0, hits: 0, total, shots0: p.shotsFired, hits0: p.shotsHit };
+  emit(world, { type: 'courseStarted', slot, total });
 }
 
 function finishCourse(world: World): void {
@@ -113,6 +126,8 @@ function finishCourse(world: World): void {
 /** Moves and animates targets, runs the course, and keeps everyone's ammo topped up. */
 export function updateTargets(world: World, dt: number): void {
   if (world.level.mode !== 'training') return;
+  // Guards downed this tick count first, so one that falls as a run starts is not counted twice.
+  for (const e of world.events) if (e.type === 'died' && e.target.kind === 'guard') guardDown(world);
   // A start panel starts (or restarts) the course; it can be used again at once.
   for (const e of world.events) {
     if (e.type !== 'used') continue;
@@ -120,6 +135,12 @@ export function updateTargets(world: World, dt: number): void {
     if (prop?.kind !== 'start_panel') continue;
     prop.used = false;
     startCourse(world, e.slot);
+  }
+  // Outside a run, downed guards come back after a while.
+  if (!world.course?.running) {
+    world.guards.forEach((g, i) => {
+      if (g.state === 'dead' && g.deadTime > GUARD_REVIVE_TIME) reviveGuard(world, i);
+    });
   }
   if (world.course?.running) world.course.time += dt;
   for (const t of world.targets) {

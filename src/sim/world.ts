@@ -520,6 +520,20 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
 
 /** Adds a guard from its level entity (also used for reinforcements when the alarm goes off). */
 export function spawnGuard(world: World, e: GuardEntity): Guard {
+  const g = makeGuard(world, e, world.guards.length);
+  world.guards.push(g);
+  return g;
+}
+
+/** Puts a guard back at its post, fresh and unaware, as in a new level (training dummies). */
+export function reviveGuard(world: World, index: number): void {
+  const old = world.guards[index];
+  const e = world.level.entities.find((x): x is GuardEntity => x.type === 'guard' && x.id === old?.id);
+  if (!e) return;
+  world.guards[index] = makeGuard(world, e, index);
+}
+
+function makeGuard(world: World, e: GuardEntity, index: number): Guard {
   const def = world.enemies[e.archetype]!;
   const s = world.grid.size;
   const [c, r] = e.cell;
@@ -531,8 +545,8 @@ export function spawnGuard(world: World, e: GuardEntity): Guard {
     z: Number.isInteger(pr) ? (pr + 0.5) * s : pr * s,
   });
   const gy = floorAtWorld(world.grid, x, z) ?? 0;
-  world.guards.push({
-    index: world.guards.length,
+  return {
+    index,
     id: e.id,
     archetype: e.archetype,
     x,
@@ -581,8 +595,7 @@ export function spawnGuard(world: World, e: GuardEntity): Guard {
     coverCooldown: 0,
     crouching: false,
     alarmTarget: null,
-  });
-  return world.guards[world.guards.length - 1]!;
+  };
 }
 
 /** Door panel geometry: a thin slab across the cell that slides up into the ceiling. */

@@ -306,7 +306,7 @@ function navOptions(world: World): NavOptions {
 }
 
 /** Is a straight walk between two points free of walls, ledges and props? */
-function walkable(world: World, ax: number, az: number, bx: number, bz: number, r: number): boolean {
+function walkable(world: World, ax: number, az: number, bx: number, bz: number, r: number, y = 0): boolean {
   const grid = world.grid;
   const len = Math.hypot(bx - ax, bz - az);
   if (len < 1e-3) return true;
@@ -329,6 +329,8 @@ function walkable(world: World, ax: number, az: number, bx: number, bz: number, 
   }
   for (const b of world.terrain.boxes) {
     if (b.maxY - b.minY < 0.5) continue;
+    // Overhead (catwalks, their railings) or underfoot: not in the way.
+    if (b.minY >= y + PLAYER.height || b.maxY <= y + 0.4) continue;
     const x0 = b.minX - r;
     const x1 = b.maxX + r;
     const z0 = b.minZ - r;
@@ -385,7 +387,7 @@ export function setGoal(world: World, g: Guard, x: number, z: number): boolean {
   let i = 0;
   while (i < pts.length) {
     let j = pts.length - 1;
-    while (j > i && !walkable(world, cur.x, cur.z, pts[j]!.x, pts[j]!.z, g.radius + 0.05)) j--;
+    while (j > i && !walkable(world, cur.x, cur.z, pts[j]!.x, pts[j]!.z, g.radius + 0.05, g.y)) j--;
     out.push(pts[j]!);
     cur = pts[j]!;
     i = j + 1;
@@ -406,7 +408,8 @@ function atGoal(g: Guard): boolean {
 function think(world: World, g: Guard, def: EnemyDef): void {
   let best: Player | null = null;
   let bestF = 0;
-  for (const p of world.players) {
+  // Dummies never notice anyone; they only walk their patrol.
+  if (!def.dummy) for (const p of world.players) {
     const f = sightFactor(world, g, def, p);
     if (f > bestF) {
       bestF = f;
@@ -683,6 +686,7 @@ export function updateGuards(world: World, dt: number): void {
       // Being shot ruins aim.
       g.reaction = Math.max(g.reaction, 0.25);
     }
+    if (g.lastHurtBy && def.dummy) g.lastHurtBy = null; // a flinch (set when hit) is all
     if (g.lastHurtBy) {
       if (g.lastHurtBy.kind === 'player') {
         const p = world.players[g.lastHurtBy.slot];
@@ -701,7 +705,7 @@ export function updateGuards(world: World, dt: number): void {
         takeCover(world, g);
       }
     }
-    for (const n of noises) hear(world, g, def, n);
+    if (!def.dummy) for (const n of noises) hear(world, g, def, n);
     if ((world.tick + g.index) % TICKS_PER_THINK === 0) think(world, g, def);
     act(world, g, def, dt);
   }

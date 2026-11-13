@@ -179,6 +179,8 @@ export const EnemySchema = z.object({
   cover: z.number().min(0).max(1).default(0),
   /** Item left where the guard falls. */
   drop: z.string().optional(),
+  /** Practice dummy (training): walks its patrol, flinches when hit, never notices, chases or fires. */
+  dummy: z.boolean().default(false),
   dropAmount: z.number().optional(),
 });
 export type EnemyDef = z.output<typeof EnemySchema>;
