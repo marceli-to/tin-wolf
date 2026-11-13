@@ -174,9 +174,10 @@ export class InputManager {
   }
 
   /** The device that pressed confirm this frame (for "press to start" screens). */
-  confirmDevice(): DeviceId | null {
+  /** `mouse`: a click anywhere counts too (off where the screen has buttons to click). */
+  confirmDevice(mouse = true): DeviceId | null {
     const k = this.kbm;
-    if (k.pressed('Enter') || k.pressed('Space') || k.clicked) return { kind: 'kbm' };
+    if (k.pressed('Enter') || k.pressed('Space') || (mouse && k.clicked)) return { kind: 'kbm' };
     for (const i of this.pads.connected()) if (this.pads.pressed(i, PAD.A) || this.pads.pressed(i, PAD.START)) return { kind: 'pad', index: i };
     return null;
   }

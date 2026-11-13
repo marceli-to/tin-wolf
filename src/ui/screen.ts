@@ -18,6 +18,8 @@ export interface ScreenSpec {
   /** Darken the game behind instead of a full backdrop. */
   overlay?: boolean;
   wide?: boolean;
+  /** Clicks inside the body (outside the menu items), e.g. on an inline control. */
+  onBodyClick?: (target: HTMLElement) => void;
 }
 
 /** One full-screen menu panel; keyboard, gamepad and mouse all drive the same selection. */
@@ -38,8 +40,15 @@ export class ScreenView {
       const li = (e.target as HTMLElement).closest('li[data-i]');
       if (li) {
         this.select(Number((li as HTMLElement).dataset.i));
-        this.activate();
+        // The ◂ ▸ arrows on a settings row step it down or up; anywhere else activates the row.
+        const arrow = (e.target as HTMLElement).closest<HTMLElement>('[data-dir]');
+        const it = this.spec?.items[this.selected];
+        if (arrow && it?.adjust) this.adjust(Number(arrow.dataset.dir) < 0 ? -1 : 1);
+        else this.activate();
+        return;
       }
+      const body = (e.target as HTMLElement).closest('.body');
+      if (body) this.spec?.onBodyClick?.(e.target as HTMLElement);
     });
   }
 

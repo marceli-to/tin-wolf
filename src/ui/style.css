@@ -63,6 +63,8 @@ canvas { display: block; image-rendering: pixelated; }
 }
 .menu li small { flex-basis: 100%; font-size: 14px; color: var(--dim); font-weight: 500; }
 .menu li .val { font-size: 18px; color: var(--accent); white-space: nowrap; }
+.menu li .val .arrow { display: inline-block; padding: 2px 8px; margin: -2px 0; border-radius: 8px; font-weight: 700; }
+.menu li .val .arrow:hover { background: rgba(31, 42, 68, 0.12); }
 .menu li.sel { background: var(--accent); color: #fff; transform: translateY(-2px); box-shadow: 0 6px 0 var(--line); }
 .menu li.sel small { color: rgba(255, 255, 255, 0.9); }
 .menu li.sel .val { color: #fff; }
@@ -74,10 +76,13 @@ canvas { display: block; image-rendering: pixelated; }
 .panel .body p { margin: 0 0 12px; }
 .panel .body h3 { font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin: 18px 0 8px; }
 .panel .difficulty { margin-top: 0; font-weight: 600; color: var(--dim); }
-.panel .difficulty b {
+.panel .difficulty .pill {
   display: inline-block; margin-left: 8px; padding: 2px 14px; color: #fff; background: var(--accent);
   border: 3px solid var(--line); border-radius: 999px; box-shadow: 0 3px 0 var(--line);
+  font: inherit; font-weight: 700; cursor: pointer; transition: transform 80ms, box-shadow 80ms;
 }
+.panel .difficulty .pill:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--line); }
+.panel .difficulty .pill:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line); }
 
 .objlist { list-style: none; margin: 0; padding: 0; }
 .objlist li { padding: 4px 0 4px 30px; position: relative; font-weight: 500; }

@@ -134,13 +134,16 @@ export class Game {
       const i = RESOLUTIONS.indexOf(s.resolution);
       s.resolution = RESOLUTIONS[(i + d + RESOLUTIONS.length) % RESOLUTIONS.length]!;
     };
-    const row = (name: string, value: string): string => `${name}<span class="val">◂ ${value} ▸</span>`;
+    // Clicking a row steps up (wrapping round); the arrows step either way.
+    const wrap = (v: number, d: number, min: number, max: number): number => (v + d > max + 1e-9 ? min : step(v, d, min, max));
+    const row = (name: string, value: string): string =>
+      `${name}<span class="val"><b class="arrow" data-dir="-1">◂</b> ${value} <b class="arrow" data-dir="1">▸</b></span>`;
     return {
       title: 'SETTINGS',
       overlay: this.state === 'paused',
       items: [
-        { label: row('Mouse sensitivity', s.mouseSens.toFixed(1)), action: () => undefined, adjust: (d) => change(() => (s.mouseSens = step(s.mouseSens, d * 0.1, 0.2, 4))) },
-        { label: row('Gamepad sensitivity', s.padSens.toFixed(1)), action: () => undefined, adjust: (d) => change(() => (s.padSens = step(s.padSens, d * 0.1, 0.2, 4))) },
+        { label: row('Mouse sensitivity', s.mouseSens.toFixed(1)), action: () => change(() => (s.mouseSens = wrap(s.mouseSens, 0.1, 0.2, 4))), adjust: (d) => change(() => (s.mouseSens = step(s.mouseSens, d * 0.1, 0.2, 4))) },
+        { label: row('Gamepad sensitivity', s.padSens.toFixed(1)), action: () => change(() => (s.padSens = wrap(s.padSens, 0.1, 0.2, 4))), adjust: (d) => change(() => (s.padSens = step(s.padSens, d * 0.1, 0.2, 4))) },
         { label: row('Invert look', s.invertY ? 'On' : 'Off'), action: () => change(() => (s.invertY = !s.invertY)), adjust: () => change(() => (s.invertY = !s.invertY)) },
         { label: row('Gamepad aim assist', s.aimAssist ? 'On' : 'Off'), action: () => change(() => (s.aimAssist = !s.aimAssist)), adjust: () => change(() => (s.aimAssist = !s.aimAssist)) },
         {
@@ -149,12 +152,12 @@ export class Game {
           adjust: () => change(() => (s.split = s.split === 'vertical' ? 'horizontal' : 'vertical')),
         },
         { label: row('Difficulty', this.difficultyName()), action: () => change(() => this.cycleDifficulty(1)), adjust: (d) => change(() => this.cycleDifficulty(d)) },
-        { label: row('Volume', `${Math.round(s.volume * 100)}%`), action: () => undefined, adjust: (d) => change(() => (s.volume = step(s.volume, d * 0.1, 0, 1))) },
-        { label: row('Music', `${Math.round(s.music * 100)}%`), action: () => undefined, adjust: (d) => change(() => (s.music = step(s.music, d * 0.1, 0, 1))) },
+        { label: row('Volume', `${Math.round(s.volume * 100)}%`), action: () => change(() => (s.volume = wrap(s.volume, 0.1, 0, 1))), adjust: (d) => change(() => (s.volume = step(s.volume, d * 0.1, 0, 1))) },
+        { label: row('Music', `${Math.round(s.music * 100)}%`), action: () => change(() => (s.music = wrap(s.music, 0.1, 0, 1))), adjust: (d) => change(() => (s.music = step(s.music, d * 0.1, 0, 1))) },
         { label: row('Graphics', resLabel(s.resolution)), action: () => change(() => cycleRes(1)), adjust: (d) => change(() => cycleRes(d)) },
         { label: 'Back', action: back },
       ],
-      footer: 'Left / right to change',
+      footer: 'Click a row or its arrows, or press left / right, to change it',
     };
   }
 
@@ -386,10 +389,23 @@ export class Game {
       title: 'BRIEFING',
       subtitle: esc(level.name),
       wide: true,
-      body: `<p class="difficulty">Difficulty <b>◂ ${esc(this.difficultyName())} ▸</b></p>${paras}<h3>Objectives</h3><ul class="objlist">${objs}</ul>`,
-      items: [],
-      footer: 'Left / right: difficulty · Click, Enter or A to begin · Esc / B: back',
+      body: `<p class="difficulty">Difficulty <button type="button" class="pill" data-difficulty title="Change difficulty">◂ ${esc(this.difficultyName())} ▸</button></p>${paras}<h3>Objectives</h3><ul class="objlist">${objs}</ul>`,
+      items: [{ label: 'Start game', action: () => this.beginMission({ kind: 'kbm' }) }],
+      footer: 'Click the difficulty or press left / right to change it · Enter or A: start · Esc / B: back',
+      onBodyClick: (t) => {
+        if (!t.closest('[data-difficulty]')) return;
+        this.cycleDifficulty(1);
+        this.sfx.play('ui_select', 0.3);
+        this.showBriefing();
+      },
     });
+  }
+
+  private beginMission(dev: DeviceId): void {
+    if (this.state !== 'briefing') return;
+    this.input.slots = [dev];
+    this.sfx.play('ui_select', 0.5);
+    this.startLevel();
   }
 
   private difficultyName(): string {
@@ -561,12 +577,9 @@ export class Game {
           this.showBriefing();
           break;
         }
-        const dev = this.input.confirmDevice();
-        if (dev) {
-          this.input.slots = [dev];
-          this.sfx.play('ui_select', 0.5);
-          this.startLevel();
-        }
+        // Mouse clicks go to the difficulty pill and the Start button; keys and pads start from anywhere.
+        const dev = this.input.confirmDevice(false);
+        if (dev) this.beginMission(dev);
         break;
       }
       case 'menu':
