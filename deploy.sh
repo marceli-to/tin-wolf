@@ -22,8 +22,8 @@ npm test --silent
 echo "Building $(git rev-parse --short HEAD)…"
 rm -rf dist
 npm run build --silent
-# Hashed file names change with every build; make sure the page and its bundle made it.
-if [[ ! -f dist/index.html || ! -f dist/.htaccess ]]; then
+# Hashed file names change with every build; make sure both pages (landing and game) made it.
+if [[ ! -f dist/index.html || ! -f dist/play/index.html || ! -f dist/.htaccess ]]; then
   echo "dist/ is incomplete. Check the build output."
   exit 1
 fi

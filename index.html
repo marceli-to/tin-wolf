@@ -3,26 +3,300 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tin Fox</title>
-    <meta name="description" content="A toy-sized spy game: sneak through a snowed-in depot with your blaster, or play 2-player split-screen versus. Runs in the browser, keyboard or gamepad." />
+    <title>Tin Fox · A toy-box spy shooter for the couch</title>
+    <meta name="description" content="Tin Fox is a free toy-sized spy shooter that runs in your browser: sneak through a snowed-in depot, play 2-player split-screen versus, or race the training course. Keyboard, mouse or gamepad." />
     <meta name="theme-color" content="#6fbff0" />
+    <link rel="canonical" href="https://tinfox.kimiyu.ch/" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/assets/fonts/Fredoka.ttf" as="font" type="font/ttf" crossorigin />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Tin Fox" />
-    <meta property="og:title" content="Tin Fox" />
-    <meta property="og:description" content="Sneak through a snowed-in depot with your blaster, or play 2-player split-screen versus. Right in the browser." />
+    <meta property="og:title" content="Tin Fox · A toy-box spy shooter for the couch" />
+    <meta property="og:description" content="Sneak through a snowed-in depot, play 2-player split-screen versus, or race the training course. Free, right in the browser." />
     <meta property="og:url" content="https://tinfox.kimiyu.ch/" />
     <meta property="og:image" content="https://tinfox.kimiyu.ch/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Tin Fox: a toy guard in a snowy yard, seen over an orange blaster" />
+    <meta property="og:image:alt" content="Tin Fox: two-player split-screen in the Warehouse arena, with the Tin Fox logo" />
+    <meta property="og:video" content="https://tinfox.kimiyu.ch/media/trailer-720.mp4" />
+    <meta property="og:video:type" content="video/mp4" />
+    <meta property="og:video:width" content="1280" />
+    <meta property="og:video:height" content="720" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="/src/ui/style.css" />
+    <script>
+      // Old links went straight into the game (/?level=…); send them to its new home.
+      if (/[?&](level|players|debug|autostart|seed|art)=/.test(location.search)) location.replace('/play/' + location.search + location.hash);
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Tin Fox",
+        "url": "https://tinfox.kimiyu.ch/",
+        "description": "A toy-sized spy shooter in the browser: a stealth mission, 2-player split-screen versus and a timed training course.",
+        "image": "https://tinfox.kimiyu.ch/og-image.png",
+        "genre": ["First-person shooter", "Stealth"],
+        "gamePlatform": "Web browser",
+        "applicationCategory": "Game",
+        "operatingSystem": "Any (desktop browser)",
+        "playMode": ["SinglePlayer", "MultiPlayer"],
+        "numberOfPlayers": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2 },
+        "author": { "@type": "Organization", "name": "kimiyu" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CHF" },
+        "trailer": {
+          "@type": "VideoObject",
+          "name": "Tin Fox gameplay",
+          "description": "Split-screen versus, the Halvard Depot mission and the training ground.",
+          "thumbnailUrl": "https://tinfox.kimiyu.ch/media/shot-warehouse_split-1600.webp",
+          "contentUrl": "https://tinfox.kimiyu.ch/media/trailer-1080.mp4",
+          "uploadDate": "2026-11-13",
+          "duration": "PT57S"
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/src/landing/landing.css" />
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Tin Fox home">
+        <img src="/favicon.svg" alt="" width="34" height="34" />
+        <span>Tin Fox</span>
+      </a>
+      <nav aria-label="Sections">
+        <a href="#trailer">Trailer</a>
+        <a href="#modes">Modes</a>
+        <a href="#controls">Controls</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-small play-link" href="/play/">Play</a>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="hero-copy">
+          <h1 class="logo">TIN FOX</h1>
+          <p class="tagline">A toy-box spy shooter for the couch.</p>
+          <p class="lede">
+            Sneak into a snowed-in weather station, knock each other off the catwalk in split-screen,
+            or chase your best time on the range. Right in the browser.
+          </p>
+          <div class="cta">
+            <a class="btn btn-big play-link" href="/play/">Play now</a>
+            <a class="btn btn-ghost" href="#trailer">Watch the trailer</a>
+          </div>
+          <ul class="facts" aria-label="At a glance">
+            <li>Free</li>
+            <li>No install, no account</li>
+            <li>Keyboard, mouse or gamepad</li>
+          </ul>
+          <p class="touch-note" hidden>
+            Tin Fox needs a keyboard and mouse or a gamepad, so it does not run on phones and tablets yet.
+            Open <b>tinfox.kimiyu.ch</b> on a computer to play.
+          </p>
+        </div>
+        <figure class="hero-screen">
+          <video
+            class="hero-video"
+            src="/media/hero-loop.mp4"
+            poster="/media/hero-poster.webp"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+            aria-label="Split-screen versus: player one crosses the bridge, scopes in and knocks out player two"
+          ></video>
+          <figcaption><span class="chip p1">P1</span><span class="chip p2">P2</span> Split-screen on one screen</figcaption>
+        </figure>
+      </section>
+
+      <section id="trailer" class="section">
+        <h2 class="section-title">See it in action</h2>
+        <div class="trailer-frame">
+          <video controls preload="none" playsinline poster="/media/shot-warehouse_split-1600.webp" aria-label="Tin Fox gameplay trailer, 57 seconds, no sound">
+            <source src="/media/trailer-1080.mp4" type="video/mp4" media="(min-width: 1000px)" />
+            <source src="/media/trailer-720.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <p class="note">57 seconds of real gameplay, no sound: versus in the Warehouse, the depot mission and the training ground.</p>
+      </section>
+
+      <section id="modes" class="section">
+        <h2 class="section-title">Three ways to play</h2>
+        <div class="modes">
+          <article class="card mode">
+            <img src="/media/shot-depot_scope_barrel-800.webp" alt="Through the Heron LR's scope: a depot guard walks past a red barrel" width="800" height="450" loading="lazy" />
+            <div class="mode-body">
+              <p class="kicker">Mission · 1 player</p>
+              <h3>Halvard Depot</h3>
+              <p>
+                A weather station high in the mountains, cut off by snow. Take the red keycard, wreck the
+                guidance console in the lab and slip out through the vehicle tunnel.
+              </p>
+              <ul>
+                <li>Sneak up the maintenance duct or kick in the front door</li>
+                <li>Guards patrol, hear footsteps, take cover and run for the alarm</li>
+                <li>Easy, Normal or Hard</li>
+              </ul>
+            </div>
+          </article>
+          <article class="card mode">
+            <img src="/media/shot-warehouse_split-800.webp" alt="Split-screen: player one on the Warehouse mezzanine, player two under the bridge" width="800" height="450" loading="lazy" />
+            <div class="mode-body">
+              <p class="kicker">Versus · 2 players</p>
+              <h3>Split-screen showdown</h3>
+              <p>
+                Two players, one screen, first to ten takedowns. Player two grabs a gamepad, and it's on.
+              </p>
+              <ul>
+                <li>Warehouse: a mezzanine, a bridge and the only rifle up in the middle</li>
+                <li>Snowfort and Pumphouse</li>
+                <li>Side by side or top and bottom</li>
+              </ul>
+            </div>
+          </article>
+          <article class="card mode">
+            <img src="/media/shot-training_dummy-800.webp" alt="The training ground: a practice dummy walks past round targets" width="800" height="450" loading="lazy" />
+            <div class="mode-body">
+              <p class="kicker">Training · 1 or 2 players</p>
+              <h3>The range</h3>
+              <p>
+                Every weapon and endless ammo. Hit the yellow button and race the clock: 19 targets and five
+                practice dummies who never shoot back.
+              </p>
+              <ul>
+                <li>A grenade pit and a 3 m shooting deck</li>
+                <li>Moving targets and a tower at long range</li>
+                <li>Your best time is saved</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section arsenal-section" aria-labelledby="arsenal-title">
+        <h2 id="arsenal-title" class="section-title">The arsenal</h2>
+        <ul class="arsenal">
+          <li class="weapon"><span class="w-name">Kestrel 9</span><span class="w-ammo">8 rounds</span><span class="w-note">The trusty sidearm</span></li>
+          <li class="weapon"><span class="w-name">Kestrel 9 SD</span><span class="w-ammo">8 rounds</span><span class="w-note">Silenced, for the quiet route</span></li>
+          <li class="weapon"><span class="w-name">Vireo SMG</span><span class="w-ammo">30 rounds</span><span class="w-note">Lots of bullets, quickly</span></li>
+          <li class="weapon"><span class="w-name">Heron LR</span><span class="w-ammo">4 rounds</span><span class="w-note">4× scope, one well-placed shot</span></li>
+          <li class="weapon"><span class="w-name">Frag grenade</span><span class="w-ammo">up to 6</span><span class="w-note">Lob it over the crates</span></li>
+          <li class="weapon hot"><span class="w-name">Red barrels</span><span class="w-ammo">boom</span><span class="w-note">Chain reactions included</span></li>
+        </ul>
+      </section>
+
+      <section class="section couch">
+        <div class="card couch-card">
+          <h2 class="section-title">Made for the couch</h2>
+          <div class="couch-grid">
+            <div>
+              <h3>Two players, one screen</h3>
+              <p>Player one on keyboard and mouse, player two on a gamepad. Two gamepads work too.</p>
+            </div>
+            <div>
+              <h3>Kid-friendly</h3>
+              <p>Chunky toy figures, no blood. Easy makes the guards slow and forgiving.</p>
+            </div>
+            <div>
+              <h3>Nothing to install</h3>
+              <p>Open the page and play. Settings and best times stay in your browser.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="gallery" class="section">
+        <h2 class="section-title">Screenshots</h2>
+        <ul class="gallery">
+          <li><button type="button" data-full="/media/shot-warehouse_scope_kill-1600.webp"><img src="/media/shot-warehouse_scope_kill-800.webp" alt="Split-screen: player one has player two in the scope" width="800" height="450" loading="lazy" /></button></li>
+          <li><button type="button" data-full="/media/shot-deck_scope_rail-1600.webp"><img src="/media/shot-deck_scope_rail-800.webp" alt="Scoped in on a moving target from the shooting deck" width="800" height="450" loading="lazy" /></button></li>
+          <li><button type="button" data-full="/media/shot-training_deck-1600.webp"><img src="/media/shot-training_deck-800.webp" alt="The view from the shooting deck down the long range" width="800" height="450" loading="lazy" /></button></li>
+          <li><button type="button" data-full="/media/shot-depot_scope_barrel-1600.webp"><img src="/media/shot-depot_scope_barrel-800.webp" alt="Halvard Depot: a guard next to a red barrel, through the scope" width="800" height="450" loading="lazy" /></button></li>
+          <li><button type="button" data-full="/media/shot-snowfort-1600.webp"><img src="/media/shot-snowfort-800.webp" alt="The Snowfort arena" width="800" height="450" loading="lazy" /></button></li>
+          <li><button type="button" data-full="/media/shot-menu-1600.webp"><img src="/media/shot-menu-800.webp" alt="The Tin Fox main menu" width="800" height="450" loading="lazy" /></button></li>
+        </ul>
+      </section>
+
+      <section id="controls" class="section">
+        <h2 class="section-title">Controls</h2>
+        <div class="card controls-card">
+          <table class="controls">
+            <thead>
+              <tr><th scope="col">Action</th><th scope="col">Keyboard &amp; mouse</th><th scope="col">Gamepad</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Move</th><td>W A S D</td><td>Left stick</td></tr>
+              <tr><th scope="row">Look</th><td>Mouse</td><td>Right stick</td></tr>
+              <tr><th scope="row">Fire</th><td>Left click</td><td>RT</td></tr>
+              <tr><th scope="row">Scope (Heron LR)</th><td>Right click, hold</td><td>LT, hold</td></tr>
+              <tr><th scope="row">Sprint</th><td>Shift, hold</td><td>Click left stick</td></tr>
+              <tr><th scope="row">Jump</th><td>Space</td><td>A</td></tr>
+              <tr><th scope="row">Crouch</th><td>C or Ctrl, hold</td><td>B, toggle</td></tr>
+              <tr><th scope="row">Reload</th><td>R</td><td>X</td></tr>
+              <tr><th scope="row">Use, open doors</th><td>E</td><td>A</td></tr>
+              <tr><th scope="row">Switch weapon</th><td>1–5, Q or mouse wheel</td><td>Y, LB</td></tr>
+              <tr><th scope="row">Objectives</th><td>Tab</td><td>Back</td></tr>
+              <tr><th scope="row">Pause</th><td>Esc</td><td>Start</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="faq" class="section">
+        <h2 class="section-title">Questions</h2>
+        <div class="faq">
+          <details>
+            <summary>What do I need?</summary>
+            <p>A computer with a recent Chrome, Edge, Firefox or Safari, and a keyboard and mouse or a gamepad. The game is about 4 MB and loads in a few seconds.</p>
+          </details>
+          <details>
+            <summary>How do two people play?</summary>
+            <p>Pick Versus or Training with two players. Player one plays on keyboard and mouse, player two on a gamepad (or both on gamepads). Press a button on the controller to join. Split-screen is side by side or top and bottom, in Settings.</p>
+          </details>
+          <details>
+            <summary>Does it work on phones and tablets?</summary>
+            <p>Not yet. There are no touch controls, so you need a computer.</p>
+          </details>
+          <details>
+            <summary>Is it OK for kids?</summary>
+            <p>It was made to play with kids: toy figures that tip over, no blood, and an Easy setting with slow, forgiving guards.</p>
+          </details>
+          <details>
+            <summary>Does it cost anything? Do I need an account?</summary>
+            <p>No and no. Tin Fox is free. Settings and best times are kept in your browser; nothing is sent anywhere.</p>
+          </details>
+          <details>
+            <summary>Who made it?</summary>
+            <p>Tin Fox is made by kimiyu. Characters, blasters and props are Kenney's free CC0 kits; the font is Fredoka (SIL Open Font License). Levels, textures, sounds and music are made in code.</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="section final">
+        <div class="card final-card">
+          <h2>Ready? Grab a controller.</h2>
+          <a class="btn btn-big play-link" href="/play/">Play Tin Fox</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p><b>Tin Fox</b> · made by kimiyu</p>
+      <p class="credits">3D models by <a href="https://kenney.nl" rel="noopener">Kenney</a> (CC0) · Font: Fredoka (OFL)</p>
+    </footer>
+
+    <dialog class="lightbox" aria-label="Screenshot">
+      <img alt="" />
+      <button type="button" class="lb-close" aria-label="Close">×</button>
+      <button type="button" class="lb-prev" aria-label="Previous screenshot">‹</button>
+      <button type="button" class="lb-next" aria-label="Next screenshot">›</button>
+    </dialog>
+
+    <script type="module" src="/src/landing/landing.ts"></script>
   </body>
 </html>

@@ -8,6 +8,11 @@ Options -Indexes
   RewriteCond %{HTTPS} off
   RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # The game moved from / to /play/ when the landing page arrived; old deep links
+  # (/?level=depot, /?players=2 …) keep working. The query string is carried over.
+  RewriteCond %{QUERY_STRING} (^|&)(level|players|debug|autostart|seed|art)=
+  RewriteRule ^$ /play/ [R=301,L]
 </IfModule>
 
 # Types Apache does not know by default.
@@ -16,6 +21,8 @@ Options -Indexes
   AddType font/ttf .ttf
   AddType image/svg+xml .svg
   AddType application/manifest+json .webmanifest
+  AddType image/webp .webp
+  AddType video/mp4 .mp4
 </IfModule>
 
 # Compress text and models (GLB geometry shrinks well; PNG/JPG do not).
@@ -23,9 +30,9 @@ Options -Indexes
   AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml font/ttf model/gltf-binary application/manifest+json
 </IfModule>
 
-# Caching: index.html is always revalidated so a new build is picked up at once.
-# The code bundle has a content hash in its name and never changes; models and
-# the font keep their names between builds, so they are cached for a week.
+# Caching: the HTML pages are always revalidated so a new build is picked up at once.
+# The code bundles (main-*, play-*) have a content hash in their names and never change;
+# models, the font, screenshots and videos keep their names, so they are cached for a week.
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
@@ -33,10 +40,10 @@ Options -Indexes
   <FilesMatch "\.html$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
-  <FilesMatch "^index-[\w-]+\.(js|css)$">
+  <FilesMatch "^(main|play|modulepreload-polyfill)-[\w-]+\.(js|css)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
-  <FilesMatch "\.(glb|ttf|png|svg|ico|webmanifest)$">
+  <FilesMatch "\.(glb|ttf|png|svg|ico|webmanifest|webp|mp4)$">
     Header set Cache-Control "public, max-age=604800"
   </FilesMatch>
 </IfModule>

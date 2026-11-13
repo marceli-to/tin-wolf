@@ -6,12 +6,19 @@ A browser first-person shooter in the spirit of late-90s console shooters: steal
 
 ```sh
 npm install
-npm run dev        # http://localhost:5181 (live reload)
+npm run dev        # http://localhost:5181 (landing page), http://localhost:5181/play/ (the game)
 npm run build      # dist/, served by Herd at https://tin-wolf.test (cd dist && herd link tin-wolf && herd secure tin-wolf)
 npm test           # sim + core unit tests (Vitest, Node)
 npm run typecheck
 npm run build
 ```
+
+## Site
+
+Two pages, both built by Vite (`vite.config.ts` lists them):
+
+- `/` is the landing page: `index.html`, `src/landing/landing.css` and a small `src/landing/landing.ts` (touch-only devices get a "play on a computer" note, the hero loop pauses for reduced motion, the screenshot lightbox). Plain HTML and CSS; it never loads Three.js. Media (trailer at 1080p and 720p, hero loop, WebP screenshots) are in `public/media/`, the share image is `public/og-image.png`. All of it is recorded from the game with `tools/record_media/` (see its README).
+- `/play/` is the game: `play/index.html`. Old links to `/?level=…` and the other game parameters are sent to `/play/?…` (by `.htaccess` on the server, by a line of script on the landing page in dev).
 
 ## Deploy
 
@@ -19,7 +26,7 @@ npm run build
 
 Levels: `depot` (mission, Halvard Depot), versus arenas `arena_pumphouse`, `arena_warehouse` (70×58 m, a mezzanine, a bridge and a centre platform 3 m up, loading docks) and `arena_snowfort` (outdoors, a hut in the middle), `training` (Training Ground: target practice, see below), `test_room` (sandbox with two guards). Versus in the menu lets you pick the map. The two new arenas are point-symmetric so neither start is better; they were generated with a small script and are plain level JSON. The Warehouse and the Training Ground come from `tools/gen_warehouse.py` and `tools/gen_training.py` (shared helpers in `tools/levelkit.py`): edit the script and re-run it rather than editing their JSON. Upper levels are walkable props (`catwalk`, `stair`, `railing`, `rail_post`, `support`, sized per entity with `size` and `elevation`); spawns, starts and pickups take `elevation` to stand on them.
 
-URL parameters:
+URL parameters (on `/play/`):
 
 - `?level=<id>` skips the menu (missions go to the briefing, versus to the lobby)
 - `?players=1|2`
