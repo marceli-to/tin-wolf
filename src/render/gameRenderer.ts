@@ -384,7 +384,8 @@ export class GameRenderer {
     const out: HeldGun[] = [];
     for (const id of ids) {
       const def = world.data.weapons[id];
-      const inst = def?.model ? this.models.instance(def.model) : null;
+      const path = PROFILES[this.art]?.weapons?.[id] ?? def?.model;
+      const inst = path ? this.models.instance(path) : null;
       if (def && inst) out.push({ id, model: inst, fit: def.fit, hold: def.hold });
     }
     return out;

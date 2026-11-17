@@ -48,7 +48,21 @@ export interface ArmedPose {
 
 export type HoldStyle = 'one' | 'two';
 
+/**
+ * Guns from the game-pack-generator carry a `grip` node (where the fist closes) and a `muzzle` node, in metres,
+ * with +X along the barrel and +Y up: the frame of the Tin Fox figures' `handslot.r` while aiming.
+ */
+export const GUN_GRIP_NODE = 'grip';
+export const GUN_MUZZLE_NODE = 'muzzle';
+/** Metres per Kenney Blaster Kit unit at the Tin Fox figures' scale (`T_GRIP.scale`). */
+const KENNEY_UNIT_M = 0.65;
+
 export interface GripSpec {
+  /**
+   * The hand bone is in the generator's gun frame (metres, +X barrel, +Y up): guns with a `grip` node go in
+   * as they are. Without it, such guns are turned into Kenney-pack axes and units and placed like a blaster.
+   */
+  native?: boolean;
   /** Hand point in the hand bone's space, where the gun's grip goes (model units). */
   position: [number, number, number];
   /** Gun-pack axes to hand-bone axes (radians, XYZ order). */
@@ -62,6 +76,28 @@ export interface GripSpec {
  * vertices) goes to the grip point, rotated into hand axes. Returns the holder added to `hand`.
  */
 export function attachHeldGun(hand: THREE.Object3D, gun: THREE.Object3D, grip: GripSpec, relSize?: number): THREE.Object3D {
+  const gripNode = relSize ? null : gun.getObjectByName(GUN_GRIP_NODE);
+  if (gripNode) {
+    const holder = new THREE.Group();
+    const inner = new THREE.Group();
+    inner.add(gun);
+    gun.updateMatrixWorld(true);
+    // The grip point goes to the holder's origin.
+    const at = gripNode.getWorldPosition(new THREE.Vector3());
+    gun.worldToLocal(at);
+    gun.position.copy(at).multiplyScalar(-1);
+    holder.add(inner);
+    if (!grip.native) {
+      // Gun frame (+X barrel) to Kenney-pack axes (-Z barrel), metres to Kenney units, then the blaster grip.
+      inner.rotation.y = Math.PI / 2;
+      inner.scale.setScalar(1 / KENNEY_UNIT_M);
+      holder.position.set(...grip.position);
+      holder.rotation.set(...grip.rotation);
+      holder.scale.setScalar(grip.scale);
+    }
+    hand.add(holder);
+    return holder;
+  }
   gun.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(gun);
   const g = new THREE.Vector3();
@@ -162,6 +198,11 @@ export function findMuzzle(root: THREE.Object3D, hand: THREE.Object3D, gunNode =
 
 /** Barrel tip of an arbitrary (non-skinned) gun object, in hand space. */
 export function findMuzzleIn(gun: THREE.Object3D, hand: THREE.Object3D): THREE.Vector3 | null {
+  const node = gun.getObjectByName(GUN_MUZZLE_NODE);
+  if (node) {
+    gun.updateMatrixWorld(true);
+    return hand.worldToLocal(node.getWorldPosition(new THREE.Vector3()));
+  }
   const named = gun.name || 'heldGun';
   gun.name = named;
   return findMuzzle(gun.parent ?? gun, hand, named);
@@ -186,6 +227,8 @@ export function findNode(root: THREE.Object3D, name: string): THREE.Object3D | n
 export interface ArtSet {
   guard: CharacterProfile;
   officer: CharacterProfile;
+  /** Weapon models of this set by weapon id, instead of `weapons.json`'s `model` (held guns only). */
+  weapons?: Record<string, string>;
   /** Figure per guard archetype, ahead of `guard` / `officer` (e.g. a rifle guard of its own). */
   archetypes?: Record<string, CharacterProfile>;
   /** Alternative outfits a guard can wear via `look` (same rig and animations). */
@@ -277,7 +320,7 @@ PROFILES.kenney = {
 // base clip), two-handed both (and move the upper-arm heads forward, for the missing collarbone).
 const T_RIGHT = ['upperarm.r', 'lowerarm.r', 'wrist.r', 'hand.r', 'handslot.r'];
 const T_BOTH = [...T_RIGHT, 'upperarm.l', 'lowerarm.l', 'wrist.l', 'hand.l', 'handslot.l'];
-const T_GRIP: GripSpec = { position: [0, -0.02, 0], rotation: [0, -Math.PI / 2, 0], scale: 0.65 };
+const T_GRIP: GripSpec = { native: true, position: [0, -0.02, 0], rotation: [0, -Math.PI / 2, 0], scale: 0.65 };
 const tinfoxChar = (file: string): CharacterProfile => ({
   model: `tinfox/characters/${file}.glb`,
   body: 'tinfox',
@@ -295,7 +338,13 @@ const tinfoxChar = (file: string): CharacterProfile => ({
   },
 });
 
-PROFILES.tinfox = { ...PROFILES.kenney, guard: tinfoxChar('guard'), archetypes: { guard_rifle: tinfoxChar('rifle-guard'), guard_officer: tinfoxChar('officer') } };
+PROFILES.tinfox = {
+  ...PROFILES.kenney,
+  guard: tinfoxChar('guard'),
+  archetypes: { guard_rifle: tinfoxChar('rifle-guard'), guard_officer: tinfoxChar('officer') },
+  // Generator guns (with `grip` / `muzzle` nodes); Kenney blasters for the rest.
+  weapons: { pistol: 'tinfox/weapons/pistol.glb' },
+};
 
 /** The figure an art set gives a guard: its look's outfit, the officer, or the plain guard. */
 export function guardProfile(set: ArtSet, archetype: string, look?: string | null): CharacterProfile {
@@ -320,6 +369,7 @@ export function profileModels(art: string): string[] {
     ...profiles.map((p) => p.model),
     ...(set.viewArms ? [set.viewArms.model] : []),
     ...(set.playerModels ?? []),
+    ...Object.values(set.weapons ?? {}),
   ];
 }
 
