@@ -11,7 +11,7 @@ import { buildLightField, lampsFromLevel, type LightField } from './lighting';
 import { setTextureSmoothing, texturedMaterial } from './textures';
 import { Snow } from './snow';
 import { tintModel, type ModelLibrary } from './models';
-import { ModelCharacter, PROFILES, type HeldGun } from './modelCharacter';
+import { guardProfile, ModelCharacter, PROFILES, type HeldGun } from './modelCharacter';
 import { StaticBatch } from './staticBatch';
 import { rayGrid } from '../sim/raycast';
 import type { Grid } from '../sim/grid';
@@ -362,7 +362,7 @@ export class GameRenderer {
   private guardVisual(world: World, g: World['guards'][number]): ActorVisual {
     const def = world.data.enemies[g.archetype];
     const set = PROFILES[this.art];
-    const profile = set ? ((g.look && set.looks?.[g.look]) || (g.archetype === 'guard_officer' ? set.officer : set.guard)) : null;
+    const profile = set ? guardProfile(set, g.archetype, g.look) : null;
     const inst = profile && this.models ? this.models.instance(profile.model) : null;
     if (profile && inst) {
       const model = new ModelCharacter(inst, profile, g.height, this.flashMat, this.heldGuns(world, def ? [def.weapon] : []));
@@ -709,12 +709,12 @@ export class GameRenderer {
         m.root.position.set(x, y, z);
         m.root.rotation.y = -g.yaw;
         if (g.state === 'dead') m.play('die');
-        else if (g.crouching) m.play('crouch');
+        else if (g.crouching) m.play(g.state === 'attack' && g.sinceShot < 0.35 ? 'crouchShoot' : 'crouch');
         else if (g.state === 'attack' && g.sees && speed < 0.1) m.play(g.sinceShot < 0.35 ? 'shoot' : 'aim');
         else if (speed > 2.5) m.play('run');
         else if (speed > 0.1) m.play('walk');
         else m.play(g.state === 'attack' || g.state === 'suspicious' ? 'alert' : 'idle');
-        m.update(Math.min(frameTime, 0.05), speed > 2.5 ? speed / 5 : speed / 1.6);
+        m.update(Math.min(frameTime, 0.05), speed);
         m.light(Math.min(1.1, this.light(x, z) + 0.15));
         v.flash.visible = g.state !== 'dead' && g.sinceShot < 0.06;
         return;
@@ -771,7 +771,7 @@ export class GameRenderer {
         else if (speed > 3) m.play('run');
         else if (speed > 0.2) m.play('walk');
         else m.play('idle');
-        m.update(Math.min(frameTime, 0.05), speed > 3 ? speed / 5 : speed / 1.6);
+        m.update(Math.min(frameTime, 0.05), speed);
         m.light(Math.min(1.1, this.light(x, z) + 0.15));
         m.setWeapon(p.weapon.id);
       }

@@ -4,6 +4,7 @@ import { nextFloat, range } from '../core/rng';
 import type { EnemyDef } from '../data/schema';
 import { moveBody, updateVertical } from './collision';
 import { fireHitscan } from './combat';
+import { BODY_HEIGHT } from './hitbox';
 import { sizeScale } from './powerups';
 import { cellAt, worldToCell } from './grid';
 import { clearLine } from './los';
@@ -31,8 +32,13 @@ const COVER_COOLDOWN: [number, number] = [3, 5];
 const ALARM_RADIUS = 30;
 const ALARM_REACH = 0.8;
 
+/** How much taller than a player this guard's figure is (eye and height scale with it). */
+function bodyScale(g: Guard): number {
+  return BODY_HEIGHT[g.body] / PLAYER.height;
+}
+
 export function guardEye(g: Guard): number {
-  return (g.crouching ? CROUCH_EYE : EYE) * sizeScale(g.tiny);
+  return (g.crouching ? CROUCH_EYE : EYE) * bodyScale(g) * sizeScale(g.tiny);
 }
 
 export function guardDef(world: World, g: Guard): EnemyDef {
@@ -635,7 +641,7 @@ function act(world: World, g: Guard, def: EnemyDef, dt: number): void {
     g.coverTimer -= dt;
     if (g.coverTimer <= 0) leaveCover(world, g);
   }
-  g.height = (g.crouching ? PLAYER.crouchHeight : PLAYER.height) * sizeScale(g.tiny);
+  g.height = (g.crouching ? PLAYER.crouchHeight : PLAYER.height) * bodyScale(g) * sizeScale(g.tiny);
 
   // Alarm: the runner reaches the panel.
   if (g.alarmTarget !== null) {

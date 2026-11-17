@@ -3,7 +3,7 @@ import { DEG, forwardFromAngles } from '../core/math';
 import { spread } from '../core/rng';
 import type { WeaponDef } from '../data/schema';
 import type { ActorRef, HitZone } from './events';
-import { humanoidZones, zoneDamage } from './hitbox';
+import { humanoidZones, zoneDamage, type BodyShape } from './hitbox';
 import { rayBox, rayCylinder, rayGrid, type Ray } from './raycast';
 import { dropFromBox, sizeScale } from './powerups';
 import { hitTarget, rayTarget, targetHittable } from './targets';
@@ -14,7 +14,7 @@ export type ShotTarget =
   | { kind: 'prop'; index: number }
   | { kind: 'door'; index: number }
   | { kind: 'target'; index: number; off: number }
-  | { kind: 'actor'; ref: ActorRef; zone: HitZone };
+  | { kind: 'actor'; ref: ActorRef; zone: HitZone; body: BodyShape };
 
 export interface ShotResult {
   t: number;
@@ -34,6 +34,7 @@ export interface ActorShape {
   y: number;
   z: number;
   height: number;
+  body: BodyShape;
   /** Size scale (a Shrink Ray makes it smaller); the hit zones shrink with it. */
   scale: number;
 }
@@ -41,10 +42,10 @@ export interface ActorShape {
 export function actorShapes(world: World): ActorShape[] {
   const out: ActorShape[] = [];
   for (const p of world.players) {
-    if (p.alive) out.push({ ref: { kind: 'player', slot: p.slot }, x: p.x, y: p.y, z: p.z, height: p.height, scale: sizeScale(p.power.tiny) });
+    if (p.alive) out.push({ ref: { kind: 'player', slot: p.slot }, x: p.x, y: p.y, z: p.z, height: p.height, body: world.body, scale: sizeScale(p.power.tiny) });
   }
   for (const g of world.guards) {
-    if (g.state !== 'dead') out.push({ ref: { kind: 'guard', index: g.index }, x: g.x, y: g.y, z: g.z, height: g.height, scale: sizeScale(g.tiny) });
+    if (g.state !== 'dead') out.push({ ref: { kind: 'guard', index: g.index }, x: g.x, y: g.y, z: g.z, height: g.height, body: g.body, scale: sizeScale(g.tiny) });
   }
   return out;
 }
@@ -82,9 +83,9 @@ export function traceShot(world: World, ray: Ray, range: number, ignore: ActorRe
     if (ignore && sameActor(a.ref, ignore)) continue;
     // Guards never shoot each other: with the alarm up they converge in crowds.
     if (ignore?.kind === 'guard' && a.ref.kind === 'guard') continue;
-    for (const z of humanoidZones(a.height, world.body)) {
+    for (const z of humanoidZones(a.height, a.body)) {
       const t = rayCylinder(ray, a.x, a.z, z.r * a.scale, a.y + z.y0, a.y + z.y1, limit());
-      if (t !== null) consider(t, -ray.dx, -ray.dy, -ray.dz, { kind: 'actor', ref: a.ref, zone: z.zone });
+      if (t !== null) consider(t, -ray.dx, -ray.dy, -ray.dz, { kind: 'actor', ref: a.ref, zone: z.zone, body: a.body });
     }
   }
   return best;
@@ -111,7 +112,7 @@ export function fireHitscan(
   if (!hit) return null;
   const t = hit.target;
   if (t.kind === 'actor') {
-    const dmg = weapon.damage * zoneDamage(weapon.zoneMultiplier[t.zone], t.zone, world.body);
+    const dmg = weapon.damage * zoneDamage(weapon.zoneMultiplier[t.zone], t.zone, t.body);
     emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'flesh', onPlayer: t.ref.kind === 'player' });
     applyDamage(world, t.ref, dmg, t.zone, shooter, hit);
   } else if (t.kind === 'prop') {

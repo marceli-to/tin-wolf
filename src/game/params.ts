@@ -7,7 +7,7 @@ export interface GameParams {
   seed: number;
   /** Computer players to add in versus (debug/testing, with autostart). */
   bots: number;
-  /** Model art set: '' (default, Kenney), 'kenney' or 'none' (code-built figures). */
+  /** Model art set: '' (default, Kenney), 'kenney', 'tinfox' (own figures where they exist, Kenney for the rest) or 'none' (code-built figures). */
   art: string;
 }
 

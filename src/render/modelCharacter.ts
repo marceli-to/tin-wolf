@@ -2,15 +2,25 @@ import * as THREE from 'three';
 import type { ModelInstance } from './models';
 import { measureHeight, tintModel } from './models';
 import { flatMaterial, shadedBox } from './shapes';
+import type { BodyShape } from '../sim/hitbox';
 
 /** Game-side animation names; each art set maps them to its own clip names. */
-export type CharacterAnim = 'idle' | 'alert' | 'walk' | 'run' | 'aim' | 'shoot' | 'die' | 'crouch';
+export type CharacterAnim = 'idle' | 'alert' | 'walk' | 'run' | 'aim' | 'shoot' | 'die' | 'crouch' | 'crouchShoot';
+/** Animations every art set names a clip for; `crouchShoot` is built from `crouch` plus the shoot arms. */
+type BaseAnim = Exclude<CharacterAnim, 'crouchShoot'>;
 
 export interface CharacterProfile {
   model: string;
-  clips: Record<CharacterAnim, string>;
+  /** Body proportions: the sim's hit zones and standing height follow the figure. */
+  body: BodyShape;
+  clips: Record<BaseAnim, string>;
   /** Bone the gun is parented to. */
   hand: string;
+  /**
+   * Ground speed (m/s) of the planted foot in `walk` and `run` at 1×; playback is scaled by the actor's
+   * speed over it so the feet don't slide. Default 1.6 / 5 (Kenney).
+   */
+  groundSpeed?: { walk: number; run: number };
   /** Placement of the fallback box gun when no gun model is given. */
   boxGun?: { position: [number, number, number] };
   /** Meshes in the model file to hide (e.g. a prop it ships with). */
@@ -32,6 +42,8 @@ export interface ArmedPose {
   clip: string;
   shootClip: string;
   bones: string[];
+  /** Arm clips keyed for the crouch's leaning chest (same bones); without them the standing ones are used. */
+  crouch?: { clip: string; shootClip: string };
 }
 
 export type HoldStyle = 'one' | 'two';
@@ -93,10 +105,16 @@ export function buildClips(animations: THREE.AnimationClip[], profile: Character
   const out = new Map<CharacterAnim, THREE.AnimationClip>();
   const armed = style === 'two' && profile.armed?.two ? profile.armed.two : profile.armed;
   const isArm = (t: THREE.KeyframeTrack): boolean => !!armed && armed.bones.some((b) => t.name.startsWith(`${THREE.PropertyBinding.sanitizeNodeName(b)}.`));
-  for (const [anim, name] of Object.entries(profile.clips) as [CharacterAnim, string][]) {
+  const entries = [...(Object.entries(profile.clips) as [CharacterAnim, string][]), ['crouchShoot', profile.clips.crouch] as [CharacterAnim, string]];
+  for (const [anim, name] of entries) {
     const base = byName.get(name);
     if (!base) continue;
-    const pose = armed && anim !== 'die' ? byName.get(anim === 'shoot' ? armed.shootClip : armed.clip) : null;
+    const crouched = anim === 'crouch' || anim === 'crouchShoot';
+    const arms = crouched && armed?.crouch ? armed.crouch : armed;
+    const shooting = anim === 'shoot' || anim === 'crouchShoot';
+    const pose = arms && anim !== 'die' ? byName.get(shooting ? arms.shootClip : arms.clip) : null;
+    // Without an arm layer a crouching shot is just the crouch.
+    if (anim === 'crouchShoot' && !pose) continue;
     if (!pose) {
       out.set(anim, base);
       continue;
@@ -168,6 +186,8 @@ export function findNode(root: THREE.Object3D, name: string): THREE.Object3D | n
 export interface ArtSet {
   guard: CharacterProfile;
   officer: CharacterProfile;
+  /** Figure per guard archetype, ahead of `guard` / `officer` (e.g. a rifle guard of its own). */
+  archetypes?: Record<string, CharacterProfile>;
   /** Alternative outfits a guard can wear via `look` (same rig and animations). */
   looks?: Record<string, CharacterProfile>;
   /** Player bodies (seen by the other player in split-screen). */
@@ -203,7 +223,7 @@ export const PROFILES: Record<string, ArtSet> = {};
 // Kenney Mini Characters: blocky rigid parts (root, legs, torso, arms, head), no gun of their own.
 // In bind pose the right arm points along the bone's -x with the fist at its end.
 const K_GRIP: GripSpec = { position: [-0.27, 0.0, 0.02], rotation: [0, Math.PI / 2 + 0.5, 0], scale: 0.4 };
-const K_CLIPS: Record<CharacterAnim, string> = {
+const K_CLIPS: CharacterProfile["clips"] = {
   idle: 'idle',
   alert: 'holding-right',
   walk: 'walk',
@@ -215,6 +235,7 @@ const K_CLIPS: Record<CharacterAnim, string> = {
 };
 const kenneyChar = (file: string): CharacterProfile => ({
   model: `kenney/characters/${file}.glb`,
+  body: 'chibi',
   clips: K_CLIPS,
   hand: 'arm-right',
   grip: K_GRIP,
@@ -250,10 +271,51 @@ PROFILES.kenney = {
   mood: { lightFloor: 0.5, fogTint: '#c4d8e8', fogMix: 0.45, fogFarScale: 1.5 },
 };
 
+// Tin Fox's own figures from the game-pack-generator (KayKit Rig_Medium, metres, faces +z).
+// Only the guard exists so far; everything else stays Kenney. The aim clips key only the arms they
+// use, so they layer over walk and run: one-handed the right arm (the left hangs and swings with the
+// base clip), two-handed both (and move the upper-arm heads forward, for the missing collarbone).
+const T_RIGHT = ['upperarm.r', 'lowerarm.r', 'wrist.r', 'hand.r', 'handslot.r'];
+const T_BOTH = [...T_RIGHT, 'upperarm.l', 'lowerarm.l', 'wrist.l', 'hand.l', 'handslot.l'];
+const T_GRIP: GripSpec = { position: [0, -0.02, 0], rotation: [0, -Math.PI / 2, 0], scale: 0.65 };
+const tinfoxChar = (file: string): CharacterProfile => ({
+  model: `tinfox/characters/${file}.glb`,
+  body: 'tinfox',
+  clips: { idle: 'idle', alert: 'idle', walk: 'walk', run: 'run', aim: 'idle', shoot: 'idle', die: 'die', crouch: 'crouch' },
+  hand: 'handslot.r',
+  // walk and run are planted for these speeds (generator, guard update 3).
+  groundSpeed: { walk: 1.6, run: 4 },
+  grip: T_GRIP,
+  armed: {
+    clip: 'aim_1h',
+    shootClip: 'shoot_1h',
+    bones: T_RIGHT,
+    crouch: { clip: 'crouch_aim_1h', shootClip: 'crouch_shoot_1h' },
+    two: { clip: 'aim_2h', shootClip: 'shoot_2h', bones: T_BOTH, crouch: { clip: 'crouch_aim_2h', shootClip: 'crouch_shoot_2h' } },
+  },
+});
+
+PROFILES.tinfox = { ...PROFILES.kenney, guard: tinfoxChar('guard'), archetypes: { guard_rifle: tinfoxChar('rifle-guard') } };
+
+/** The figure an art set gives a guard: its look's outfit, the officer, or the plain guard. */
+export function guardProfile(set: ArtSet, archetype: string, look?: string | null): CharacterProfile {
+  return (look && set.looks?.[look]) || set.archetypes?.[archetype] || (archetype === 'guard_officer' ? set.officer : set.guard);
+}
+
+/** Body proportions for the sim: players and every guard archetype and look, from the art set's figures. */
+export function artBodies(art: string, archetypes: readonly string[]): { body: BodyShape; guardBodies: Record<string, BodyShape> } {
+  const set = PROFILES[art];
+  if (!set) return { body: 'human', guardBodies: {} };
+  const guardBodies: Record<string, BodyShape> = {};
+  for (const a of archetypes) guardBodies[a] = guardProfile(set, a).body;
+  for (const [look, p] of Object.entries(set.looks ?? {})) guardBodies[`look:${look}`] = p.body;
+  return { body: (set.player ?? set.guard).body, guardBodies };
+}
+
 export function profileModels(art: string): string[] {
   const set = PROFILES[art];
   if (!set) return [];
-  const profiles = [set.guard, set.officer, ...(set.player ? [set.player] : []), ...Object.values(set.looks ?? {})];
+  const profiles = [set.guard, set.officer, ...(set.player ? [set.player] : []), ...Object.values(set.archetypes ?? {}), ...Object.values(set.looks ?? {})];
   return [
     ...profiles.map((p) => p.model),
     ...(set.viewArms ? [set.viewArms.model] : []),
@@ -280,6 +342,7 @@ export class ModelCharacter {
   private held = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; style: HoldStyle }>();
   private weaponId = '';
   private inner: THREE.Object3D;
+  private groundSpeed: { walk: number; run: number };
   private height: number;
 
   /**
@@ -295,6 +358,7 @@ export class ModelCharacter {
     const inner = model.object;
     this.inner = inner;
     this.height = height;
+    this.groundSpeed = profile.groundSpeed ?? { walk: 1.6, run: 5 };
     for (const name of profile.hide ?? []) {
       const o = findNode(inner, name);
       if (o) o.visible = false;
@@ -418,8 +482,10 @@ export class ModelCharacter {
     this.current = name;
   }
 
-  update(dt: number, speedScale: number): void {
-    this.mixer.timeScale = this.current === 'walk' || this.current === 'run' ? speedScale : 1;
+  /** Advances the animation; walk and run play at the actor's ground speed (m/s) over the clip's. */
+  update(dt: number, speed: number): void {
+    const gs = this.current === 'walk' ? this.groundSpeed.walk : this.current === 'run' ? this.groundSpeed.run : 0;
+    this.mixer.timeScale = gs ? speed / gs : 1;
     this.mixer.update(dt);
   }
 

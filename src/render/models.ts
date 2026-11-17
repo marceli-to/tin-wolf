@@ -43,8 +43,10 @@ export class ModelLibrary {
       const cloned = mats.map((m) => {
         const c = (m as THREE.MeshStandardMaterial).clone();
         c.userData.base = c.color.clone();
-        // Model textures follow the global smooth/retro filter mode.
-        if (c.map) manageTexture(c.map);
+        // Model textures follow the global smooth/retro filter mode, except palette textures (Tin Fox
+        // figures): sampled NEAREST without mipmaps, or far away their colour cells bleed together.
+        if (c.map && isPalette(c.map)) keepSharp(c.map);
+        else if (c.map) manageTexture(c.map);
         materials.push(c);
         return c;
       });
@@ -54,6 +56,18 @@ export class ModelLibrary {
     });
     return { object, animations: gltf.animations, materials };
   }
+}
+
+/** A palette texture: the file asks for NEAREST magnification (Kenney's colour maps leave it linear). */
+function isPalette(t: THREE.Texture): boolean {
+  return t.magFilter === THREE.NearestFilter;
+}
+
+function keepSharp(t: THREE.Texture): void {
+  if (t.minFilter === THREE.NearestFilter && !t.generateMipmaps) return;
+  t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  t.needsUpdate = true;
 }
 
 export function tintModel(materials: readonly THREE.MeshStandardMaterial[], light: number): void {

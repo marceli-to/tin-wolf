@@ -7,7 +7,7 @@ import type { Box, Terrain } from './collision';
 import type { CourseState, Target } from './targets';
 import { createBrain, type BotBrain } from './bot';
 import type { ActorRef, SimEvent } from './events';
-import type { BodyShape } from './hitbox';
+import { BODY_HEIGHT, type BodyShape } from './hitbox';
 import { buildGrid, cellCenter, floorAtWorld, type Grid } from './grid';
 import { createMatch, type MatchState } from './match';
 import { createMission, type MissionState } from './objectives';
@@ -113,6 +113,8 @@ export interface Guard {
   vy: number;
   radius: number;
   height: number;
+  /** Body proportions (hit zones, standing height), from the figure the art set gives this guard. */
+  body: BodyShape;
   grounded: boolean;
   yaw: number;
   /** Desired facing; the body turns toward it at a limited rate. */
@@ -254,8 +256,10 @@ export interface World {
   tick: number;
   time: number;
   rng: Rng;
-  /** Body proportions the hit zones follow. */
+  /** Body proportions of the players (hit zones). */
   body: BodyShape;
+  /** Guard bodies by `look:<look>` or archetype; others use `body`. */
+  guardBodies: Record<string, BodyShape>;
   /** Guard archetypes with the difficulty applied; the AI reads these, not data.enemies. */
   enemies: Record<string, EnemyDef>;
   players: Player[];
@@ -310,8 +314,10 @@ export interface PendingBlast extends Blast {
 export interface WorldOptions {
   players: number;
   seed?: number;
-  /** Body proportions for hit zones (default 'human'). */
+  /** Body proportions of the players, for hit zones (default 'human'). */
   body?: BodyShape;
+  /** Guard bodies by `look:<look>` or archetype; others use `body`. */
+  guardBodies?: Record<string, BodyShape>;
   /** Key of data.difficulty (default 'normal'); also the computer players' skill. */
   difficulty?: string;
   /** Computer players, after the `players` people (versus). */
@@ -408,6 +414,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
     time: 0,
     rng: createRng(opts.seed ?? 1),
     body: opts.body ?? 'human',
+    guardBodies: opts.guardBodies ?? {},
     enemies: scaledEnemies(data, opts.difficulty),
     players: [],
     guards: [],
@@ -604,6 +611,7 @@ function makeGuard(world: World, e: GuardEntity, index: number): Guard {
     x: Number.isInteger(pc) ? (pc + 0.5) * s : pc * s,
     z: Number.isInteger(pr) ? (pr + 0.5) * s : pr * s,
   });
+  const body = (e.look ? world.guardBodies[`look:${e.look}`] : undefined) ?? world.guardBodies[e.archetype] ?? world.body;
   const gy = floorAtWorld(world.grid, x, z) ?? 0;
   return {
     index,
@@ -616,7 +624,8 @@ function makeGuard(world: World, e: GuardEntity, index: number): Guard {
     vz: 0,
     vy: 0,
     radius: PLAYER.radius,
-    height: PLAYER.height,
+    height: BODY_HEIGHT[body],
+    body,
     grounded: true,
     yaw,
     aimYaw: yaw,

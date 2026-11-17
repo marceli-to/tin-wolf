@@ -25,6 +25,7 @@ import { startLoop, type RunningLoop } from './loop';
 import { DIFFICULTIES, loadSettings, RESOLUTIONS, saveSettings, type Settings } from './settings';
 import { DEFAULT_INPUT_SETTINGS } from '../input/settings';
 import type { GameParams } from './params';
+import { artBodies } from '../render/modelCharacter';
 
 /** Second line of the notice when a power-up is picked up. */
 const POWER_HINTS: Record<string, string> = {
@@ -523,11 +524,11 @@ export class Game {
     const level = this.tryLoad(this.levelId);
     if (!level) return;
     this.sirenUntil = 0;
-    // The Kenney figures have big heads; their hit zones follow suit.
-    const body = this.params.art === 'kenney' ? 'chibi' : 'human';
+    // Hit zones and guard heights follow the art set's figures (Kenney's big heads, Tin Fox's taller guards).
+    const { body, guardBodies } = artBodies(this.params.art, Object.keys(this.data.enemies));
     // Difficulty sets the guards in missions and the computer players' skill in versus.
     const bots = level.mode === 'versus' ? this.botCount : 0;
-    this.world = createWorld(level, this.data, { players: this.playerCount, bots, seed: this.params.seed, body, difficulty: this.settings.difficulty });
+    this.world = createWorld(level, this.data, { players: this.playerCount, bots, seed: this.params.seed, body, guardBodies, difficulty: this.settings.difficulty });
     this.renderer.load(this.world, this.params.debug);
     this.clearHuds();
     this.huds = this.world.players.filter((p) => !p.bot).map(() => new PlayerHud(this.uiLayer));

@@ -32,6 +32,7 @@ URL parameters (on `/play/`):
 - `?players=1|2`
 - `?autostart=1` skips lobby and briefing (slot 0 = keyboard + mouse, others = gamepads)
 - `?seed=<n>` fixes the sim RNG
+- `?art=tinfox` uses Tin Fox's own figures where they exist (so far the guard and the rifle guard), Kenney for the rest
 - `?art=none` uses the code-built figures instead of the character models
 - `?debug=1` shows FPS, collision boxes, guard vision cones / paths / states, and exposes `window.__game`
 
