@@ -6,7 +6,7 @@ Planning document for the executing model. Work through it top to bottom. Check 
 
 ## Status (2026-11-17)
 
-M0–M6 are done. M7 is done except 4-player split-screen. M8 (Marcel's list, see below) has sprint, jump, the Heron LR sniper rifle and the training ground done; more levels and online versus are open. Since M7 the game was also renamed Tin Fox, menus and HUD restyled to the Kenney toy look (Fredoka font), the Quaternius models removed (build 18 MB → 3.6 MB), and the site got `.htaccess`, favicon and an OpenGraph image. Since then (2026-11-13): bigger Warehouse and Training Ground with upper levels, practice dummies, explosive barrels, the landing page at `/` (game at `/play/`), range distance markers, a roof on the Snowfort hut, the two-handed first-person pose, and a lobby you can leave (Esc / B or a button); then surprise boxes with six power-ups, computer players in versus (up to three), and the three arenas re-themed as Space Station, Toy Factory and Castle. Since 2026-11-17: the first own figures from the generator behind `?art=tinfox` (guard, rifle guard and officer, and the first own gun, the Kestrel 9 pistol, with hit zones and height per figure, crouch-aim arms and per-figure walk/run speeds). Everything is on `master` and pushed. 168 unit tests, typecheck and build pass. `npm run build` updates `dist/`, which Herd serves at https://tin-wolf.test (linked and secured; see README).
+M0–M6 are done. M7 is done except 4-player split-screen. M8 (Marcel's list, see below) has sprint, jump, the Heron LR sniper rifle and the training ground done; more levels and online versus are open. Since M7 the game was also renamed Tin Fox, menus and HUD restyled to the Kenney toy look (Fredoka font), the Quaternius models removed (build 18 MB → 3.6 MB), and the site got `.htaccess`, favicon and an OpenGraph image. Since then (2026-11-13): bigger Warehouse and Training Ground with upper levels, practice dummies, explosive barrels, the landing page at `/` (game at `/play/`), range distance markers, a roof on the Snowfort hut, the two-handed first-person pose, and a lobby you can leave (Esc / B or a button); then surprise boxes with six power-ups, computer players in versus (up to three), and the three arenas re-themed as Space Station, Toy Factory and Castle. Since 2026-11-17: the first own figures from the generator behind `?art=tinfox` (guard, rifle guard and officer, and the generator's weapons: Kestrel 9, Kestrel 9 SD, Vireo SMG, Heron LR, grenade and the ammo pickups, with hit zones and height per figure, crouch-aim arms and per-figure walk/run speeds). Everything is on `master` and pushed. 168 unit tests, typecheck and build pass. `npm run build` updates `dist/`, which Herd serves at https://tin-wolf.test (linked and secured; see README).
 
 Verified by script in the browser (headless Chrome via a throwaway playwright-core script outside the repo; the in-app preview cannot capture the WebGL canvas): movement and collision, split-screen, weapons and damage, full versus match → results → rematch, every guard state transition in the test room, the depot's stealth route and loud route end to end (debug autopilot), mission fail → debrief → retry, settings surviving a reload, draw calls; since M8 also sprint FOV, jumping onto a crate, the rifle in first and third person, scoping in arenas and the depot yard, and a full training course run (17/17 targets incl. the grenade pit).
 
@@ -16,7 +16,26 @@ Repository: https://github.com/marceli-to/tin-wolf (`master`). Live: https://tin
 
 Audience: Marcel plays this with his kids, so the look is deliberately toy-like (Kenney) and Easy difficulty exists for them.
 
-Next (ask first): own character art (see the deviation log, 2026-11-16 and 2026-11-17): the guard, the rifle guard and the officer are in the game behind `?art=tinfox` (the officer's coat in run and crouch walk is sent back for a fix); the pistol too; the generator's other weapons and ammo pickups are ready to wire in (`~/Desktop/tinfox/WEAPONS.md`); prompts for the first own props are written (explosive barrel, surprise box, ammo crate, range target, practice dummy; Marcel makes the sheets); the other figures (worker, players, first-person arms) and guns (SMG, sniper, `pistol_sd`, grenade) follow as the generator makes them. From Marcel's M8 list, more levels (versus arenas are quick, a second mission is a day or more) and online versus over PeerJS (several days; the deterministic sim suits lockstep). Still open from M7: 4-player split-screen. Other ideas not yet raised: training in split-screen as a race (both players' times), difficulty adding objectives (the M7 item only tunes guard values so far), a second mission.
+Next (ask first): own character art (see the deviation log, 2026-11-16 and 2026-11-17): the guard, the rifle guard and the officer are in the game behind `?art=tinfox` (the officer's coat in run and crouch walk is sent back for a fix); all five weapons and the ammo pickups too; prompts for the first own props are written (explosive barrel, surprise box, ammo crate, range target, practice dummy; Marcel makes the sheets); the other figures (worker, players, first-person arms) follow as the generator makes them. What to replace after the first props: see **Start here** below. From Marcel's M8 list, more levels (versus arenas are quick, a second mission is a day or more) and online versus over PeerJS (several days; the deterministic sim suits lockstep). Still open from M7: 4-player split-screen. Other ideas not yet raised: training in split-screen as a race (both players' times), difficulty adding objectives (the M7 item only tunes guard values so far), a second mission.
+
+## Start here (next session)
+
+Marcel's order for replacing Kenney models with his own art (`?art=tinfox`), after the figures and weapons. Item 1 is in progress: the prompts for the explosive barrel, surprise box, ammo crate, range target and practice dummy are written; Marcel is making the sheets.
+
+### 2. Generic cover (most placements)
+
+- **Barrel** (21), **crate** (16), **crate_tall** (11), **cargo** (10). They're in the depot, training, snowfort and test room.
+- These are four simple static models with no rig, and together they cover about 60 placements. That's the best value per hour of generator time.
+
+### 3. Halvard Depot interior (the mission)
+
+- Lockers and shelves (about 15) and terminals/consoles, plus office and barracks furniture: desks, chairs, bunk beds, table, armchair.
+- Right now this is Kenney's home furniture set, which is the most "toy" part next to your soldiers. A small "military facility" kit (locker, shelf, desk, terminal, bunk) would cover most of it.
+
+### 4. Arena theme kits (lowest priority)
+
+- Space Station (containers, computer, holo table), Toy Factory (machine, hopper, drum), Castle/Snowfort (tower parts, banner, catapult, about 8 nature models).
+- These themes came from the Kenney packs that happened to exist. Before making replacements, it may be worth deciding whether the arenas keep these themes at all in your own style.
 
 Still needs a human:
 
