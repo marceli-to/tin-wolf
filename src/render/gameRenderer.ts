@@ -11,7 +11,7 @@ import { buildLightField, lampsFromLevel, type LightField } from './lighting';
 import { setTextureSmoothing, texturedMaterial } from './textures';
 import { Snow } from './snow';
 import { tintModel, type ModelLibrary } from './models';
-import { guardProfile, ModelCharacter, PROFILES, type HeldGun } from './modelCharacter';
+import { GUN_GRIP_NODE, guardProfile, ModelCharacter, PROFILES, type HeldGun } from './modelCharacter';
 import { StaticBatch } from './staticBatch';
 import { rayGrid } from '../sim/raycast';
 import type { Grid } from '../sim/grid';
@@ -395,10 +395,12 @@ export class GameRenderer {
   private addPickup(world: World, pk: Pickup): void {
     const item = world.data.items[pk.item];
     const holder = new THREE.Group();
-    const inst = item?.model && this.models ? this.models.instance(item.model) : null;
+    const own = PROFILES[this.art]?.items?.[pk.item];
+    const path = own?.model ?? item?.model;
+    const inst = path && this.models ? this.models.instance(path) : null;
     if (item && inst) {
       const o = inst.object;
-      o.scale.setScalar(item.modelScale);
+      o.scale.setScalar(own?.scale ?? item.modelScale);
       // Centre the model on the pickup point so it spins in place.
       o.updateMatrixWorld(true);
       const mb = new THREE.Box3().setFromObject(o);
@@ -414,15 +416,17 @@ export class GameRenderer {
 
   /** Grenade in flight: the weapon's model, or a small dark ball. */
   private projectileMesh(world: World, weapon: string): THREE.Object3D {
-    const def = world.data.weapons[weapon];
-    const inst = def?.model && this.models ? this.models.instance(def.model) : null;
+    const path = PROFILES[this.art]?.weapons?.[weapon] ?? world.data.weapons[weapon]?.model;
+    const inst = path && this.models ? this.models.instance(path) : null;
     if (inst) {
       for (const m of inst.materials) m.metalness = Math.min(m.metalness, 0.15);
       const g = new THREE.Group();
       inst.object.updateMatrixWorld(true);
       const mb = new THREE.Box3().setFromObject(inst.object);
       const size = mb.getSize(new THREE.Vector3());
-      inst.object.scale.setScalar(0.14 / Math.max(size.x, size.y, size.z, 1e-3));
+      // Generator models (with a `grip` node) are in metres already; pack models are sized to 14 cm.
+      const native = !!inst.object.getObjectByName(GUN_GRIP_NODE);
+      inst.object.scale.setScalar(native ? 1 : 0.14 / Math.max(size.x, size.y, size.z, 1e-3));
       inst.object.updateMatrixWorld(true);
       const c = new THREE.Box3().setFromObject(inst.object).getCenter(new THREE.Vector3());
       inst.object.position.sub(c);

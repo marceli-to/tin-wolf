@@ -76,7 +76,8 @@ export interface GripSpec {
  * vertices) goes to the grip point, rotated into hand axes. Returns the holder added to `hand`.
  */
 export function attachHeldGun(hand: THREE.Object3D, gun: THREE.Object3D, grip: GripSpec, relSize?: number): THREE.Object3D {
-  const gripNode = relSize ? null : gun.getObjectByName(GUN_GRIP_NODE);
+  // A `grip` node wins over the palm fit: a generator grenade brings its own spot beside the ball.
+  const gripNode = gun.getObjectByName(GUN_GRIP_NODE);
   if (gripNode) {
     const holder = new THREE.Group();
     const inner = new THREE.Group();
@@ -227,8 +228,10 @@ export function findNode(root: THREE.Object3D, name: string): THREE.Object3D | n
 export interface ArtSet {
   guard: CharacterProfile;
   officer: CharacterProfile;
-  /** Weapon models of this set by weapon id, instead of `weapons.json`'s `model` (held guns only). */
+  /** Weapon models of this set by weapon id, instead of `weapons.json`'s `model` (held, and thrown in flight). */
   weapons?: Record<string, string>;
+  /** Pickup models of this set by item id, instead of `items.json`'s `model` / `modelScale`. */
+  items?: Record<string, { model: string; scale: number }>;
   /** Figure per guard archetype, ahead of `guard` / `officer` (e.g. a rifle guard of its own). */
   archetypes?: Record<string, CharacterProfile>;
   /** Alternative outfits a guard can wear via `look` (same rig and animations). */
@@ -342,8 +345,24 @@ PROFILES.tinfox = {
   ...PROFILES.kenney,
   guard: tinfoxChar('guard'),
   archetypes: { guard_rifle: tinfoxChar('rifle-guard'), guard_officer: tinfoxChar('officer') },
-  // Generator guns (with `grip` / `muzzle` nodes); Kenney blasters for the rest.
-  weapons: { pistol: 'tinfox/weapons/pistol.glb' },
+  // Generator weapons (guns with `grip` / `muzzle` nodes, the grenade with `grip`), in metres.
+  weapons: {
+    pistol: 'tinfox/weapons/pistol.glb',
+    pistol_sd: 'tinfox/weapons/pistol-sd.glb',
+    smg: 'tinfox/weapons/smg.glb',
+    sniper: 'tinfox/weapons/sniper.glb',
+    grenade: 'tinfox/weapons/grenade.glb',
+  },
+  // Pickups spin and bob above the floor, so they keep about the size the Kenney ones had there.
+  items: {
+    weapon_pistol_sd: { model: 'tinfox/weapons/pistol-sd.glb', scale: 0.8 },
+    weapon_smg: { model: 'tinfox/weapons/smg.glb', scale: 0.9 },
+    weapon_sniper: { model: 'tinfox/weapons/sniper.glb', scale: 0.75 },
+    grenades: { model: 'tinfox/weapons/grenade.glb', scale: 2 },
+    ammo_pistol: { model: 'tinfox/weapons/ammo-pistol.glb', scale: 1.6 },
+    ammo_rifle: { model: 'tinfox/weapons/ammo-pistol.glb', scale: 1.6 },
+    ammo_smg: { model: 'tinfox/weapons/ammo-smg.glb', scale: 1.6 },
+  },
 };
 
 /** The figure an art set gives a guard: its look's outfit, the officer, or the plain guard. */
@@ -370,6 +389,7 @@ export function profileModels(art: string): string[] {
     ...(set.viewArms ? [set.viewArms.model] : []),
     ...(set.playerModels ?? []),
     ...Object.values(set.weapons ?? {}),
+    ...Object.values(set.items ?? {}).map((i) => i.model),
   ];
 }
 
