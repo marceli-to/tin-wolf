@@ -272,7 +272,7 @@ PROFILES.kenney = {
 };
 
 // Tin Fox's own figures from the game-pack-generator (KayKit Rig_Medium, metres, faces +z).
-// Only the guard exists so far; everything else stays Kenney. The aim clips key only the arms they
+// Guard, rifle guard and officer so far; everything else stays Kenney. The aim clips key only the arms they
 // use, so they layer over walk and run: one-handed the right arm (the left hangs and swings with the
 // base clip), two-handed both (and move the upper-arm heads forward, for the missing collarbone).
 const T_RIGHT = ['upperarm.r', 'lowerarm.r', 'wrist.r', 'hand.r', 'handslot.r'];
@@ -295,7 +295,7 @@ const tinfoxChar = (file: string): CharacterProfile => ({
   },
 });
 
-PROFILES.tinfox = { ...PROFILES.kenney, guard: tinfoxChar('guard'), archetypes: { guard_rifle: tinfoxChar('rifle-guard') } };
+PROFILES.tinfox = { ...PROFILES.kenney, guard: tinfoxChar('guard'), archetypes: { guard_rifle: tinfoxChar('rifle-guard'), guard_officer: tinfoxChar('officer') } };
 
 /** The figure an art set gives a guard: its look's outfit, the officer, or the plain guard. */
 export function guardProfile(set: ArtSet, archetype: string, look?: string | null): CharacterProfile {
