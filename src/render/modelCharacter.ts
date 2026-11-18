@@ -245,8 +245,8 @@ export interface ArtSet {
   player?: CharacterProfile;
   /** Player body per slot, instead of tinting one shared model. */
   playerModels?: string[];
-  /** Level surfaces drawn flat and clean (no grime, rivets or noise) to match the models. */
-  flatTextures?: boolean;
+  /** Level surface style ('flat': clean, no grime, rivets or noise, to match the models; 'tinfox': own palette). */
+  textures?: 'flat' | 'tinfox';
   /** Brighter mood: baked light is lifted toward `lightFloor`, fog lightened toward `fogTint` and pushed back. */
   mood?: { lightFloor: number; fogTint: string; fogMix: number; fogFarScale: number };
   /** First-person arms: the player model in an aiming pose, head collapsed, placed at the camera. */
@@ -317,7 +317,7 @@ PROFILES.kenney = {
     grip: { ...K_GRIP, position: [-0.29, 0.03, 0.02], scale: 0.26 },
     gunOnly: true,
   },
-  flatTextures: true,
+  textures: 'flat',
   // Toy look: no pitch-dark corners and a light, distant haze instead of gloom.
   mood: { lightFloor: 0.5, fogTint: '#c4d8e8', fogMix: 0.45, fogFarScale: 1.5 },
 };
@@ -351,6 +351,7 @@ const FURNITURE_GROW = 1.2;
 
 PROFILES.tinfox = {
   ...PROFILES.kenney,
+  textures: 'tinfox',
   guard: tinfoxChar('guard'),
   archetypes: { guard_rifle: tinfoxChar('rifle-guard'), guard_officer: tinfoxChar('officer') },
   // Generator weapons (guns with `grip` / `muzzle` nodes, the grenade with `grip`), in metres.

@@ -676,11 +676,175 @@ const FLAT_PAINTERS: Record<string, Paint> = {
   },
 };
 
+/** Tin Fox's own colours, taken from the generator's props (see `TINFOX_PAINTERS`). */
+const TF = {
+  wall: '#e2dfd5',
+  wallSeam: '#c3c0b6',
+  orange: '#f28a1e',
+  olive: '#66733f',
+  oliveLight: '#7a8750',
+  dark: '#43464c',
+  darker: '#2f3236',
+  steel: '#7d838b',
+  light: '#c9cbc6',
+  screen: '#7cc6ea',
+  red: '#d9402f',
+  blue: '#3b7bd6',
+  yellow: '#f2c443',
+};
+
+/** Dark seam line with a light edge below it, like a joint between two pressed panels. */
+function seamH(p: Pix, y: number, w: number, dark: string, x = 0): void {
+  p.fill(x, y, w, 2, dark);
+  p.shade(x, y + 2, w, 1, 1.06);
+}
+function seamV(p: Pix, x: number, h: number, dark: string, y = 0): void {
+  p.fill(x, y, 2, h, dark);
+  p.shade(x + 2, y, 1, h, 1.06);
+}
+function bolt(p: Pix, x: number, y: number, hex: string): void {
+  p.fill(x, y, 3, 3, hex);
+}
+
+/**
+ * Tin Fox's own level surfaces, layered over the flat set: the palette of the generator's props
+ * (light grey, olive drab, dark grey, orange accents, light blue screens), big panels with
+ * clear seams and no grime. One texture spans 2 m, its bottom edge at floor level.
+ */
+const TINFOX_PAINTERS: Record<string, Paint> = {
+  // Interior walls: pressed off-white panels, 1 m wide, with an orange line at 1 m height.
+  panel: (p, n) => {
+    p.fill(0, 0, n, n, TF.wall);
+    seamV(p, 0, n, TF.wallSeam);
+    seamV(p, n / 2, n, TF.wallSeam);
+    seamH(p, 0, n, TF.wallSeam);
+    p.fill(0, n / 2 - 2, n, 4, TF.orange);
+    p.shade(0, n / 2 + 2, n, 1, 0.85);
+    for (const x of [6, n / 2 - 8, n / 2 + 6, n - 8]) for (const y of [6, n - 9]) bolt(p, x, y, TF.wallSeam);
+  },
+  // Generator room: gunmetal plates with corner bolts.
+  metal: (p, n) => {
+    p.fill(0, 0, n, n, TF.steel);
+    for (const x of [0, n / 2]) for (const y of [0, n / 2]) {
+      seamV(p, x, n / 2, '#5f646b', y);
+      seamH(p, y, n / 2, '#5f646b', x);
+      flatPanel(p, x + 2, y + 2, n / 2 - 2, n / 2 - 2, 2);
+      for (const bx of [x + 6, x + n / 2 - 8]) for (const by of [y + 6, y + n / 2 - 8]) bolt(p, bx, by, '#5a5f66');
+    }
+  },
+  // Garage: big poured slabs.
+  concrete: (p, n) => {
+    p.fill(0, 0, n, n, '#b9b7b0');
+    seamH(p, 0, n, '#9d9b94');
+    seamV(p, 0, n, '#9d9b94');
+    seamH(p, n / 2, n, '#a6a49d');
+  },
+  // Lab and hall floors: 50 cm tiles.
+  tile: (p, n) => {
+    p.fill(0, 0, n, n, '#cfd2cd');
+    for (let i = 0; i < 4; i++) {
+      seamH(p, (i * n) / 4, n, '#b2b6b1');
+      seamV(p, (i * n) / 4, n, '#b2b6b1');
+    }
+  },
+  // Office floor: slate carpet tiles, alternating grain.
+  carpet: (p, n) => {
+    p.fill(0, 0, n, n, '#58626d');
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) if ((i + j) % 2) p.shade((i * n) / 4, (j * n) / 4, n / 4, n / 4, 0.93);
+  },
+  ceiling: (p, n) => {
+    p.fill(0, 0, n, n, '#dcdbd4');
+    for (let i = 0; i < 4; i++) {
+      seamH(p, (i * n) / 4, n, '#c2c1ba');
+      seamV(p, (i * n) / 4, n, '#c2c1ba');
+    }
+    p.fill(n / 4 + 6, n / 4 + 6, n / 4 - 10, n / 4 - 10, '#f4f3ee');
+  },
+  // Corridor and vent floors: dark grating with slots.
+  grate: (p, n) => {
+    p.fill(0, 0, n, n, '#5a5f66');
+    for (let y = 4; y < n; y += 8) for (let x = 0; x < n; x += 32) p.fill(x + 4, y, 24, 4, TF.darker);
+    seamV(p, 0, n, TF.dark);
+    seamH(p, 0, n, TF.dark);
+  },
+  // Barracks: warm planks, kept muted next to the olive kit.
+  wood: (p, n) => {
+    p.fill(0, 0, n, n, '#b48f66');
+    for (let i = 0; i < 8; i++) {
+      const y = (i * n) / 8;
+      p.fill(0, y, n, 1, '#94734f');
+      if (i % 2) p.shade(0, y + 1, n, n / 8 - 1, 0.95);
+      p.fill((i * 53) % n, y, 1, n / 8, '#94734f');
+    }
+  },
+  // Station exterior: olive corrugated cladding.
+  brick: (p, n) => {
+    p.fill(0, 0, n, n, TF.olive);
+    for (let x = 0; x < n; x += 8) {
+      p.fill(x, 0, 3, n, TF.oliveLight);
+      p.shade(x + 6, 0, 2, n, 0.86);
+    }
+    seamH(p, 0, n, '#4e5830');
+  },
+  rock: (p, n) => {
+    p.fill(0, 0, n, n, '#8c9096');
+    flatPanel(p, 0, 0, n / 2, n / 2, 5);
+    flatPanel(p, n / 2, 0, n / 2, n / 2, 5);
+    flatPanel(p, n / 4, n / 2, n / 2, n / 2, 5);
+    flatPanel(p, -n / 4, n / 2, n / 2, n / 2, 5);
+    p.shade(n / 2 + 4, 6, n / 2 - 10, n / 2 - 12, 0.95);
+  },
+  hazard: (p, n) => {
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const yellow = ((x + y) >> 4) % 2 === 0;
+      p.set(x, y, yellow ? 242 : 52, yellow ? 196 : 55, yellow ? 67 : 60);
+    }
+  },
+  // Doors: dark frame, light grey leaf, a light blue window and an orange band. The whole door is one texture.
+  door: (p, n) => paintDoor(p, n, TF.light, TF.orange),
+  door_red: (p, n) => paintDoor(p, n, TF.red, TF.yellow, TF.red),
+  door_blue: (p, n) => paintDoor(p, n, TF.blue, TF.yellow, TF.blue),
+  // Alarm panel until its model arrives: yellow box, red button in a dark collar, red lamp, hazard foot.
+  alarm: (p, n) => {
+    p.fill(0, 0, n, n, TF.yellow);
+    flatPanel(p, 0, 0, n, n, 6);
+    p.fill(n / 2 - 20, 12, 40, 14, TF.red);
+    p.shade(n / 2 - 20, 12, 40, 4, 1.25);
+    p.fill(n / 2 - 24, n / 2 - 14, 48, 48, TF.dark);
+    p.fill(n / 2 - 16, n / 2 - 6, 32, 32, TF.red);
+    flatPanel(p, n / 2 - 16, n / 2 - 6, 32, 32, 4);
+    for (let y = n - 14; y < n; y++) for (let x = 0; x < n; x++) {
+      const yellow = ((x + y) >> 3) % 2 === 0;
+      if (!yellow) p.set(x, y, 30, 30, 30);
+    }
+    for (const x of [6, n - 9]) for (const y of [6, n - 22]) bolt(p, x, y, TF.dark);
+  },
+};
+
+/** Door picture: frame, leaf, window, stripe; a key plate on keycard doors. */
+function paintDoor(p: Pix, n: number, leaf: string, band: string, key?: string): void {
+  p.fill(0, 0, n, n, TF.dark);
+  p.fill(8, 8, n - 16, n - 8, leaf);
+  flatPanel(p, 8, 8, n - 16, n - 8, 4);
+  p.fill(8, n * 0.55, n - 16, 10, band);
+  p.fill(n / 2 - 20, 20, 40, 24, TF.darker);
+  p.fill(n / 2 - 17, 23, 34, 18, TF.screen);
+  p.shade(n / 2 - 17, 23, 12, 18, 1.12);
+  if (key) {
+    p.fill(n - 34, n * 0.55 + 18, 18, 24, TF.light);
+    p.fill(n - 30, n * 0.55 + 22, 10, 7, key);
+  }
+}
+
 let painters = PAINTERS;
 
-/** Switches every level surface to the flat style. Call before the first texture is built. */
-export function useFlatTextures(on: boolean): void {
-  painters = on ? { ...PAINTERS, ...FLAT_PAINTERS } : PAINTERS;
+/** Level surface style: 'detailed' (grimy, the code-built look), 'flat' (clean, next to Kenney), 'tinfox' (own palette). */
+export type TextureStyle = 'detailed' | 'flat' | 'tinfox';
+
+/** Switches every level surface to a style. Call before the first texture is built. */
+export function useTextureStyle(style: TextureStyle): void {
+  painters =
+    style === 'tinfox' ? { ...PAINTERS, ...FLAT_PAINTERS, ...TINFOX_PAINTERS } : style === 'flat' ? { ...PAINTERS, ...FLAT_PAINTERS } : PAINTERS;
   cache.clear();
 }
 

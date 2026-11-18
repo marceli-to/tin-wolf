@@ -2,7 +2,7 @@ import { installDebugHooks } from './game/debug';
 import { Game } from './game/game';
 import { readParams } from './game/params';
 import { ModelLibrary } from './render/models';
-import { useFlatTextures } from './render/textures';
+import { useTextureStyle } from './render/textures';
 import { profileModels, PROFILES } from './render/modelCharacter';
 
 const app = document.getElementById('app')!;
@@ -22,7 +22,7 @@ async function boot(): Promise<void> {
   game.params.art = art;
   if (art in PROFILES) {
     // Load every model the data refers to before the first level starts.
-    useFlatTextures(!!PROFILES[art]!.flatTextures);
+    useTextureStyle(PROFILES[art]!.textures ?? 'detailed');
     const lib = new ModelLibrary(`${import.meta.env.BASE_URL}assets/`);
     const paths = [...Object.values(game.data.props), ...Object.values(game.data.items), ...Object.values(game.data.weapons)].flatMap((k) => (k.model ? [k.model] : []));
     await lib.load([...new Set([...paths, ...profileModels(art)])]);
