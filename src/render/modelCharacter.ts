@@ -258,10 +258,14 @@ export interface ArtSet {
     clip: string;
     /** Arm pose for two-handed weapons in first person. */
     twoClip?: string;
+    /** Clip for the bones the arm clips leave unkeyed (default: they stay in the bind pose). */
+    base?: string;
     /** Bones scaled to zero so they never block the view. */
     collapse: string[];
     /** Where the model's head bone sits relative to the camera (metres; x right, y up, z back). */
     headOffset: [number, number, number];
+    /** The same for two-handed weapons (default: `headOffset`). */
+    twoHeadOffset?: [number, number, number];
     hand: string;
     muzzle: [number, number, number];
     /** Head bone placed at `headOffset` (default 'Head'). */
@@ -332,9 +336,9 @@ PROFILES.kenney = {
 const T_RIGHT = ['upperarm.r', 'lowerarm.r', 'wrist.r', 'hand.r', 'handslot.r'];
 const T_BOTH = [...T_RIGHT, 'upperarm.l', 'lowerarm.l', 'wrist.l', 'hand.l', 'handslot.l'];
 const T_GRIP: GripSpec = { native: true, position: [0, -0.02, 0], rotation: [0, -Math.PI / 2, 0], scale: 0.65 };
-const tinfoxChar = (file: string): CharacterProfile => ({
+const tinfoxChar = (file: string, body: BodyShape = 'tinfox'): CharacterProfile => ({
   model: `tinfox/characters/${file}.glb`,
-  body: 'tinfox',
+  body,
   clips: { idle: 'idle', alert: 'idle', walk: 'walk', run: 'run', aim: 'idle', shoot: 'idle', die: 'die', crouch: 'crouch' },
   hand: 'handslot.r',
   // walk and run are planted for these speeds (generator, guard update 3).
@@ -357,6 +361,27 @@ PROFILES.tinfox = {
   textures: 'tinfox',
   guard: tinfoxChar('guard'),
   archetypes: { guard_rifle: tinfoxChar('rifle-guard'), guard_officer: tinfoxChar('officer') },
+  // The worker NPC: women's body `hero-f`, drawn at her modelled 1.86 m (about 10 cm under the guards' skulls).
+  looks: { worker: tinfoxChar('worker', 'tinfox_f') },
+  // First-person arms: the figure at the camera in its aim pose (the rest of the body idling, so the free left
+  // arm hangs), head and legs collapsed. The neck sits just under and behind the eye, so the chest and shoulders
+  // stay below and behind the view and only the forearm, glove and gun show. The guard stands in until the
+  // player figures (sheets 05-08) arrive; then only `model` changes.
+  viewArms: {
+    model: 'tinfox/characters/guard.glb',
+    clip: 'aim_1h',
+    twoClip: 'aim_2h',
+    base: 'idle',
+    collapse: ['head', 'upperleg.l', 'upperleg.r'],
+    headBone: 'head',
+    hand: 'handslot.r',
+    muzzle: [0, 0, 0],
+    headOffset: [-0.12, -0.05, 0.13],
+    // The two-handed pose holds the gun at the body's middle: the body moves left and down so the gun sits
+    // lower right like the pistol, and back so the shoulder the pose pushes forward stays out of view.
+    twoHeadOffset: [0.16, -0.15, 0.17],
+    grip: T_GRIP,
+  },
   // Generator weapons (guns with `grip` / `muzzle` nodes, the grenade with `grip`), in metres.
   weapons: {
     pistol: 'tinfox/weapons/pistol.glb',
@@ -428,6 +453,10 @@ PROFILES.tinfox = {
     // Wall panels, built to the 0.50 x 0.70 x 0.16 box. The alarm's lamp (M_Lamp) flashes when the alarm
     // is raised; the training start panel is the same model with a green button.
     alarm_panel: { model: 'tinfox/props/alarm-panel.glb', fit: 'scale', scale: 1 },
+    // Pumphouse control gear: the depot's terminal and console stand in for the old space computer and holo
+    // table, at the depot's size, but keep their own kinds (a `terminal` is usable, a `console` the mission target).
+    space_computer: { model: 'tinfox/props/terminal.glb', fit: 'scale', scale: 1, size: [0.9, 1.3, 0.6], grow: FURNITURE_GROW },
+    holo_table: { model: 'tinfox/props/console.glb', fit: 'scale', scale: 1, size: [1.4, 1.2, 0.7], grow: FURNITURE_GROW },
     start_panel: { model: 'tinfox/props/alarm-panel.glb', fit: 'scale', scale: 1, recolor: { M_Button: '#3fae4a' } },
   },
   target: 'tinfox/props/target.glb',

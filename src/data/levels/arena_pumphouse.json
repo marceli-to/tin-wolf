@@ -266,7 +266,7 @@
   },
   {
    "type": "prop",
-   "kind": "space_crate",
+   "kind": "crate",
    "cell": [
     5,
     8
@@ -274,7 +274,7 @@
   },
   {
    "type": "prop",
-   "kind": "space_crate",
+   "kind": "crate",
    "cell": [
     14,
     11
@@ -282,7 +282,7 @@
   },
   {
    "type": "prop",
-   "kind": "space_barrel",
+   "kind": "barrel",
    "cell": [
     4.4,
     11.6
@@ -290,7 +290,7 @@
   },
   {
    "type": "prop",
-   "kind": "space_barrel",
+   "kind": "barrel",
    "cell": [
     15.6,
     8.4
@@ -298,23 +298,23 @@
   },
   {
    "type": "prop",
-   "kind": "space_crate_tall",
+   "kind": "crate_tall",
    "cell": [
     5.3,
-    3.3
+    3.4
    ]
   },
   {
    "type": "prop",
-   "kind": "space_crate_tall",
+   "kind": "crate_tall",
    "cell": [
     14.7,
-    16.7
+    16.6
    ]
   },
   {
    "type": "prop",
-   "kind": "space_crate",
+   "kind": "crate",
    "cell": [
     8,
     9
@@ -322,7 +322,7 @@
   },
   {
    "type": "prop",
-   "kind": "space_crate",
+   "kind": "crate",
    "cell": [
     11,
     10
@@ -482,7 +482,7 @@
     3.3,
     5.7
    ],
-   "yaw": 180
+   "yaw": 0
   },
   {
    "type": "prop",
@@ -491,23 +491,25 @@
     16.7,
     14.3
    ],
+   "yaw": 180
+  },
+  {
+   "type": "prop",
+   "kind": "holo_table",
+   "cell": [
+    16.55,
+    5.6
+   ],
    "yaw": 0
   },
   {
    "type": "prop",
    "kind": "holo_table",
    "cell": [
-    16.6,
-    5.6
-   ]
-  },
-  {
-   "type": "prop",
-   "kind": "holo_table",
-   "cell": [
-    3.4,
+    3.45,
     14.4
-   ]
+   ],
+   "yaw": 180
   }
  ],
  "match": {

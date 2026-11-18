@@ -93,23 +93,24 @@ pickup('ammo_rifle', 30, 2, 20)
 pickup('ammo_rifle', 19, 2, 20, TOP)
 
 for e in (
-    # Toy factory: machines along the west wall (mirrored to the east).
-    {'type': 'prop', 'kind': 'toy_hopper', 'cell': [1.4, 16.3]},
-    {'type': 'prop', 'kind': 'toy_machine', 'cell': [1.4, 20.5], 'yaw': 90},
-    {'type': 'prop', 'kind': 'shelf_wide', 'cell': [8.5, 1.2]},
-    {'type': 'prop', 'kind': 'shelf_wide', 'cell': [14.5, 1.2]},
-    {'type': 'prop', 'kind': 'locker', 'cell': [19.6, 1.2]},
-    # Toy blocks instead of crates: A (small), B (tall), C (long), 1 (big).
-    {'type': 'prop', 'kind': 'toy_block_a', 'cell': [9, 3]},
-    {'type': 'prop', 'kind': 'toy_block_b', 'cell': [14.6, 11.4]},
-    {'type': 'prop', 'kind': 'toy_block_1', 'cell': [24, 13], 'yaw': 90},
-    {'type': 'prop', 'kind': 'toy_block_1', 'cell': [10, 18]},
-    {'type': 'prop', 'kind': 'toy_block_a', 'cell': [28, 6]},
-    {'type': 'prop', 'kind': 'toy_block_c', 'cell': [3, 6.5]},
-    {'type': 'prop', 'kind': 'toy_block_a', 'cell': [27, 2]},
-    {'type': 'prop', 'kind': 'toy_block_b', 'cell': [32.3, 3.3]},
-    {'type': 'prop', 'kind': 'toy_drum', 'cell': [16.4, 4.4]},
-    {'type': 'prop', 'kind': 'toy_drum', 'cell': [7.6, 12.3]},
+    # Goods along the west wall (mirrored to the east): a tall crate and a cargo box.
+    {'type': 'prop', 'kind': 'crate_tall', 'cell': [1.4, 16.3]},
+    {'type': 'prop', 'kind': 'cargo', 'cell': [1.4, 20.5], 'yaw': 90},
+    {'type': 'prop', 'kind': 'shelf_wide', 'cell': [8.5, 1.2], 'yaw': 180},
+    {'type': 'prop', 'kind': 'shelf_wide', 'cell': [14.5, 1.2], 'yaw': 180},
+    {'type': 'prop', 'kind': 'locker', 'cell': [19.6, 1.2], 'yaw': 180},
+    # Cover: crates, tall crates, cargo boxes; two crates side by side where a long block stood.
+    {'type': 'prop', 'kind': 'crate', 'cell': [9, 3]},
+    {'type': 'prop', 'kind': 'crate_tall', 'cell': [14.6, 11.4]},
+    {'type': 'prop', 'kind': 'cargo', 'cell': [24, 13], 'yaw': 90},
+    {'type': 'prop', 'kind': 'cargo', 'cell': [10, 18]},
+    {'type': 'prop', 'kind': 'crate', 'cell': [28, 6]},
+    {'type': 'prop', 'kind': 'crate', 'cell': [3.23, 6.5]},
+    {'type': 'prop', 'kind': 'crate', 'cell': [3.77, 6.5]},
+    {'type': 'prop', 'kind': 'crate', 'cell': [27, 2]},
+    {'type': 'prop', 'kind': 'crate_tall', 'cell': [32.3, 3.3]},
+    {'type': 'prop', 'kind': 'barrel', 'cell': [16.4, 4.4]},
+    {'type': 'prop', 'kind': 'barrel', 'cell': [7.6, 12.3]},
     {'type': 'prop', 'kind': 'barrel_red', 'cell': [10, 5]},
     {'type': 'prop', 'kind': 'barrel_red', 'cell': [20, 11]},
     {'type': 'prop', 'kind': 'barrel_red', 'cell': [2, 13]},
@@ -120,7 +121,8 @@ for e in (
     {'type': 'light', 'cell': [17, 9], 'level': 0.2, 'radius': 6},
     {'type': 'light', 'cell': [29, 2], 'level': 0.2, 'radius': 5},
 ):
-    add(e, yaw_flip=False)
+    # Wall shelves and lockers face into the room: turned with the mirror. Boxes keep their yaw.
+    add(e, yaw_flip=e.get('kind') in ('shelf_wide', 'locker'))
 
 # Toy factory look: toy-brick walls, a checkered floor, a yellow studded dock, candy-striped edges.
 legend_base = {'ceil': 7, 'wall': 'toy_wall', 'ceilMat': 'toy_ceil'}

@@ -19,8 +19,15 @@ export interface ViewArmsSpec {
   clip: string;
   /** Arm pose for two-handed weapons (`hold: 'two'`); default: `clip`. */
   twoClip?: string;
+  /**
+   * Clip for the bones the arm clips leave unkeyed (e.g. 'idle'), so they rest in a pose instead of the
+   * bind pose: a one-handed aim clip keys only the right arm, and the left would stick out in a T-pose.
+   */
+  base?: string;
   collapse: string[];
   headOffset: [number, number, number];
+  /** Head placement for two-handed weapons, whose pose holds the gun elsewhere; default: `headOffset`. */
+  twoHeadOffset?: [number, number, number];
   hand: string;
   /** Muzzle in hand-bone space (metres); the model carries its own gun. */
   muzzle: [number, number, number];
@@ -50,8 +57,15 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
     if ((o as THREE.SkinnedMesh).isSkinnedMesh) o.visible = false;
   });
   const mixer = new THREE.AnimationMixer(body);
+  const byName = (name: string | undefined) => (name ? arms.animations.find((c) => c.name === name) : undefined);
+  const baseClip = byName(spec.base);
+  const node = (t: THREE.KeyframeTrack) => t.name.slice(0, t.name.lastIndexOf('.'));
   const action = (name: string | undefined): THREE.AnimationAction | null => {
-    const clip = name ? arms.animations.find((c) => c.name === name) : undefined;
+    let clip = byName(name);
+    if (clip && baseClip) {
+      const keyed = new Set(clip.tracks.map(node));
+      clip = new THREE.AnimationClip(`${clip.name}+${baseClip.name}`, clip.duration, [...clip.tracks, ...baseClip.tracks.filter((t) => !keyed.has(node(t)))]);
+    }
     return clip ? mixer.clipAction(clip) : null;
   };
   const poses = { one: action(spec.clip), two: action(spec.twoClip) ?? action(spec.clip) };
@@ -63,7 +77,9 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
   const head = findNode(body, spec.headBone ?? 'Head');
   const hp = new THREE.Vector3();
   head?.getWorldPosition(hp);
-  body.position.set(spec.headOffset[0] - hp.x, spec.headOffset[1] - hp.y, spec.headOffset[2] - hp.z);
+  const place = (o: [number, number, number]) => new THREE.Vector3(o[0] - hp.x, o[1] - hp.y, o[2] - hp.z);
+  const placed = { one: place(spec.headOffset), two: place(spec.twoHeadOffset ?? spec.headOffset) };
+  body.position.copy(placed.one);
   // Muzzle flash at the gun the model holds, in metres of hand space.
   const hand = findNode(body, spec.hand) ?? body;
   const holder = new THREE.Group();
@@ -114,6 +130,7 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
     if (g.tip) flash.position.copy(g.tip);
     // Two-handed guns sit in the both-hands pose; the swap happens out of view, so no blend.
     const want = g.two ? poses.two : poses.one;
+    body.position.copy(g.two ? placed.two : placed.one);
     if (want && !want.isRunning()) {
       mixer.stopAllAction();
       want.reset().play();

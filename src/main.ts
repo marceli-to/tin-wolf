@@ -17,8 +17,8 @@ function fail(err: unknown): void {
 
 async function boot(): Promise<void> {
   const game = new Game(app, readParams(location.search));
-  // Kenney kits are the look; ?art=none shows the code-built figures and shapes instead.
-  const art = game.params.art || 'kenney';
+  // Tin Fox's own art (Kenney fills in where it has no model yet); ?art=none shows the code-built figures and shapes.
+  const art = game.params.art === 'none' ? 'none' : 'tinfox';
   game.params.art = art;
   if (art in PROFILES) {
     // Load every model the data refers to before the first level starts.

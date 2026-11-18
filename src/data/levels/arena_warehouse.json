@@ -2657,7 +2657,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_hopper",
+   "kind": "crate_tall",
    "cell": [
     1.4,
     16.3
@@ -2665,7 +2665,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_hopper",
+   "kind": "crate_tall",
    "cell": [
     33.6,
     12.7
@@ -2673,7 +2673,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_machine",
+   "kind": "cargo",
    "cell": [
     1.4,
     20.5
@@ -2682,7 +2682,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_machine",
+   "kind": "cargo",
    "cell": [
     33.6,
     8.5
@@ -2704,7 +2704,8 @@
    "cell": [
     26.5,
     27.8
-   ]
+   ],
+   "yaw": 0
   },
   {
    "type": "prop",
@@ -2721,7 +2722,8 @@
    "cell": [
     20.5,
     27.8
-   ]
+   ],
+   "yaw": 0
   },
   {
    "type": "prop",
@@ -2738,11 +2740,12 @@
    "cell": [
     15.399999999999999,
     27.8
-   ]
+   ],
+   "yaw": 0
   },
   {
    "type": "prop",
-   "kind": "toy_block_a",
+   "kind": "crate",
    "cell": [
     9,
     3
@@ -2750,7 +2753,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_a",
+   "kind": "crate",
    "cell": [
     25,
     25
@@ -2758,7 +2761,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_b",
+   "kind": "crate_tall",
    "cell": [
     14.6,
     11.4
@@ -2766,7 +2769,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_b",
+   "kind": "crate_tall",
    "cell": [
     20.4,
     17.6
@@ -2774,7 +2777,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_1",
+   "kind": "cargo",
    "cell": [
     24,
     13
@@ -2783,7 +2786,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_1",
+   "kind": "cargo",
    "cell": [
     10,
     15
@@ -2792,7 +2795,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_1",
+   "kind": "cargo",
    "cell": [
     10,
     18
@@ -2800,7 +2803,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_1",
+   "kind": "cargo",
    "cell": [
     24,
     10
@@ -2808,7 +2811,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_a",
+   "kind": "crate",
    "cell": [
     28,
     6
@@ -2816,7 +2819,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_a",
+   "kind": "crate",
    "cell": [
     6,
     22
@@ -2824,23 +2827,39 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_c",
+   "kind": "crate",
    "cell": [
-    3,
+    3.23,
     6.5
    ]
   },
   {
    "type": "prop",
-   "kind": "toy_block_c",
+   "kind": "crate",
    "cell": [
-    32,
+    31.77,
     22.5
    ]
   },
   {
    "type": "prop",
-   "kind": "toy_block_a",
+   "kind": "crate",
+   "cell": [
+    3.77,
+    6.5
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
+   "cell": [
+    31.23,
+    22.5
+   ]
+  },
+  {
+   "type": "prop",
+   "kind": "crate",
    "cell": [
     27,
     2
@@ -2848,7 +2867,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_a",
+   "kind": "crate",
    "cell": [
     7,
     26
@@ -2856,7 +2875,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_b",
+   "kind": "crate_tall",
    "cell": [
     32.3,
     3.3
@@ -2864,7 +2883,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_block_b",
+   "kind": "crate_tall",
    "cell": [
     2.700000000000003,
     25.7
@@ -2872,7 +2891,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_drum",
+   "kind": "barrel",
    "cell": [
     16.4,
     4.4
@@ -2880,7 +2899,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_drum",
+   "kind": "barrel",
    "cell": [
     18.6,
     24.6
@@ -2888,7 +2907,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_drum",
+   "kind": "barrel",
    "cell": [
     7.6,
     12.3
@@ -2896,7 +2915,7 @@
   },
   {
    "type": "prop",
-   "kind": "toy_drum",
+   "kind": "barrel",
    "cell": [
     27.4,
     16.7

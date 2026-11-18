@@ -372,8 +372,10 @@ export class GameRenderer {
         vm = buildModelArmsViewModel(armsInst, this.heldGuns(world, Object.keys(world.data.weapons)), {
           clip: va.clip,
           twoClip: va.twoClip,
+          base: va.base,
           collapse: va.collapse,
           headOffset: va.headOffset,
+          twoHeadOffset: va.twoHeadOffset,
           hand: va.hand,
           muzzle: va.muzzle,
           height: p.height,
