@@ -392,6 +392,8 @@ PROFILES.tinfox = {
     // lower right like the pistol, and back so the shoulder the pose pushes forward stays out of view.
     twoHeadOffset: [0.16, -0.15, 0.17],
     grip: T_GRIP,
+    // Marcel prefers the gun or grenade alone in first person: the figure only poses it, unseen.
+    gunOnly: true,
   },
   // Generator weapons (guns with `grip` / `muzzle` nodes, the grenade with `grip`), in metres.
   weapons: {
