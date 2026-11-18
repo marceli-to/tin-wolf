@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { MuzzleFlash } from './muzzle';
 import type { ModelInstance } from './models';
 import { measureHeight, tintModel } from './models';
 import { flatMaterial, shadedBox } from './shapes';
@@ -208,6 +209,19 @@ export function findMuzzleIn(gun: THREE.Object3D, hand: THREE.Object3D): THREE.V
   const named = gun.name || 'heldGun';
   gun.name = named;
   return findMuzzle(gun.parent ?? gun, hand, named);
+}
+
+/**
+ * Barrel direction of a held gun in `space` (generator guns: the `muzzle` node's +X); null for guns
+ * without the node, whose barrel is only known as a point.
+ */
+export function barrelDirIn(gun: THREE.Object3D, space: THREE.Object3D): THREE.Vector3 | null {
+  const node = gun.getObjectByName(GUN_MUZZLE_NODE);
+  if (!node) return null;
+  gun.updateMatrixWorld(true);
+  space.updateMatrixWorld(true);
+  const d = new THREE.Vector3(1, 0, 0).transformDirection(node.matrixWorld);
+  return d.transformDirection(space.matrixWorld.clone().invert());
 }
 
 /** One held weapon per weapon id, all placed in the hand; only the drawn one is visible. */
@@ -525,7 +539,7 @@ const FADE = 0.18;
 /** Animated glTF character driven by sim state. Faces -z like the box humanoid. */
 export class ModelCharacter {
   readonly root = new THREE.Group();
-  readonly flash: THREE.Object3D;
+  readonly flash: MuzzleFlash;
   /** The hand-held gun, exposed for placement tuning. */
   readonly gun: THREE.Object3D;
   private mixer: THREE.AnimationMixer;
@@ -536,7 +550,7 @@ export class ModelCharacter {
   private current: CharacterAnim | null = null;
   private materials: THREE.MeshStandardMaterial[];
   /** Held weapons by id, with the barrel tip in hand space (null for thrown weapons). */
-  private held = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; style: HoldStyle }>();
+  private held = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; dir: THREE.Vector3 | null; style: HoldStyle }>();
   private weaponId = '';
   private inner: THREE.Object3D;
   private groundSpeed: { walk: number; run: number };
@@ -549,7 +563,6 @@ export class ModelCharacter {
     model: ModelInstance,
     profile: CharacterProfile,
     height: number,
-    flashMaterial: THREE.Material,
     held: HeldGun[] = [],
   ) {
     const inner = model.object;
@@ -592,8 +605,7 @@ export class ModelCharacter {
       holder.add(box);
       this.gun = box;
     }
-    const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), flashMaterial);
-    flash.visible = false;
+    const flash = new MuzzleFlash();
     if (profile.grip) {
       // Guns go into the empty hand; the flash sits on each barrel tip in hand space, measured in
       // the aiming pose of the weapon's hold style.
@@ -606,15 +618,18 @@ export class ModelCharacter {
         inner.updateMatrixWorld(true);
         const holder = attachHeldGun(hand, h.model.object, grip, h.fit === 'hand' ? 0.45 : undefined);
         const tip = h.fit === 'hand' ? null : findMuzzleIn(holder, hand);
+        const dir = tip ? barrelDirIn(holder, hand) : null;
         aim?.stop();
         holder.visible = false;
-        this.held.set(h.id, { holder, tip, style });
+        this.held.set(h.id, { holder, tip, dir, style });
       }
-      flash.scale.setScalar(1 / inner.scale.x);
-      hand.add(flash);
+      flash.object.scale.setScalar(1 / inner.scale.x);
+      hand.add(flash.object);
     } else {
-      flash.position.set(0, 0, 0.25);
-      holder.add(flash);
+      // The box gun points along the holder's +z (the figure is turned to face -z).
+      flash.object.position.set(0, 0, 0.25);
+      flash.aim(new THREE.Vector3(0, 0, 1));
+      holder.add(flash.object);
     }
     this.flash = flash;
     const first = held[0];
@@ -644,8 +659,9 @@ export class ModelCharacter {
     if (id === this.weaponId || !this.held.has(id)) return;
     this.weaponId = id;
     for (const [k, h] of this.held) h.holder.visible = k === id;
-    const { tip, style } = this.held.get(id)!;
-    if (tip) this.flash.position.copy(tip);
+    const { tip, dir, style } = this.held.get(id)!;
+    if (tip) this.flash.object.position.copy(tip);
+    this.flash.aim(dir);
     if (style !== this.style && this.styles.has(style)) {
       // Cross-fade into the same animation with the other arm pose.
       const cur = this.current;

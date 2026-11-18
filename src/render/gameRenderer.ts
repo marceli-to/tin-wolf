@@ -23,6 +23,7 @@ import { shadeByNormal, worldUvBox } from './shapes';
 import { computeViewRects, type SplitMode, type ViewRect } from './views';
 import { Effects } from './effects';
 import { buildRail, buildTarget, poseTarget, type TargetVisual } from './targets';
+import { MuzzleFlash, MuzzleLights } from './muzzle';
 import { buildModelArmsViewModel, buildPistolViewModel, poseViewModel, type ViewModel } from './viewModel';
 import { buildPickupMesh, powerupRing } from './pickups';
 import { flatMaterial } from './shapes';
@@ -36,7 +37,9 @@ export interface ViewLook {
 interface ActorVisual {
   h: Humanoid;
   phase: number;
-  flash: THREE.Object3D;
+  flash: MuzzleFlash;
+  /** `sinceShot` seen last frame: when it drops, a new shot was fired. */
+  lastSince?: number;
   /** Animated glTF figure, when model art is enabled; replaces the box humanoid. */
   model?: ModelCharacter;
   /** Drawn size, eased toward the sim's (a Shrink Ray shrinks the figure). */
@@ -47,6 +50,17 @@ interface ActorVisual {
   antennaLight?: THREE.Mesh;
 }
 
+
+const _flashPos = new THREE.Vector3();
+
+/** Flash for a box humanoid's gun, whose barrel points along -z. */
+function boxGunFlash(h: Humanoid): MuzzleFlash {
+  const flash = new MuzzleFlash();
+  flash.object.position.set(0, 0, -0.2);
+  flash.aim(new THREE.Vector3(0, 0, -1));
+  h.gun.add(flash.object);
+  return flash;
+}
 
 const STATE_COLORS: Record<string, string> = {
   patrol: '#40d070',
@@ -129,7 +143,9 @@ export class GameRenderer {
   /** Extra field of view per player, eased in while sprinting. */
   private fovKick: number[] = [];
   readonly effects = new Effects();
-  private flashMat = new THREE.MeshBasicMaterial({ color: '#ffd27a', blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false });
+  private muzzleLights = new MuzzleLights();
+  private vmFired: (string | null)[] = [];
+  private vmFlashLight: THREE.PointLight | null = null;
 
   constructor(private container: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -138,6 +154,7 @@ export class GameRenderer {
     container.appendChild(this.renderer.domElement);
     this.scene.add(this.dynamic);
     this.scene.add(this.debugGroup);
+    this.scene.add(this.muzzleLights.group);
     this.scene.add(this.effects.group);
     this.resize();
   }
@@ -161,6 +178,8 @@ export class GameRenderer {
       this.snow = new Snow(world.grid);
       this.dynamic.add(this.snow.points);
     }
+    this.muzzleLights.reset();
+    this.vmFired = [];
     this.levelGroup = buildLevelMesh(world.grid, this.light, world.level.roofs);
     this.scene.add(this.levelGroup);
 
@@ -327,7 +346,7 @@ export class GameRenderer {
       const inst = prof && file && this.models ? this.models.instance(file) : null;
       const antenna = p.bot ? buildAntenna() : null;
       if (prof && inst) {
-        const model = new ModelCharacter(inst, prof, p.height, this.flashMat, this.heldGuns(world, Object.keys(world.data.weapons)));
+        const model = new ModelCharacter(inst, prof, p.height, this.heldGuns(world, Object.keys(world.data.weapons)));
         if (antenna && !model.attachOnHead(antenna.root)) {
           antenna.root.position.y = p.height;
           model.root.add(antenna.root);
@@ -341,10 +360,7 @@ export class GameRenderer {
         antenna.root.position.y = p.height;
         h.root.add(antenna.root);
       }
-      const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), this.flashMat);
-      flash.position.set(0, 0, -0.2);
-      flash.visible = false;
-      h.gun.add(flash);
+      const flash = boxGunFlash(h);
       setLayerDeep(h.root, LAYER.BODY + p.slot);
       this.dynamic.add(h.root);
       return { h, phase: 0, flash, antennaLight: antenna?.light };
@@ -364,6 +380,9 @@ export class GameRenderer {
     const vmSun = new THREE.DirectionalLight('#fff4e0', 1.2);
     vmSun.position.set(0.5, 1, 0.8);
     this.vmScene.add(vmSun);
+    // Lights the gun in hand while its flash is out; moved to the drawn player's muzzle before each view.
+    this.vmFlashLight = new THREE.PointLight('#ffc880', 0, 1.5, 1);
+    this.vmScene.add(this.vmFlashLight);
     this.viewModels = people.map((p) => {
       const va = set?.viewArms;
       const armsFile = va ? (va.slotModels?.[p.slot] ?? va.model) : null;
@@ -407,15 +426,12 @@ export class GameRenderer {
     const profile = set ? guardProfile(set, g.archetype, g.look) : null;
     const inst = profile && this.models ? this.models.instance(profile.model) : null;
     if (profile && inst) {
-      const model = new ModelCharacter(inst, profile, g.height, this.flashMat, this.heldGuns(world, def ? [def.weapon] : []));
+      const model = new ModelCharacter(inst, profile, g.height, this.heldGuns(world, def ? [def.weapon] : []));
       this.dynamic.add(model.root);
       return { h: buildHumanoid({ body: '#000', legs: '#000', skin: '#000' }), phase: 0, flash: model.flash, model };
     }
     const h = buildHumanoid({ body: def?.color ?? '#556', legs: def?.legs ?? '#333', skin: '#c99a7a' });
-    const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), this.flashMat);
-    flash.position.set(0, 0, -0.2);
-    flash.visible = false;
-    h.gun.add(flash);
+    const flash = boxGunFlash(h);
     this.dynamic.add(h.root);
     return { h, phase: Math.random() * 6, flash };
   }
@@ -742,8 +758,25 @@ export class GameRenderer {
     return this.boxIds.has(id);
   }
 
+  /**
+   * Shows an actor's muzzle flash; on a new shot (its `sinceShot` dropped) it starts a fresh flash and
+   * lights the room around the barrel. Returns whether a new shot was seen.
+   */
+  private shotFlash(v: ActorVisual, since: number, weaponId: string, show: boolean): boolean {
+    const fired = show && since < (v.lastSince ?? Infinity) && since < 0.1;
+    v.lastSince = since;
+    if (fired) {
+      const style = v.flash.fire(weaponId);
+      v.flash.object.updateWorldMatrix(true, false);
+      this.muzzleLights.flash(v.flash.object.getWorldPosition(_flashPos), style.light);
+    }
+    v.flash.update(since, show);
+    return fired;
+  }
+
   render(world: World, alpha: number, looks: ViewLook[], frameTime: number): void {
     this.effects.update(Math.min(frameTime, 0.05));
+    this.muzzleLights.update(Math.min(frameTime, 0.05));
     this.time += frameTime;
     const p0 = world.players[0];
     if (this.snow && p0) this.snow.update(Math.min(frameTime, 0.05), p0.x, p0.z, this.time);
@@ -818,7 +851,7 @@ export class GameRenderer {
         else m.play(g.state === 'attack' || g.state === 'suspicious' ? 'alert' : 'idle');
         m.update(Math.min(frameTime, 0.05), speed);
         m.light(Math.min(1.1, this.light(x, z) + 0.15));
-        v.flash.visible = g.state !== 'dead' && g.sinceShot < 0.06;
+        this.shotFlash(v, g.sinceShot, world.data.enemies[g.archetype]?.weapon ?? 'pistol', g.state !== 'dead');
         return;
       }
       v.phase += speed * frameTime * 3.4;
@@ -838,7 +871,7 @@ export class GameRenderer {
         pitch: g.aimPitch,
       });
       v.h.body.rotation.x = -g.flinch * 1.2;
-      v.flash.visible = !dead && g.sinceShot < 0.06;
+      this.shotFlash(v, g.sinceShot, world.data.enemies[g.archetype]?.weapon ?? 'pistol', !dead);
     });
     if (this.debugLines) this.drawDebug(world);
 
@@ -882,7 +915,8 @@ export class GameRenderer {
       lightHumanoid(v.h, Math.min(1.15, this.light(x, z) + 0.1));
       v.h.root.rotation.y = -p.yaw;
       poseHumanoid(v.h, { phase: v.phase, stride: Math.min(1, speed / 4), crouch, aim: 1, pitch: p.pitch });
-      v.flash.visible = p.alive && p.sinceShot < 0.06 && (v.model?.hasMuzzle ?? true);
+      const fired = this.shotFlash(v, p.sinceShot, p.weapon.id, p.alive && (v.model?.hasMuzzle ?? true));
+      if (fired) this.vmFired[i] = p.weapon.id;
 
       const vm = this.viewModels[i];
       if (vm) {
@@ -894,11 +928,13 @@ export class GameRenderer {
         poseViewModel(vm, {
           switching,
           sinceShot: p.sinceShot,
+          fired: this.vmFired[i] ?? null,
           reload: p.weapon.reloadTimer > 0 && def ? 1 - p.weapon.reloadTimer / def.reloadTime : -1,
           bobPhase: this.bob[i]!,
           bobAmount: p.grounded ? Math.min(1, speed / 4) : 0,
           alive: p.alive,
         });
+        this.vmFired[i] = null;
       }
 
       const cam = this.cameras[i];
@@ -952,6 +988,11 @@ export class GameRenderer {
       r.render(this.scene, cam);
       r.autoClear = false;
       r.clearDepth();
+      const vmFlash = this.viewModels[i]?.flash;
+      if (this.vmFlashLight && vmFlash) {
+        vmFlash.object.getWorldPosition(this.vmFlashLight.position);
+        this.vmFlashLight.intensity = vmFlash.glow * 3;
+      }
       r.render(this.vmScene, cam);
       r.autoClear = true;
     });

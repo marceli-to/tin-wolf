@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { withMuzzleLight } from './muzzle';
 
 /**
  * Procedural pixel textures, drawn once on small canvases and sampled with nearest filtering.
@@ -1018,5 +1019,5 @@ export function getTexture(name: string): THREE.Texture | null {
 /** Textured, vertex-lit material; falls back to a flat colour for unknown names. */
 export function texturedMaterial(name: string, fallback: string): THREE.MeshBasicMaterial {
   const map = getTexture(name);
-  return map ? new THREE.MeshBasicMaterial({ map, vertexColors: true }) : new THREE.MeshBasicMaterial({ color: fallback, vertexColors: true });
+  return withMuzzleLight(map ? new THREE.MeshBasicMaterial({ map, vertexColors: true }) : new THREE.MeshBasicMaterial({ color: fallback, vertexColors: true }));
 }

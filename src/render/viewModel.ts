@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { flatMaterial, shadedBox } from './shapes';
 import type { ModelInstance } from './models';
-import { attachHeldGun, findMuzzle, findMuzzleIn, findNode, GUN_MUZZLE_NODE, type GripSpec, type HeldGun } from './modelCharacter';
+import { MuzzleFlash } from './muzzle';
+import { attachHeldGun, barrelDirIn, findMuzzle, findMuzzleIn, findNode, GUN_MUZZLE_NODE, type GripSpec, type HeldGun } from './modelCharacter';
 
 export interface ViewModel {
   root: THREE.Group;
   gun: THREE.Group;
-  flash: THREE.Object3D;
+  flash: MuzzleFlash;
   /** Shows the model for a weapon id (view models with several held weapons). */
   setWeapon?: (id: string) => void;
   /** False while a weapon without a muzzle (a grenade) is drawn. */
@@ -44,6 +45,8 @@ export interface ViewArmsSpec {
  */
 /** Distance in front of the camera where a first-person barrel meets the crosshair (metres). */
 const AIM_DISTANCE = 20;
+/** First-person flashes are drawn smaller: the muzzle is only half a metre from the eye. */
+const FP_FLASH_SCALE = 1;
 
 export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], spec: ViewArmsSpec): ViewModel {
   const root = new THREE.Group();
@@ -88,40 +91,25 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
   const holder = new THREE.Group();
   holder.scale.setScalar(1 / body.scale.x);
   hand.add(holder);
-  const flashMat = new THREE.MeshBasicMaterial({
-    color: '#ffd27a',
-    transparent: true,
-    opacity: 0.95,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-    fog: false,
-  });
-  const flashGeo = new THREE.PlaneGeometry(0.08, 0.08);
-  const flash = new THREE.Mesh(flashGeo, flashMat);
-  const f2 = new THREE.Mesh(flashGeo, flashMat);
-  f2.rotation.y = Math.PI / 2;
-  const f3 = new THREE.Mesh(flashGeo, flashMat);
-  f3.rotation.x = Math.PI / 2;
-  flash.add(f2, f3);
-  flash.visible = false;
-  const guns = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; two: boolean; barrel: THREE.Object3D | null; muzzle: THREE.Object3D | null }>();
+  const flash = new MuzzleFlash(FP_FLASH_SCALE);
+  const guns = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; dir: THREE.Vector3 | null; two: boolean; barrel: THREE.Object3D | null; muzzle: THREE.Object3D | null }>();
   for (const h of held) {
     if (!spec.grip) continue;
     const holder = attachHeldGun(hand, h.model.object, spec.grip, h.fit === 'hand' ? 0.45 : undefined);
     holder.visible = false;
     const muzzle = h.fit === 'hand' ? null : h.model.object.getObjectByName(GUN_MUZZLE_NODE) ?? null;
-    guns.set(h.id, { holder, tip: h.fit === 'hand' ? null : findMuzzleIn(holder, hand), two: h.hold === 'two', barrel: muzzle ? h.model.object : null, muzzle });
+    const tip = h.fit === 'hand' ? null : findMuzzleIn(holder, hand);
+    guns.set(h.id, { holder, tip, dir: tip ? barrelDirIn(holder, hand) : null, two: h.hold === 'two', barrel: muzzle ? h.model.object : null, muzzle });
   }
   const tip = guns.size ? null : findMuzzle(body, hand);
-  flash.scale.setScalar(1 / body.scale.x);
+  flash.object.scale.setScalar(1 / body.scale.x);
   if (tip || guns.size) {
-    if (tip) flash.position.copy(tip);
-    hand.add(flash);
+    if (tip) flash.object.position.copy(tip);
+    hand.add(flash.object);
   } else {
-    flash.position.set(...spec.muzzle);
-    flash.scale.setScalar(1);
-    holder.add(flash);
+    flash.object.position.set(...spec.muzzle);
+    flash.object.scale.setScalar(1);
+    holder.add(flash.object);
   }
   const vm: ViewModel = { root, gun, flash, muzzle: true };
   const baseTurn = body.quaternion.clone();
@@ -152,7 +140,8 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
     current = id;
     for (const [k, v] of guns) v.holder.visible = k === id;
     vm.muzzle = !!g.tip;
-    if (g.tip) flash.position.copy(g.tip);
+    if (g.tip) flash.object.position.copy(g.tip);
+    flash.aim(g.dir);
     // Two-handed guns sit in the both-hands pose; the swap happens out of view, so no blend.
     const want = g.two ? poses.two : poses.one;
     if (want && !want.isRunning()) {
@@ -193,25 +182,10 @@ export function buildPistolViewModel(sleeve: string): ViewModel {
   arm.rotation.x = 0.12;
   gun.add(slide, frame, grip, sight, hand, arm);
 
-  const flashMat = new THREE.MeshBasicMaterial({
-    color: '#ffd27a',
-    transparent: true,
-    opacity: 0.95,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-    fog: false,
-  });
-  const flashGeo = new THREE.PlaneGeometry(0.11, 0.11);
-  const flash = new THREE.Mesh(flashGeo, flashMat);
-  const flash2 = new THREE.Mesh(flashGeo, flashMat);
-  flash2.rotation.y = Math.PI / 2;
-  const flash3 = new THREE.Mesh(flashGeo, flashMat);
-  flash3.rotation.x = Math.PI / 2;
-  flash.add(flash2, flash3);
-  flash.position.set(0, 0.03, -0.24);
-  flash.visible = false;
-  gun.add(flash);
+  const flash = new MuzzleFlash(FP_FLASH_SCALE);
+  flash.object.position.set(0, 0.03, -0.24);
+  flash.aim(new THREE.Vector3(0, 0, -1));
+  gun.add(flash.object);
 
   root.position.set(0.15, -0.15, -0.36);
   root.scale.setScalar(0.72);
@@ -227,6 +201,8 @@ export interface ViewModelPose {
   alive: boolean;
   /** 0..1 progress through a weapon switch (lower, then raise), or -1. */
   switching?: number;
+  /** A shot was fired since the last pose (starts a new flash). */
+  fired?: string | null;
 }
 
 export function poseViewModel(vm: ViewModel, p: ViewModelPose): void {
@@ -237,7 +213,7 @@ export function poseViewModel(vm: ViewModel, p: ViewModelPose): void {
   const by = -Math.abs(Math.cos(p.bobPhase)) * 0.012 * p.bobAmount;
   vm.gun.position.set(bx, by - dip * 0.16 - drop * 0.35, kick * 0.05);
   vm.gun.rotation.set(kick * 0.22 - dip * 0.7 - drop * 0.6, 0, dip * 0.5);
-  vm.flash.visible = vm.muzzle && p.sinceShot < 0.05;
-  vm.flash.rotation.z = p.sinceShot * 40;
+  if (p.fired) vm.flash.fire(p.fired);
+  vm.flash.update(p.sinceShot, vm.muzzle && p.alive);
   vm.root.visible = p.alive;
 }
