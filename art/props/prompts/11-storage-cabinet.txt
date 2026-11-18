@@ -1,0 +1,24 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look. The props are retro-futuristic sci-fi objects, not
+real-world products.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Setting: the Halvard Depot, a snowed-in mountain weather station that the villains turned into a secret
+drone lab. The furniture is a small military-facility kit: sturdy, metal, bolted together, in
+light grey and olive drab with orange accents and light blue screens. Not home furniture, no wood.
+
+Item: a wide closed storage cabinet, 148 cm wide, 200 cm high, 41 cm deep, standing against a wall.
+Light grey body with rounded edges, two large doors on the front split by a dark grey centre strip,
+a small recessed light blue status window on the right door, chunky black handles, a dark grey
+plinth, and an orange stripe across the top edge.
+Colour palette limited to about 5 colours: light grey, dark grey, black, bright orange, light blue.
+
+Layout: three views side by side in one row, left to right: FRONT view (doors), SIDE view, TOP view. Strict orthographic views, no
+perspective, no three-quarter angles. Same item at the same scale in all views, standing on the
+same horizontal line, the whole item visible with space around it. No character, no effects, doors closed.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

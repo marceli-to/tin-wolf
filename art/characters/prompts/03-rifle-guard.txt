@@ -1,0 +1,30 @@
+Character turnaround sheet of one original game character, made to match the attached
+guard sheet exactly: same art style, same proportions, same scale and character height
+on the sheet, same layout. It belongs to the same stylised 3D arena shooter with a
+bright, colourful look.
+
+Style: low-poly 3D game asset, stylised cartoon proportions but not chibi:
+clearly faceted flat-shaded surfaces, flat solid saturated colours (no textures,
+no gradients, no grime, no scratches), chunky simple shapes, bold readable silhouette.
+Proportions: about 5 heads tall, head slightly larger than realistic, broad shoulders,
+slightly oversized hands and boots, sturdy legs. Friendly expression with simple
+features (no gore, nothing scary).
+
+Character: a heavy rifle guard, a bit bulkier than the regular guard. Same
+retro-futuristic security uniform in olive green, plus a chunky padded armour vest
+with rounded plates, a rounded olive helmet with a black visor strip and a small
+antenna on the side, big padded shoulder pieces, thick black gloves, knee pads, big
+black boots with thick soles. Bright orange stripes on the helmet and the vest.
+Friendly but focused expression.
+Colour palette limited to about 6 colours: olive green, black, dark grey, skin tone,
+brass, bright orange.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view
+(character facing left), BACK view. Strict orthographic views, no perspective, no
+three-quarter angles. Same character, same size and same height in all three views,
+feet resting on the same horizontal line, whole body visible with space around it.
+Pose: standing straight, legs slightly apart, arms hanging down and slightly away from
+the body so the hands don't touch the torso. Empty hands, no weapon, no props.
+
+Plain flat light grey background (#E8E8E8), no ground shadow, no floor, no text,
+no labels, no frames, no extra characters.

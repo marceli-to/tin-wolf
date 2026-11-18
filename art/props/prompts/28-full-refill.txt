@@ -1,0 +1,25 @@
+Power-up reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+arena shooter with a bright, colourful look. Power-ups are the prizes that pop out of the
+attached surprise box: playful, cheerful toy objects, a little magical, the most eye-catching
+things in the game. In the game the item floats and slowly spins above a glowing ring on the
+floor, so it has to read clearly from every side and from far away.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches), chunky simple shapes, slightly
+oversized and rounded like the characters, bold readable silhouette. One strong main colour
+per power-up, so players tell them apart by colour alone.
+
+Item: "Full Refill", a power-up that refills health and ammunition, about 40 cm tall. A
+chunky little supply backpack in bright orange with rounded edges, a big white heart patch on
+the front pocket (no cross), a dark grey strap with three small light blue energy cells (like the
+attached ammo sheet) across the bottom, and a carry loop on top. Generous, like a gift.
+Colour palette limited to about 5 colours: bright orange, white, red (the heart), dark grey,
+light blue.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view.
+Strict orthographic views, no perspective, no three-quarter angles. Same item at the same scale
+in all views, centred on the same horizontal line, the whole item visible with space around it.
+No character, no hands, no effects, no glow ring, no sparkles.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

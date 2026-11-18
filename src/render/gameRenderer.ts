@@ -322,7 +322,7 @@ export class GameRenderer {
     this.players = world.players.map((p) => {
       const color = PLAYER_COLORS[p.slot] ?? '#888';
       const prof = set?.player;
-      const models = p.bot ? BOT_MODELS : (set?.playerModels ?? []);
+      const models = p.bot ? (set?.botModels ?? BOT_MODELS) : (set?.playerModels ?? []);
       const file = models.length ? models[p.slot % models.length] : prof?.model;
       const inst = prof && file && this.models ? this.models.instance(file) : null;
       const antenna = p.bot ? buildAntenna() : null;
@@ -366,7 +366,8 @@ export class GameRenderer {
     this.vmScene.add(vmSun);
     this.viewModels = people.map((p) => {
       const va = set?.viewArms;
-      const armsInst = va && this.models ? this.models.instance(va.model) : null;
+      const armsFile = va ? (va.slotModels?.[p.slot] ?? va.model) : null;
+      const armsInst = armsFile && this.models ? this.models.instance(armsFile) : null;
       let vm: ViewModel;
       if (va && armsInst) {
         vm = buildModelArmsViewModel(armsInst, this.heldGuns(world, Object.keys(world.data.weapons)), {

@@ -1,0 +1,24 @@
+Pickup reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look. The items are retro-futuristic sci-fi objects, not
+real-world products. In the game the item floats and slowly spins above the floor, so it has
+to read clearly from every side and from a few metres away.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Item: a keycard that opens a locked security door, oversized so it reads in the game: about
+28 cm wide, 18 cm tall, 3 cm thick. A chunky rounded card in bright red with a dark grey frame
+around the edge, a black magnetic stripe across the back, a light blue chip square on the front,
+and a round hole near one corner with a small dark grey clip. No letters, no numbers, no photo.
+The red is the only colour that says which door it opens (there will be a blue copy), so keep
+red only on the card face and nowhere else.
+Colour palette limited to about 4 colours: bright red, dark grey, black, light blue.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view.
+Strict orthographic views, no perspective, no three-quarter angles. Same item at the same scale
+in all views, centred on the same horizontal line, the whole item visible with space around it.
+No character, no hands, no effects, no glow ring, no sparkles.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

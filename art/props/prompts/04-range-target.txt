@@ -1,0 +1,28 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character and weapon sheets exactly. It belongs to the same stylised 3D arena
+shooter with a bright, colourful look. The props are retro-futuristic sci-fi objects, not
+real-world products.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Item: a shooting-range target for a training ground: a round target board on a single post.
+The board is 90 cm across, painted with concentric rings, outside in: a dark navy rim, then
+cream, then red, then cream, then a red bullseye. Ring sizes as a share of the board's
+diameter: navy rim 100 %, cream 90 %, red 68 %, cream 48 %, red bullseye 28 %. The board is a
+chunky flat disc about 5 cm thick with a plain cream back. Its bottom edge sits on a sturdy
+hinge bracket at the top of the post (the board tips backwards on this hinge when hit). The
+post is about 90 cm tall from the floor to the hinge, dark grey with an orange stripe, and
+stands on a small square base plate about 40 cm wide with a black rim. Total height about
+1.8 m.
+Colour palette limited to about 6 colours: dark navy, cream, red, dark grey, black, bright
+orange.
+
+Layout: three views side by side in one row, left to right: FRONT view (looking straight at the
+rings), SIDE view (board edge-on, its face pointing to the left), BACK view. Strict
+orthographic views, no perspective, no three-quarter angles. Same item at the same scale in all
+views, standing on the same horizontal line, the whole item visible with space around it.
+No character, no bullet holes, no effects.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

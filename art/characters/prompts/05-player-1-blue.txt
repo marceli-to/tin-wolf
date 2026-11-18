@@ -1,0 +1,30 @@
+Character turnaround sheet of one original game character, made to match the attached
+guard sheet exactly: same art style, same proportions, same scale and character height
+on the sheet, same layout. It belongs to the same stylised 3D arena shooter with a
+bright, colourful look.
+
+Style: low-poly 3D game asset, stylised cartoon proportions but not chibi:
+clearly faceted flat-shaded surfaces, flat solid saturated colours (no textures,
+no gradients, no grime, no scratches), chunky simple shapes, bold readable silhouette.
+Proportions: about 5 heads tall, head slightly larger than realistic, broad shoulders,
+slightly oversized hands and boots, sturdy legs. Friendly expression with simple
+features (no gore, nothing scary).
+
+Character: player hero 1, a young adult man with short messy brown hair, no hat, and a
+big confident grin. Sleek retro-futuristic squad suit: a
+fitted jacket with a high collar and rounded padded shoulder pieces, matching
+trousers, chunky boots with thick soles, gloves, a belt with a round silver buckle,
+and a white wolf-head emblem on the left shoulder. The suit is mainly deep blue (#2f5f8f) with white accents and dark grey
+gloves and boots.
+Colour palette limited to about 6 colours: deep blue, white, dark grey, black, skin
+tone, silver.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view
+(character facing left), BACK view. Strict orthographic views, no perspective, no
+three-quarter angles. Same character, same size and same height in all three views,
+feet resting on the same horizontal line, whole body visible with space around it.
+Pose: standing straight, legs slightly apart, arms hanging down and slightly away from
+the body so the hands don't touch the torso. Empty hands, no weapon, no props.
+
+Plain flat light grey background (#E8E8E8), no ground shadow, no floor, no text,
+no labels, no frames, no extra characters.

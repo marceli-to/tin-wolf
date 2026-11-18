@@ -1,0 +1,23 @@
+Weapon reference sheet of one original game item, made to match the art style of the
+attached character sheet exactly. It belongs to the same stylised 3D arena shooter with a
+bright, colourful look. The guns are retro-futuristic blasters, not realistic firearms.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches), chunky simple shapes, slightly
+oversized and rounded like the characters, bold readable silhouette.
+
+Item: "Kestrel 9", a compact one-handed blaster pistol, about 25 cm long. Chunky rounded
+body, short barrel ending in a slightly flared muzzle with an orange emitter ring, a vertical
+black grip with three grip ridges directly below the body, a round trigger guard, a small
+round energy window on the side, simple rear sight on top.
+Colour palette limited to about 5 colours: dark grey body, black grip and details,
+silver metal parts, bright orange accents (emitter ring, small stripes), a small light blue
+energy window.
+
+Layout: three views side by side in one row, left to right: SIDE view (muzzle pointing to
+the right), TOP view (muzzle pointing to the right), FRONT view (looking straight into the
+muzzle). Strict orthographic views, no perspective, no three-quarter angles. Same item at the
+same scale in all views, the whole item visible with space around it. No hands, no character,
+no ammunition flying, no muzzle flash.
+
+Plain flat light grey background (#E8E8E8), no shadow, no text, no labels, no frames.

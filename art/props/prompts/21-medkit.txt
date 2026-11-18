@@ -1,0 +1,23 @@
+Pickup reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look. The items are retro-futuristic sci-fi objects, not
+real-world products. In the game the item floats and slowly spins above the floor, so it has
+to read clearly from every side and from a few metres away.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Item: a medkit, a first-aid case that restores health, about 36 cm wide, 22 cm high,
+26 cm deep. A chunky white hard case with rounded edges, a dark grey carry handle on top and
+dark grey latches, and on the front and on the back a big raised red heart symbol (the same
+heart as a health bar icon; no cross, no letters or words). A red band runs around the case.
+Colour palette limited to about 4 colours: white, light grey for the recessed seams, bright red,
+dark grey.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view.
+Strict orthographic views, no perspective, no three-quarter angles. Same item at the same scale
+in all views, centred on the same horizontal line, the whole item visible with space around it.
+No character, no hands, no effects, no glow ring, no sparkles.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

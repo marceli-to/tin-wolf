@@ -248,6 +248,8 @@ export interface ArtSet {
   player?: CharacterProfile;
   /** Player body per slot, instead of tinting one shared model. */
   playerModels?: string[];
+  /** Computer players' bodies per slot (default: Kenney figures; they wear an antenna either way). */
+  botModels?: string[];
   /** Level surface style ('flat': clean, no grime, rivets or noise, to match the models; 'tinfox': own palette). */
   textures?: 'flat' | 'tinfox';
   /** Brighter mood: baked light is lifted toward `lightFloor`, fog lightened toward `fogTint` and pushed back. */
@@ -255,6 +257,8 @@ export interface ArtSet {
   /** First-person arms: the player model in an aiming pose, head collapsed, placed at the camera. */
   viewArms?: {
     model: string;
+    /** First-person figure per player slot (same rig and clips as `model`), so each player sees their own sleeves. */
+    slotModels?: string[];
     clip: string;
     /** Arm pose for two-handed weapons in first person. */
     twoClip?: string;
@@ -353,6 +357,8 @@ const tinfoxChar = (file: string, body: BodyShape = 'tinfox'): CharacterProfile 
   },
 });
 
+const TINFOX_PLAYERS = [1, 2, 3, 4].map((n) => `tinfox/characters/player-${n}.glb`);
+
 /** Furniture grows with the Tin Fox figures (1.9 m, chunky): model and collider together, the centre stays. */
 const FURNITURE_GROW = 1.2;
 
@@ -363,12 +369,17 @@ PROFILES.tinfox = {
   archetypes: { guard_rifle: tinfoxChar('rifle-guard'), guard_officer: tinfoxChar('officer') },
   // The worker NPC: women's body `hero-f`, drawn at her modelled 1.86 m (about 10 cm under the guards' skulls).
   looks: { worker: tinfoxChar('worker', 'tinfox_f') },
+  // The four players (sheets 05-08; red and yellow on the women's body). All four share the `tinfox` body shape,
+  // so every player has the same height and hit zones in versus; computer players wear their slot's figure too.
+  player: tinfoxChar('player-1'),
+  playerModels: TINFOX_PLAYERS,
+  botModels: TINFOX_PLAYERS,
   // First-person arms: the figure at the camera in its aim pose (the rest of the body idling, so the free left
   // arm hangs), head and legs collapsed. The neck sits just under and behind the eye, so the chest and shoulders
-  // stay below and behind the view and only the forearm, glove and gun show. The guard stands in until the
-  // player figures (sheets 05-08) arrive; then only `model` changes.
+  // stay below and behind the view and only the forearm, glove and gun show. Each player sees their own figure.
   viewArms: {
-    model: 'tinfox/characters/guard.glb',
+    model: TINFOX_PLAYERS[0]!,
+    slotModels: TINFOX_PLAYERS,
     clip: 'aim_1h',
     twoClip: 'aim_2h',
     base: 'idle',
@@ -498,6 +509,8 @@ export function profileModels(art: string): string[] {
     ...profiles.map((p) => p.model),
     ...(set.viewArms ? [set.viewArms.model] : []),
     ...(set.playerModels ?? []),
+    ...(set.botModels ?? []),
+    ...(set.viewArms?.slotModels ?? []),
     ...Object.values(set.weapons ?? {}),
     ...Object.values(set.items ?? {}).map((i) => i.model),
     ...Object.values(set.props ?? {}).map((p) => p.model),

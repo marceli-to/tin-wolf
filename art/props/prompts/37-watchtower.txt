@@ -1,0 +1,28 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Setting: the Snowfort, an outdoor arena in the snowy mountain yard of the Halvard Depot, a snowed-in
+weather station that the villains turned into a secret drone lab. Fresh white snow, dark green pines,
+grey granite, and the villains' kit in light grey and olive drab with orange accents.
+
+Item: a square guard tower at the corner of the yard, 2.4 m wide, 2.4 m deep, 8.1 m tall, built as
+one closed block with straight vertical sides (no stairs, no ladder, no open frame). Three parts
+stacked: a heavy light grey concrete base about 2.4 m high with a small closed metal door; a middle
+section about 2.4 m high clad in olive drab metal panels with bolted seams and one narrow window
+on each side; and on top a lookout cabin about 2.4 m high with a dark window band all round, an
+orange stripe under the windows, and a flat overhanging light grey roof with snow on it, a small
+searchlight and a short antenna. Snow on the ledges between the sections.
+Colour palette limited to about 6 colours: light grey, mid grey, olive drab, bright orange, dark
+blue-grey glass, white snow.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view.
+Strict orthographic views, no perspective, no three-quarter angles. Same item at the same scale
+in all views, standing on the same horizontal line, the whole item visible with space around it.
+No character, no effects.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

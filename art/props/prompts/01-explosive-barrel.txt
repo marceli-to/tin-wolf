@@ -1,0 +1,25 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character and weapon sheets exactly. It belongs to the same stylised 3D arena
+shooter with a bright, colourful look. The props are retro-futuristic sci-fi objects, not
+real-world products.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Item: an explosive barrel, about 90 cm tall and 65 cm across, a hazard players must spot at
+once from far away. A chunky upright drum in bright signal red, slightly bulging, with two
+raised rims around the body. A wide band of bold yellow and black diagonal hazard stripes around
+the middle. On the front and back a big simple yellow warning symbol: a round flame or blast
+icon (a symbol only, no letters). A dark grey lid with a stubby valve and a small glowing
+yellow-orange pressure light on top. It must read as dangerous and clearly different from the
+plain dark grey crates and barrels around it.
+Colour palette limited to about 5 colours: signal red, yellow, black, dark grey, white for a
+small highlight.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view
+(looking down on the lid). Strict orthographic views, no perspective, no three-quarter angles.
+Same item at the same scale in all views, standing on the same horizontal line, the whole item
+visible with space around it. No character, no explosion, no fire, no effects.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

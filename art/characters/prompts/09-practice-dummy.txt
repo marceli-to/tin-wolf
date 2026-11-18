@@ -1,0 +1,31 @@
+Character turnaround sheet of one original game character, made to match the attached
+guard sheet exactly: same art style, same proportions, same scale and character height
+on the sheet, same layout, same body shape. It belongs to the same stylised 3D arena
+shooter with a bright, colourful look.
+
+Style: low-poly 3D game asset, stylised cartoon proportions but not chibi:
+clearly faceted flat-shaded surfaces, flat solid saturated colours (no textures,
+no gradients, no grime, no scratches), chunky simple shapes, bold readable silhouette.
+Proportions: about 5 heads tall, head slightly larger than realistic, broad shoulders,
+slightly oversized hands and boots, sturdy legs.
+
+Character: a practice dummy for the guards' training ground, a friendly padded training
+mannequin with the guard's exact body shape, so it moves like a guard. A sand-coloured
+padded canvas suit with chunky quilted pads on the shoulders, chest, elbows and knees, and
+visible stitched seams in brown. A round mannequin head in the same sand colour with a
+simple painted friendly face: two dot eyes and a small smile (no hair, no ears). An olive
+cap with a short black visor like the guards' cap, so it reads as a guard stand-in. A big
+round target on the chest and on the back: red and cream rings with a red bullseye. Brown
+mitten-style gloves and dark brown boots. It should look harmless and a bit funny, clearly
+not a real enemy.
+Colour palette limited to about 6 colours: sand, brown, olive green, black, red, cream.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view
+(character facing left), BACK view. Strict orthographic views, no perspective, no
+three-quarter angles. Same character, same size and same height in all three views,
+feet resting on the same horizontal line, whole body visible with space around it.
+Pose: standing straight, legs slightly apart, arms hanging down and slightly away from
+the body so the hands don't touch the torso. Empty hands, no weapon, no props.
+
+Plain flat light grey background (#E8E8E8), no ground shadow, no floor, no text,
+no labels, no frames, no extra characters.

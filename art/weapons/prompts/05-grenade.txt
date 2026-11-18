@@ -1,0 +1,19 @@
+Item reference sheet of one original game item, made to match the art style of the
+attached character sheet exactly. It belongs to the same stylised 3D arena shooter with a
+bright, colourful look. The items are retro-futuristic sci-fi gadgets, not real-world objects.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches), chunky simple shapes, slightly
+oversized and rounded like the characters, bold readable silhouette.
+
+Item: a throwable sci-fi "pulse bomb" gadget, about 9 cm tall, small enough to fit in one hand.
+A round faceted ball in olive green with a bright orange glowing band around the middle, a
+small dark grey cap on top with a round orange button, and a silver ring handle on the cap.
+
+Layout: three views side by side in one row, left to right: SIDE view, TOP view (looking down
+on the cap), BOTTOM view. Strict orthographic views, no perspective, no three-quarter angles.
+Same item at the same scale in all views, the whole item visible with space around it.
+No hands, no character, no effects.
+Colour palette limited to about 4 colours: olive green, bright orange, dark grey, silver.
+
+Plain flat light grey background (#E8E8E8), no shadow, no text, no labels, no frames.

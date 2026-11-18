@@ -1,0 +1,23 @@
+Weapon reference sheet of one original game item, made to match the art style of the
+attached character sheet exactly. It belongs to the same stylised 3D arena shooter with a
+bright, colourful look. The guns are retro-futuristic blasters, not realistic firearms.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches), chunky simple shapes, slightly
+oversized and rounded like the characters, bold readable silhouette.
+
+Item: a set of two ammunition pickups shown together, each in its own three views (two rows:
+first row the small one, second row the large one).
+Small: a pistol energy cell magazine, about 12 cm tall, a chunky rounded box with an orange top
+and a light blue energy window.
+Large: an SMG magazine, about 22 cm tall, a longer slightly curved chunky box with an orange top
+and a light blue energy window.
+Colour palette limited to about 4 colours: dark grey, black, bright orange, light blue.
+
+Layout: two rows of three views (one row per item), left to right: SIDE view (muzzle pointing to
+the right), TOP view (muzzle pointing to the right), FRONT view (looking straight into the
+muzzle). Strict orthographic views, no perspective, no three-quarter angles. Same item at the
+same scale in all views, the whole item visible with space around it. No hands, no character,
+no ammunition flying, no muzzle flash.
+
+Plain flat light grey background (#E8E8E8), no shadow, no text, no labels, no frames.

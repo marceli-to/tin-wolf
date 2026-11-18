@@ -1,0 +1,27 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look. The props are retro-futuristic sci-fi objects, not
+real-world products.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Setting: the Halvard Depot, a snowed-in mountain weather station that the villains turned into a secret
+drone lab. Its kit is sturdy, metal, bolted together, in light grey and olive drab with orange
+accents and light blue screens.
+
+Item: a large satellite dish in the snowy yard of the weather station, about 4.3 m tall,
+with a footprint of about 1.4 m by 2.1 m. A square concrete-grey plinth, a sturdy light grey
+mast with a dark grey motor housing at the top, and a big round faceted light grey dish tilted
+up toward the sky at about 45 degrees, with a thin feed arm and a small orange receiver at its
+centre. Orange stripes round the motor housing, a small light blue status light. Low-poly, about
+16 facets around the dish.
+Colour palette limited to about 5 colours: light grey, mid grey, dark grey, bright orange, light blue.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view.
+Strict orthographic views, no perspective, no three-quarter angles. Same item at the same scale
+in all views, standing on the same horizontal line, the whole item visible with space around it.
+No character, no effects.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

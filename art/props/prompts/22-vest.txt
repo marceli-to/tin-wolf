@@ -1,0 +1,24 @@
+Pickup reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look. The items are retro-futuristic sci-fi objects, not
+real-world products. In the game the item floats and slowly spins above the floor, so it has
+to read clearly from every side and from a few metres away.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Item: an armour vest pickup, a chunky sleeveless protective vest shown upright as if worn by
+an invisible person, about 40 cm wide, 46 cm high, 16 cm deep. Steel blue fabric with big
+rounded light blue armour plates on the chest and the back, a dark collar ring at the neck,
+thick shoulder straps, and bright orange buckles at the sides. Clearly a protective vest, not a
+jacket or a shirt. No letters, no badges.
+Colour palette limited to about 5 colours: steel blue, light blue, dark navy, bright orange,
+dark grey.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view.
+Strict orthographic views, no perspective, no three-quarter angles. Same item at the same scale
+in all views, centred on the same horizontal line, the whole item visible with space around it.
+No character, no hands, no effects, no glow ring, no sparkles.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

@@ -1,0 +1,27 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Setting: the Snowfort, an outdoor arena in the snowy mountain yard of the Halvard Depot, a snowed-in
+weather station that the villains turned into a secret drone lab. Fresh white snow, dark green pines,
+grey granite, and the villains' kit in light grey and olive drab with orange accents.
+
+Item: a small tracked snow tractor parked in the yard, 2.6 m long, 1.8 m high, 1.8 m wide. Two wide
+dark grey rubber tracks along both sides with chunky road wheels; on top a boxy light grey body
+with a small closed cab at the back (dark blue-grey windows all round) and a short, flat engine hood
+at the front with two round headlights and a black grille. A wide orange snow blade in front of
+the tracks, orange stripes along the body, a roof rack with a small olive box, snow on the cab roof.
+Cute and chunky, like a toy, clearly a working vehicle, not a weapon.
+Colour palette limited to about 6 colours: light grey, dark grey, olive drab, bright orange, black,
+dark blue-grey glass.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view.
+Strict orthographic views, no perspective, no three-quarter angles. Same item at the same scale
+in all views, standing on the same horizontal line, the whole item visible with space around it.
+No character, no effects.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

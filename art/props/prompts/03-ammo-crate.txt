@@ -1,0 +1,24 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character and weapon sheets exactly. It belongs to the same stylised 3D arena
+shooter with a bright, colourful look. The props are retro-futuristic sci-fi objects, not
+real-world products.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Item: an ammunition crate that belongs with the attached ammunition pickup sheet, a low wide
+box about 72 cm long, 57 cm deep and 28 cm high (low and flat, not a cube). Dark grey body
+with chunky rounded edges and recessed side panels, a black carrying handle at each short end,
+two black latches on the front. An orange lid edge and orange corner bumpers. On the lid a
+row of three round light blue energy windows, like the window on the energy cells, so the
+crate reads as "ammo" at a glance.
+Colour palette limited to about 4 colours: dark grey, black, bright orange, light blue.
+
+Layout: three views side by side in one row, left to right: FRONT view (a long side), SIDE view
+(a short end), TOP view (looking down on the lid). Strict orthographic views, no perspective, no
+three-quarter angles. Same item at the same scale in all views, standing on the same horizontal
+line, the whole item visible with space around it. No character, no loose ammunition, no
+effects, closed lid.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

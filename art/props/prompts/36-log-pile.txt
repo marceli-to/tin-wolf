@@ -1,0 +1,25 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Setting: the Snowfort, an outdoor arena in the snowy mountain yard of the Halvard Depot, a snowed-in
+weather station that the villains turned into a secret drone lab. Fresh white snow, dark green pines,
+grey granite, and the villains' kit in light grey and olive drab with orange accents.
+
+Item: a stack of firewood logs in the yard, 2.9 m long, 1.4 m high, 1.55 m deep. Round, faceted
+logs (about 0.35 m thick, 8 facets each) stacked lengthwise in a neat pyramid of four rows, held
+in place by two upright wooden posts at each end. The log ends show pale wood with simple growth
+rings. A thick, flat layer of white snow on top, so the pile has a flat top to stand on.
+Chunky and toy-like.
+Colour palette limited to about 4 colours: brown bark, pale wood, dark brown, white snow.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view.
+Strict orthographic views, no perspective, no three-quarter angles. Same item at the same scale
+in all views, standing on the same horizontal line, the whole item visible with space around it.
+No character, no effects.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

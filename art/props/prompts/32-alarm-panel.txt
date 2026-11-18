@@ -1,0 +1,27 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look. The props are retro-futuristic sci-fi objects, not
+real-world products.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Setting: the Halvard Depot, a snowed-in mountain weather station that the villains turned into a secret
+drone lab. The furniture is a small military-facility kit: sturdy, metal, bolted together, in
+light grey and olive drab with orange accents and light blue screens. Not home furniture, no wood.
+
+Item: a wall-mounted alarm box, 50 cm wide, 70 cm high, 16 cm deep, flat on its back so it hangs flat
+on a wall. A chunky bright yellow box with rounded edges and four dark grey bolts in the corners. On the
+front, in the lower half, one big round red push button (mushroom shaped, clearly sticking out) inside a
+raised dark grey square collar. Above the button, at the top of the box, a short wide red warning lamp
+under a clear dome, like a small beacon. A thin black and yellow hazard stripe band runs across the very
+bottom edge. Clearly an alarm button that a guard would slam, not a fuse box or a light switch.
+No letters, no numbers, no symbols.
+Colour palette limited to about 5 colours: bright yellow, red, dark grey, black, light grey.
+
+Layout: three views side by side in one row, left to right: FRONT view (button and lamp), SIDE view, TOP view. Strict orthographic views, no
+perspective, no three-quarter angles. Same item at the same scale in all views, standing on the
+same horizontal line, the whole item visible with space around it. No character, no wall, no effects.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.

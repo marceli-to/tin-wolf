@@ -1,0 +1,23 @@
+Prop reference sheet of one original game item, made to match the art style of the
+attached character, weapon and prop sheets exactly. It belongs to the same stylised 3D
+shooter with a bright, colourful look. The props are retro-futuristic sci-fi objects, not
+real-world products.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches, no dents), chunky simple shapes,
+slightly oversized and rounded like the characters, bold readable silhouette.
+
+Item: a large supply crate, the big brother of the attached supply crate and clearly from the same
+family. A chunky box 155 cm wide, 141 cm high, 154 cm deep: tall enough that a standing soldier can
+hide behind it. Olive drab body with rounded edges, a raised frame around every face, each face
+divided into four recessed panels by a raised cross, chunky dark grey corner caps, two dark grey
+lifting brackets on the top edge of the front and back, and the same bright orange stripe around the
+box near the top. Flat top.
+Colour palette limited to about 4 colours: olive drab, darker olive for the recessed panels, dark
+grey, bright orange.
+
+Layout: three views side by side in one row, left to right: FRONT view, SIDE view, TOP view. Strict orthographic views, no
+perspective, no three-quarter angles. Same item at the same scale in all views, standing on the
+same horizontal line, the whole item visible with space around it. No character, no effects, closed crate.
+
+Plain flat light grey background (#E8E8E8), no shadow, no floor, no text, no labels, no frames.
