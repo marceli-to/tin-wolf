@@ -446,7 +446,9 @@ export class Game {
 
   /** From the lobby into the match: people take the first slots, computers the rest. */
   private lobbyStart(force = false): void {
-    if (!force && (this.lobbyHumans.length === 0 || this.lobbyHumans.length + this.lobbyBots < 2)) return;
+    // Versus needs two sides; training and missions start with one person.
+    const min = this.isVersus() ? 2 : 1;
+    if (!force && (this.lobbyHumans.length === 0 || this.lobbyHumans.length + this.lobbyBots < min)) return;
     this.input.slots = [...this.lobbyHumans];
     this.playerCount = this.lobbyHumans.length;
     this.botCount = this.lobbyBots;
