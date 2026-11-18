@@ -20,7 +20,7 @@ Next (ask first): own character art (see the deviation log, 2026-11-16 and 2026-
 
 ## Start here (next session)
 
-Marcel's order for replacing Kenney models with his own art (`?art=tinfox`), after the figures and weapons. Item 1: the explosive barrel, surprise box, ammo crate and range target are in the game (2026-11-18); the practice dummy is still to come. Items 2 and 3 have prompts too (2026-11-18; first sheet approved: 07 cargo container): `props/prompts/05`–`20` in `~/Desktop/tinfox/`, sizes and attachments in `props/README.txt`, the GLB rules for the generator in `COVER-AND-DEPOT.md`. In the game they will need a prop-model override per art set (like `ArtSet.weapons`) and `mat` from wood to metal for the depot furniture.
+Marcel's order for replacing Kenney models with his own art (`?art=tinfox`), after the figures and weapons. Item 1: the explosive barrel, surprise box, ammo crate and range target are in the game (2026-11-18); the practice dummy is still to come. Item 2 is in the game too (2026-11-18: crate, crate_tall, cargo, storage barrel; the barrel stretched about 5 % to Kenney's box, so no collider changed). Next batch from the generator: 09 locker, 12 desk, 13 terminal, 15 bunk bed. Order agreed 2026-11-18: cover → texture/palette pass together with the arena re-theme → depot kit → UI check → `tinfox` as default → landing media. Items 2 and 3 have prompts too (2026-11-18; first sheet approved: 07 cargo container): `props/prompts/05`–`20` in `~/Desktop/tinfox/`, sizes and attachments in `props/README.txt`, the GLB rules for the generator in `COVER-AND-DEPOT.md`. In the game they will need a prop-model override per art set (like `ArtSet.weapons`) and `mat` from wood to metal for the depot furniture.
 
 ### 2. Generic cover (most placements)
 
@@ -35,7 +35,7 @@ Marcel's order for replacing Kenney models with his own art (`?art=tinfox`), aft
 ### 4. Arena theme kits (lowest priority)
 
 - Space Station (containers, computer, holo table), Toy Factory (machine, hopper, drum), Castle/Snowfort (tower parts, banner, catapult, about 8 nature models).
-- These themes came from the Kenney packs that happened to exist. Before making replacements, it may be worth deciding whether the arenas keep these themes at all in your own style.
+- These themes came from the Kenney packs that happened to exist. **Decided 2026-11-18 (option A):** the arenas go back to Tin Fox's world, as their file ids already say: a pumphouse, a warehouse and a snowy fort in the depot's style. Mostly new texture sets and fog in code, props mostly reused from the cover and depot kits; few or no new sheets.
 
 Still needs a human:
 

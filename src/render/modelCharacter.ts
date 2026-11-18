@@ -374,6 +374,12 @@ PROFILES.tinfox = {
     barrel_red: { model: 'tinfox/props/barrel.glb', fit: 'scale', scale: 1, size: [0.56, 0.9, 0.56] },
     surprise_box: { model: 'tinfox/props/surprise-box.glb', fit: 'scale', scale: 1 },
     ammo_crate: { model: 'tinfox/props/ammo-crate.glb', fit: 'footprint' },
+    // Generic cover, built to the data boxes exactly. The storage barrel is round (0.65 m) and is
+    // stretched to Kenney's 0.68 x 0.62 box (about 5 %), so the colliders and the levels stay as they are.
+    crate: { model: 'tinfox/props/crate.glb', fit: 'scale', scale: 1 },
+    crate_tall: { model: 'tinfox/props/crate-tall.glb', fit: 'scale', scale: 1 },
+    cargo: { model: 'tinfox/props/cargo.glb', fit: 'scale', scale: 1 },
+    barrel: { model: 'tinfox/props/storage-barrel.glb', fit: 'stretch' },
   },
   target: 'tinfox/props/target.glb',
 };
