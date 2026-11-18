@@ -24,7 +24,7 @@ import { computeViewRects, type SplitMode, type ViewRect } from './views';
 import { Effects } from './effects';
 import { buildRail, buildTarget, poseTarget, type TargetVisual } from './targets';
 import { buildModelArmsViewModel, buildPistolViewModel, poseViewModel, type ViewModel } from './viewModel';
-import { buildPickupMesh } from './pickups';
+import { buildPickupMesh, powerupRing } from './pickups';
 import { flatMaterial } from './shapes';
 import type { SimEvent } from '../sim/events';
 
@@ -434,8 +434,13 @@ export class GameRenderer {
       const mb = new THREE.Box3().setFromObject(o);
       o.position.set(-(mb.min.x + mb.max.x) / 2, -(mb.min.y + mb.max.y) / 2, -(mb.min.z + mb.max.z) / 2);
       for (const m of inst.materials) m.metalness = Math.min(m.metalness, 0.15);
-      if (item.kind === 'key') for (const m of inst.materials) (m.userData.base as THREE.Color).set(item.color), m.color.set(item.color);
+      // Kenney keys are one model tinted per key; an art set's own keycards come in their colours.
+      if (item.kind === 'key' && !own) for (const m of inst.materials) (m.userData.base as THREE.Color).set(item.color), m.color.set(item.color);
+      // The bubble-shield power-up's bubble is see-through.
+      for (const m of inst.materials) if (m.name === 'M_Bubble') Object.assign(m, { transparent: true, opacity: 0.4, depthWrite: false });
       holder.add(o);
+      // An art set's power-up model still floats over the glowing ring.
+      if (own && item.kind === 'powerup') holder.add(powerupRing(item));
     } else if (item) holder.add(buildPickupMesh(item));
     holder.position.set(pk.x, pk.y + 0.45, pk.z);
     this.dynamic.add(holder);

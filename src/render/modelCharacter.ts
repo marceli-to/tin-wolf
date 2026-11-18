@@ -3,6 +3,7 @@ import type { ModelInstance } from './models';
 import { measureHeight, tintModel } from './models';
 import { flatMaterial, shadedBox } from './shapes';
 import type { BodyShape } from '../sim/hitbox';
+import { POWERUP_SCALE } from './pickups';
 
 /** Game-side animation names; each art set maps them to its own clip names. */
 export type CharacterAnim = 'idle' | 'alert' | 'walk' | 'run' | 'aim' | 'shoot' | 'die' | 'crouch' | 'crouchShoot';
@@ -369,6 +370,18 @@ PROFILES.tinfox = {
     ammo_pistol: { model: 'tinfox/weapons/ammo-pistol.glb', scale: 1.6 },
     ammo_rifle: { model: 'tinfox/weapons/ammo-pistol.glb', scale: 1.6 },
     ammo_smg: { model: 'tinfox/weapons/ammo-smg.glb', scale: 1.6 },
+    // Pickups and keycards built to the sizes of the code-built ones (scale 1); keycards in their colours.
+    medkit: { model: 'tinfox/props/medkit.glb', scale: 1 },
+    armor: { model: 'tinfox/props/vest.glb', scale: 1 },
+    key_red: { model: 'tinfox/props/keycard-red.glb', scale: 1 },
+    key_blue: { model: 'tinfox/props/keycard-blue.glb', scale: 1 },
+    // Power-ups are built about 0.40 m high and drawn 1.4x, like the code-built ones, over their ring.
+    power_speed: { model: 'tinfox/props/power-speed.glb', scale: POWERUP_SCALE },
+    power_shield: { model: 'tinfox/props/power-shield.glb', scale: POWERUP_SCALE },
+    power_damage: { model: 'tinfox/props/power-damage.glb', scale: POWERUP_SCALE },
+    power_jump: { model: 'tinfox/props/power-jump.glb', scale: POWERUP_SCALE },
+    power_refill: { model: 'tinfox/props/power-refill.glb', scale: POWERUP_SCALE },
+    power_shrink: { model: 'tinfox/props/power-shrink.glb', scale: POWERUP_SCALE },
   },
   // Generator props: metres, front +Z, origin on the floor. The barrel is round (0.55 m) and keeps its
   // size inside the slightly larger collider; the ammo crate is turned in its file to run along Z.
@@ -405,6 +418,9 @@ PROFILES.tinfox = {
     mess_table: { model: 'tinfox/props/mess-table.glb', fit: 'scale', scale: 1, size: [1.28, 0.63, 2.5], grow: FURNITURE_GROW },
     armchair: { model: 'tinfox/props/armchair.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
     side_table: { model: 'tinfox/props/drawer-cabinet.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    // The last two depot props: the chest grows with the furniture; the yard's dish keeps its 4.34 m.
+    chest: { model: 'tinfox/props/chest.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    satellite_dish: { model: 'tinfox/props/satellite-dish.glb', fit: 'scale', scale: 1 },
   },
   target: 'tinfox/props/target.glb',
 };

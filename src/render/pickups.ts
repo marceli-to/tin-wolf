@@ -48,16 +48,25 @@ const mesh = (geo: THREE.BufferGeometry, color: string, x = 0, y = 0, z = 0): TH
   return m;
 };
 
-/** Power-ups: a bright toy shape per effect over a glowing ring, so they read as special from afar. */
-function buildPowerup(g: THREE.Group, item: ItemDef): void {
-  const c = item.color;
+/** The glowing ring in the power-up's colour that floats under it, 0.4 m below the pickup's centre. */
+export function powerupRing(item: ItemDef): THREE.Mesh {
   const ring = new THREE.Mesh(
     new THREE.TorusGeometry(0.3, 0.035, 6, 24),
-    new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.85, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ color: item.color, transparent: true, opacity: 0.85, depthWrite: false }),
   );
   ring.rotation.x = Math.PI / 2;
   ring.position.y = -0.4;
   ring.name = 'ring';
+  return ring;
+}
+
+/** Power-ups are drawn this much bigger than ammo and medkits: they are the prize. */
+export const POWERUP_SCALE = 1.4;
+
+/** Power-ups: a bright toy shape per effect over a glowing ring, so they read as special from afar. */
+function buildPowerup(g: THREE.Group, item: ItemDef): void {
+  const c = item.color;
+  const ring = powerupRing(item);
   g.add(ring);
   switch (item.effect) {
     case 'speed': {
@@ -119,7 +128,7 @@ function buildPowerup(g: THREE.Group, item: ItemDef): void {
     }
   }
   // Bigger than ammo and medkits: these are the prize.
-  g.scale.setScalar(1.4);
-  ring.scale.setScalar(1 / 1.4);
-  ring.position.y = -0.4 / 1.4;
+  g.scale.setScalar(POWERUP_SCALE);
+  ring.scale.setScalar(1 / POWERUP_SCALE);
+  ring.position.y = -0.4 / POWERUP_SCALE;
 }
