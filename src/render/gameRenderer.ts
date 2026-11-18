@@ -188,7 +188,7 @@ export class GameRenderer {
       if (model) {
         const o = model.object;
         const fit = own?.fit ?? kind!.modelFit;
-        o.scale.setScalar(own ? (own.scale ?? 1) : kind!.modelScale);
+        o.scale.setScalar(own ? (own.scale ?? 1) * (fit === 'scale' ? (own.grow ?? 1) : 1) : kind!.modelScale);
         // Kenney models face +z; prop yaw follows the level convention (0 = north / -z).
         o.rotation.y = Math.PI - p.yaw;
         // Origins differ between kits (corner vs. centre), so centre each model on its collision

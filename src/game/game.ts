@@ -528,7 +528,7 @@ export class Game {
     const { body, guardBodies } = artBodies(this.params.art, Object.keys(this.data.enemies));
     // Difficulty sets the guards in missions and the computer players' skill in versus.
     const bots = level.mode === 'versus' ? this.botCount : 0;
-    this.world = createWorld(level, this.data, { players: this.playerCount, bots, seed: this.params.seed, body, guardBodies, propSizes: artPropSizes(this.params.art), difficulty: this.settings.difficulty });
+    this.world = createWorld(level, this.data, { players: this.playerCount, bots, seed: this.params.seed, body, guardBodies, propSizes: artPropSizes(this.params.art, this.data.props), difficulty: this.settings.difficulty });
     this.renderer.load(this.world, this.params.debug);
     this.clearHuds();
     this.huds = this.world.players.filter((p) => !p.bot).map(() => new PlayerHud(this.uiLayer));

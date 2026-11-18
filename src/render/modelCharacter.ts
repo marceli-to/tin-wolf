@@ -233,7 +233,7 @@ export interface ArtSet {
   /** Pickup models of this set by item id, instead of `items.json`'s `model` / `modelScale`. */
   items?: Record<string, { model: string; scale: number }>;
   /** Prop models of this set by prop id, instead of `props.json`'s `model` / `modelFit` / `modelScale`. */
-  props?: Record<string, { model: string; fit?: 'scale' | 'footprint' | 'stretch'; scale?: number; size?: [number, number, number] }>;
+  props?: Record<string, { model: string; fit?: 'scale' | 'footprint' | 'stretch'; scale?: number; size?: [number, number, number]; grow?: number }>;
   /** Training-target model with `hinge` / `board` nodes (board radius `TARGET_MODEL_RADIUS`), instead of the built one. */
   target?: string;
   /** Figure per guard archetype, ahead of `guard` / `officer` (e.g. a rifle guard of its own). */
@@ -345,6 +345,9 @@ const tinfoxChar = (file: string): CharacterProfile => ({
   },
 });
 
+/** Furniture grows with the Tin Fox figures (1.9 m, chunky): model and collider together, the centre stays. */
+const FURNITURE_GROW = 1.2;
+
 PROFILES.tinfox = {
   ...PROFILES.kenney,
   guard: tinfoxChar('guard'),
@@ -383,12 +386,25 @@ PROFILES.tinfox = {
     // Depot core, built to the data boxes. The desk is built at lab_desk_small's 1.65 x 0.82 and stretches
     // to the long lab desk (2.27) and the office desk (1.49 x 0.70): only the knee space, top and panel grow.
     // The bunk bed stands its full 1.65 m over its 0.75 m collider.
-    locker: { model: 'tinfox/props/locker.glb', fit: 'scale', scale: 1 },
-    lab_desk_small: { model: 'tinfox/props/desk.glb', fit: 'scale', scale: 1 },
-    lab_desk: { model: 'tinfox/props/desk.glb', fit: 'stretch' },
-    desk: { model: 'tinfox/props/desk.glb', fit: 'stretch' },
-    terminal: { model: 'tinfox/props/terminal.glb', fit: 'scale', scale: 1 },
-    bunk_bed: { model: 'tinfox/props/bunk-bed.glb', fit: 'scale', scale: 1 },
+    locker: { model: 'tinfox/props/locker.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    lab_desk_small: { model: 'tinfox/props/desk.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    lab_desk: { model: 'tinfox/props/desk.glb', fit: 'stretch', grow: FURNITURE_GROW },
+    desk: { model: 'tinfox/props/desk.glb', fit: 'stretch', grow: FURNITURE_GROW },
+    terminal: { model: 'tinfox/props/terminal.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    bunk_bed: { model: 'tinfox/props/bunk-bed.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    // The mission target (destroyed: hidden like any prop), built to its 1.40 x 1.20 x 0.70 box.
+    console: { model: 'tinfox/props/console.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    // The rest of the depot kit, built to the data boxes. The cabinet also stands in, squeezed, for the
+    // 1.10 m bookcase. The mess table's top is at 0.63 m (a mug on it reaches the box's 0.74), so its
+    // collider stops at the table top: you stand on the table, not on air above it.
+    shelf_wide: { model: 'tinfox/props/storage-cabinet.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    bookcase: { model: 'tinfox/props/storage-cabinet.glb', fit: 'stretch', grow: FURNITURE_GROW },
+    shelf: { model: 'tinfox/props/supply-shelf.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    office_chair: { model: 'tinfox/props/office-chair.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    chair: { model: 'tinfox/props/chair.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    mess_table: { model: 'tinfox/props/mess-table.glb', fit: 'scale', scale: 1, size: [1.28, 0.63, 2.5], grow: FURNITURE_GROW },
+    armchair: { model: 'tinfox/props/armchair.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
+    side_table: { model: 'tinfox/props/drawer-cabinet.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
   },
   target: 'tinfox/props/target.glb',
 };
@@ -409,11 +425,17 @@ export function artBodies(art: string, archetypes: readonly string[]): { body: B
 }
 
 /** Collision sizes the art set's own prop models ask for (the sim's boxes follow the model). */
-export function artPropSizes(art: string): Record<string, [number, number, number]> {
+export function artPropSizes(art: string, dataSizes: Record<string, { size: [number, number, number] }>): Record<string, [number, number, number]> {
   const out: Record<string, [number, number, number]> = {};
-  for (const [kind, p] of Object.entries(PROFILES[art]?.props ?? {})) if (p.size) out[kind] = p.size;
+  for (const [kind, p] of Object.entries(PROFILES[art]?.props ?? {})) {
+    const base = p.size ?? dataSizes[kind]?.size;
+    if (!base || (!p.size && !p.grow)) continue;
+    const g = p.grow ?? 1;
+    out[kind] = [base[0] * g, base[1] * g, base[2] * g];
+  }
   return out;
 }
+
 
 export function profileModels(art: string): string[] {
   const set = PROFILES[art];
