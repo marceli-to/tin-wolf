@@ -380,6 +380,15 @@ PROFILES.tinfox = {
     crate_tall: { model: 'tinfox/props/crate-tall.glb', fit: 'scale', scale: 1 },
     cargo: { model: 'tinfox/props/cargo.glb', fit: 'scale', scale: 1 },
     barrel: { model: 'tinfox/props/storage-barrel.glb', fit: 'stretch' },
+    // Depot core, built to the data boxes. The desk is built at lab_desk_small's 1.65 x 0.82 and stretches
+    // to the long lab desk (2.27) and the office desk (1.49 x 0.70): only the knee space, top and panel grow.
+    // The bunk bed stands its full 1.65 m over its 0.75 m collider.
+    locker: { model: 'tinfox/props/locker.glb', fit: 'scale', scale: 1 },
+    lab_desk_small: { model: 'tinfox/props/desk.glb', fit: 'scale', scale: 1 },
+    lab_desk: { model: 'tinfox/props/desk.glb', fit: 'stretch' },
+    desk: { model: 'tinfox/props/desk.glb', fit: 'stretch' },
+    terminal: { model: 'tinfox/props/terminal.glb', fit: 'scale', scale: 1 },
+    bunk_bed: { model: 'tinfox/props/bunk-bed.glb', fit: 'scale', scale: 1 },
   },
   target: 'tinfox/props/target.glb',
 };
