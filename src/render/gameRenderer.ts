@@ -93,6 +93,8 @@ export class GameRenderer {
   private propPick: (THREE.Object3D | null)[] = [];
   /** Per prop: what its marks hang on (a breakable prop, so they go with it), or null for the world. */
   private propHost: (THREE.Object3D | null)[] = [];
+  /** Lamp materials (M_Lamp) of alarm panel models, by prop index: they flash when the alarm is raised. */
+  private propLamps = new Map<number, THREE.MeshStandardMaterial[]>();
   private markRay = new THREE.Raycaster();
   /** Set to use glTF models for props and guards (art trial). */
   models: ModelLibrary | null = null;
@@ -214,8 +216,13 @@ export class GameRenderer {
           m.roughness = Math.max(m.roughness, 0.55);
         }
         // Colour overrides name Kenney materials; an art set's own model has its palette.
-        const colors = own ? undefined : kind!.colors;
-        if (colors) for (const m of model.materials) if (colors[m.name]) (m.userData.base as THREE.Color | undefined)?.set(colors[m.name]!);
+        const colors = own ? own.recolor : kind!.colors;
+        if (colors) for (const m of model.materials) if (colors[m.name]) {
+          (m.userData.base as THREE.Color | undefined)?.set(colors[m.name]!);
+          // An art set's recolour replaces the palette texture (whose cell would tint the new colour).
+          if (own) m.map = null;
+          m.needsUpdate = true;
+        }
         tintModel(model.materials, Math.min(1.25, this.light(o.position.x, o.position.z) + 0.3));
         if (!p.destructible) {
           // Static: merged with every other static prop below; nothing to update per frame.
@@ -225,6 +232,10 @@ export class GameRenderer {
           this.propPick.push(o);
           this.propHost.push(null);
           continue;
+        }
+        if (kind?.alarm) {
+          const lamps = model.materials.filter((m) => m.name === 'M_Lamp');
+          if (lamps.length) this.propLamps.set(this.propMeshes.length, lamps);
         }
         // Destructible props bob, spin and pop (surprise boxes) about the middle of their box.
         const holder = new THREE.Group();
@@ -504,6 +515,7 @@ export class GameRenderer {
     this.snow = null;
     this.guards = [];
     this.propMeshes = [];
+    this.propLamps.clear();
     this.propPick = [];
     this.propHost = [];
     this.propIndex.clear();
@@ -756,7 +768,14 @@ export class GameRenderer {
         m.position.y = (b.minY + b.maxY) / 2 + 0.04 + Math.sin(this.time * 2 + i) * 0.04;
       }
       // Alarm panels flash once the alarm is raised.
-      if (m && world.alarm.raised && world.data.props[p.kind]?.alarm) {
+      const lamps = this.propLamps.get(i);
+      if (lamps) {
+        const on = world.alarm.raised && Math.sin(this.time * 12) > 0;
+        for (const l of lamps) {
+          l.emissive.set('#ff2a1a');
+          l.emissiveIntensity = on ? 1.6 : 0;
+        }
+      } else if (m && world.alarm.raised && world.data.props[p.kind]?.alarm) {
         const mat = (m as THREE.Mesh).material as THREE.MeshBasicMaterial | undefined;
         if (mat?.color) mat.color.setScalar(Math.sin(this.time * 12) > 0 ? 2.2 : 1);
       }

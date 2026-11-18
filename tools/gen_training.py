@@ -54,7 +54,7 @@ add({'type': 'playerStart', 'slot': 1, 'cell': [19, 43], 'yaw': 0})
 add({'type': 'spawn', 'cell': [17, 43], 'yaw': 0})
 add({'type': 'spawn', 'cell': [19, 43], 'yaw': 0})
 add({'type': 'prop', 'kind': 'crate_tall', 'cell': [15, 41]})
-add({'type': 'prop', 'kind': 'start_panel', 'cell': [15, 41.925], 'id': 'course_start', 'yaw': 0, 'elevation': 0.55})
+add({'type': 'prop', 'kind': 'start_panel', 'cell': [15, 41.925], 'id': 'course_start', 'yaw': 180, 'elevation': 0.55})
 
 
 def target(c, r, size='big', elevation=0, to=None, speed=None):

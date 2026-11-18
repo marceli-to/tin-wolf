@@ -837,6 +837,8 @@ function paintDoor(p: Pix, n: number, leaf: string, band: string, key?: string):
 }
 
 let painters = PAINTERS;
+/** Upscale factor for the painted canvas: the tinfox set has hard edges that blur when a 128 px texture is filtered. */
+let upscale = 1;
 
 /** Level surface style: 'detailed' (grimy, the code-built look), 'flat' (clean, next to Kenney), 'tinfox' (own palette). */
 export type TextureStyle = 'detailed' | 'flat' | 'tinfox';
@@ -845,6 +847,7 @@ export type TextureStyle = 'detailed' | 'flat' | 'tinfox';
 export function useTextureStyle(style: TextureStyle): void {
   painters =
     style === 'tinfox' ? { ...PAINTERS, ...FLAT_PAINTERS, ...TINFOX_PAINTERS } : style === 'flat' ? { ...PAINTERS, ...FLAT_PAINTERS } : PAINTERS;
+  upscale = style === 'tinfox' ? 4 : 1;
   cache.clear();
 }
 
@@ -899,7 +902,16 @@ export function getTexture(name: string): THREE.Texture | null {
   const pix = new Pix(size, ctx.createImageData(size, size));
   paint(pix, size, seeded(seed));
   pix.flush(ctx);
-  t = new THREE.CanvasTexture(canvas);
+  let image = canvas;
+  if (upscale > 1) {
+    // Nearest-neighbour blow-up: same picture, but linear filtering only softens a quarter texel per edge.
+    image = document.createElement('canvas');
+    image.width = image.height = size * upscale;
+    const big = image.getContext('2d')!;
+    big.imageSmoothingEnabled = false;
+    big.drawImage(canvas, 0, 0, image.width, image.height);
+  }
+  t = new THREE.CanvasTexture(image);
   t.generateMipmaps = true;
   t.wrapS = THREE.RepeatWrapping;
   t.wrapT = THREE.RepeatWrapping;

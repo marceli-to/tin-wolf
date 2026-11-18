@@ -234,7 +234,10 @@ export interface ArtSet {
   /** Pickup models of this set by item id, instead of `items.json`'s `model` / `modelScale`. */
   items?: Record<string, { model: string; scale: number }>;
   /** Prop models of this set by prop id, instead of `props.json`'s `model` / `modelFit` / `modelScale`. */
-  props?: Record<string, { model: string; fit?: 'scale' | 'footprint' | 'stretch'; scale?: number; size?: [number, number, number]; grow?: number }>;
+  props?: Record<string, { model: string; fit?: 'scale' | 'footprint' | 'stretch'; scale?: number; size?: [number, number, number]; grow?: number;
+    /** Material name → flat colour, replacing that material's texture (a green button on a red-button model). */
+    recolor?: Record<string, string>;
+  }>;
   /** Training-target model with `hinge` / `board` nodes (board radius `TARGET_MODEL_RADIUS`), instead of the built one. */
   target?: string;
   /** Figure per guard archetype, ahead of `guard` / `officer` (e.g. a rifle guard of its own). */
@@ -422,6 +425,10 @@ PROFILES.tinfox = {
     // The last two depot props: the chest grows with the furniture; the yard's dish keeps its 4.34 m.
     chest: { model: 'tinfox/props/chest.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
     satellite_dish: { model: 'tinfox/props/satellite-dish.glb', fit: 'scale', scale: 1 },
+    // Wall panels, built to the 0.50 x 0.70 x 0.16 box. The alarm's lamp (M_Lamp) flashes when the alarm
+    // is raised; the training start panel is the same model with a green button.
+    alarm_panel: { model: 'tinfox/props/alarm-panel.glb', fit: 'scale', scale: 1 },
+    start_panel: { model: 'tinfox/props/alarm-panel.glb', fit: 'scale', scale: 1, recolor: { M_Button: '#3fae4a' } },
   },
   target: 'tinfox/props/target.glb',
 };
