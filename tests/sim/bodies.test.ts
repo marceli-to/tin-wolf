@@ -58,3 +58,34 @@ describe('body shapes per figure', () => {
     expect(zoneAt(human, 0, 1.55)).toBe('torso');
   });
 });
+
+describe('prop sizes per art set', () => {
+  const level = () =>
+    parseLevel({
+      id: 't',
+      name: 't',
+      legend: LEGEND,
+      map: OPEN,
+      mode: 'mission',
+      entities: [
+        { type: 'prop', id: 'b', kind: 'barrel_red', cell: [5, 2] },
+        { type: 'prop', id: 'r', kind: 'barrel_red', cell: [8, 2], yaw: 90 },
+      ],
+    });
+
+  it('an art set can give a prop kind its own collider', () => {
+    const w = createWorld(level(), data, { players: 1, propSizes: { barrel_red: [0.56, 0.9, 0.56] } });
+    for (const p of w.props) {
+      expect(p.box.maxX - p.box.minX).toBeCloseTo(0.56, 5);
+      expect(p.box.maxZ - p.box.minZ).toBeCloseTo(0.56, 5);
+      expect(p.box.maxY - p.box.minY).toBeCloseTo(0.9, 5);
+    }
+  });
+
+  it('without one the data size stays', () => {
+    const w = createWorld(level(), data, { players: 1 });
+    const [sx, , sz] = data.props.barrel_red!.size;
+    expect(w.props[0]!.box.maxX - w.props[0]!.box.minX).toBeCloseTo(sx, 5);
+    expect(w.props[1]!.box.maxX - w.props[1]!.box.minX).toBeCloseTo(sz, 5);
+  });
+});

@@ -232,6 +232,10 @@ export interface ArtSet {
   weapons?: Record<string, string>;
   /** Pickup models of this set by item id, instead of `items.json`'s `model` / `modelScale`. */
   items?: Record<string, { model: string; scale: number }>;
+  /** Prop models of this set by prop id, instead of `props.json`'s `model` / `modelFit` / `modelScale`. */
+  props?: Record<string, { model: string; fit?: 'scale' | 'footprint' | 'stretch'; scale?: number; size?: [number, number, number] }>;
+  /** Training-target model with `hinge` / `board` nodes (board radius `TARGET_MODEL_RADIUS`), instead of the built one. */
+  target?: string;
   /** Figure per guard archetype, ahead of `guard` / `officer` (e.g. a rifle guard of its own). */
   archetypes?: Record<string, CharacterProfile>;
   /** Alternative outfits a guard can wear via `look` (same rig and animations). */
@@ -363,6 +367,15 @@ PROFILES.tinfox = {
     ammo_rifle: { model: 'tinfox/weapons/ammo-pistol.glb', scale: 1.6 },
     ammo_smg: { model: 'tinfox/weapons/ammo-smg.glb', scale: 1.6 },
   },
+  // Generator props: metres, front +Z, origin on the floor. The barrel is round (0.55 m) and keeps its
+  // size inside the slightly larger collider; the ammo crate is turned in its file to run along Z.
+  props: {
+    // Round, 0.55 m across: the collider follows the model instead of Kenney's 0.72 x 0.62.
+    barrel_red: { model: 'tinfox/props/barrel.glb', fit: 'scale', scale: 1, size: [0.56, 0.9, 0.56] },
+    surprise_box: { model: 'tinfox/props/surprise-box.glb', fit: 'scale', scale: 1 },
+    ammo_crate: { model: 'tinfox/props/ammo-crate.glb', fit: 'footprint' },
+  },
+  target: 'tinfox/props/target.glb',
 };
 
 /** The figure an art set gives a guard: its look's outfit, the officer, or the plain guard. */
@@ -380,6 +393,13 @@ export function artBodies(art: string, archetypes: readonly string[]): { body: B
   return { body: (set.player ?? set.guard).body, guardBodies };
 }
 
+/** Collision sizes the art set's own prop models ask for (the sim's boxes follow the model). */
+export function artPropSizes(art: string): Record<string, [number, number, number]> {
+  const out: Record<string, [number, number, number]> = {};
+  for (const [kind, p] of Object.entries(PROFILES[art]?.props ?? {})) if (p.size) out[kind] = p.size;
+  return out;
+}
+
 export function profileModels(art: string): string[] {
   const set = PROFILES[art];
   if (!set) return [];
@@ -390,6 +410,8 @@ export function profileModels(art: string): string[] {
     ...(set.playerModels ?? []),
     ...Object.values(set.weapons ?? {}),
     ...Object.values(set.items ?? {}).map((i) => i.model),
+    ...Object.values(set.props ?? {}).map((p) => p.model),
+    ...(set.target ? [set.target] : []),
   ];
 }
 

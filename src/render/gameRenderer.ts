@@ -182,10 +182,13 @@ export class GameRenderer {
     for (const p of world.props) {
       const b = p.box;
       const kind = world.data.props[p.kind];
-      const model = kind?.model && this.models ? this.models.instance(kind.model) : null;
+      const own = PROFILES[this.art]?.props?.[p.kind];
+      const path = own?.model ?? kind?.model;
+      const model = path && this.models ? this.models.instance(path) : null;
       if (model) {
         const o = model.object;
-        o.scale.setScalar(kind!.modelScale);
+        const fit = own?.fit ?? kind!.modelFit;
+        o.scale.setScalar(own ? (own.scale ?? 1) : kind!.modelScale);
         // Kenney models face +z; prop yaw follows the level convention (0 = north / -z).
         o.rotation.y = Math.PI - p.yaw;
         // Origins differ between kits (corner vs. centre), so centre each model on its collision
@@ -193,8 +196,8 @@ export class GameRenderer {
         o.position.set(0, 0, 0);
         o.updateMatrixWorld(true);
         let mb = new THREE.Box3().setFromObject(o);
-        if (kind!.modelFit !== 'scale') {
-          fitToBox(o, mb, b, kind!.modelFit);
+        if (fit !== 'scale') {
+          fitToBox(o, mb, b, fit);
           o.updateMatrixWorld(true);
           mb = new THREE.Box3().setFromObject(o);
         }
@@ -205,7 +208,8 @@ export class GameRenderer {
           m.metalness = Math.min(m.metalness, 0.15);
           m.roughness = Math.max(m.roughness, 0.55);
         }
-        const colors = kind!.colors;
+        // Colour overrides name Kenney materials; an art set's own model has its palette.
+        const colors = own ? undefined : kind!.colors;
         if (colors) for (const m of model.materials) if (colors[m.name]) (m.userData.base as THREE.Color | undefined)?.set(colors[m.name]!);
         tintModel(model.materials, Math.min(1.25, this.light(o.position.x, o.position.z) + 0.3));
         if (!p.destructible) {
@@ -214,8 +218,13 @@ export class GameRenderer {
           this.propMeshes.push(new THREE.Object3D());
           continue;
         }
-        this.dynamic.add(o);
-        this.propMeshes.push(o);
+        // Destructible props bob, spin and pop (surprise boxes) about the middle of their box.
+        const holder = new THREE.Group();
+        holder.position.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, (b.minZ + b.maxZ) / 2);
+        o.position.sub(holder.position);
+        holder.add(o);
+        this.dynamic.add(holder);
+        this.propMeshes.push(holder);
         continue;
       }
       if (!p.solid) {
@@ -262,7 +271,10 @@ export class GameRenderer {
       this.doorMeshes.push(m);
     }
     for (const t of world.targets) {
-      const v = buildTarget(t);
+      const targetPath = PROFILES[this.art]?.target;
+      const targetModel = targetPath && this.models ? this.models.instance(targetPath) : null;
+      const v = buildTarget(t, targetModel);
+      if (targetModel) tintModel(targetModel.materials, Math.min(1.25, this.light(t.x, t.z) + 0.3));
       poseTarget(v, t);
       this.dynamic.add(v.root);
       this.targetVisuals.push(v);

@@ -322,6 +322,8 @@ export interface WorldOptions {
   difficulty?: string;
   /** Computer players, after the `players` people (versus). */
   bots?: number;
+  /** Collision sizes by prop kind, ahead of data.props (an art set's own models have their own shapes). */
+  propSizes?: Record<string, [number, number, number]>;
 }
 
 export function createPlayer(slot: number, loadout: readonly string[], data: GameData): Player {
@@ -457,7 +459,7 @@ export function createWorld(level: LevelDef, data: GameData, opts: WorldOptions)
       case 'prop': {
         const kind = data.props[e.kind];
         if (!kind) throw new Error(`Unknown prop kind '${e.kind}'`);
-        const [sx, sy, sz] = e.size ?? kind.size;
+        const [sx, sy, sz] = e.size ?? opts.propSizes?.[e.kind] ?? kind.size;
         const rot = Math.round(e.yaw / 90) % 2 !== 0;
         const hx = (rot ? sz : sx) / 2;
         const hz = (rot ? sx : sz) / 2;

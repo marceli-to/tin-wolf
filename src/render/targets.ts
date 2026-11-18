@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 import type { Target } from '../sim/targets';
 import { BULLSEYE } from '../sim/targets';
+import type { ModelInstance } from './models';
 import { flatMaterial, shadedBox } from './shapes';
+
+/** Board radius of an art set's target model (`hinge` / `board` nodes, front +Z, metres). */
+export const TARGET_MODEL_RADIUS = 0.45;
 
 /** Ring radii (fraction of the board radius) and colours, outside in. The last ring is the bullseye. */
 const RINGS: [number, string][] = [
@@ -13,15 +17,19 @@ const RINGS: [number, string][] = [
 ];
 
 export interface TargetVisual {
-  root: THREE.Group;
-  hinge: THREE.Group;
+  root: THREE.Object3D;
+  hinge: THREE.Object3D;
+  /** Sign of `hinge.rotation.x` that tips the board backwards. */
+  tip: 1 | -1;
 }
 
 /** A round board on a post, hinged at the board's bottom edge so it can tip back. */
-export function buildTarget(t: Target): TargetVisual {
+export function buildTarget(t: Target, model?: ModelInstance | null): TargetVisual {
+  const hingeY = t.y - t.baseY - t.radius;
+  const own = model ? fromModel(model, t, hingeY) : null;
+  if (own) return own;
   const root = new THREE.Group();
   const post = flatMaterial('#8a6a48');
-  const hingeY = t.y - t.baseY - t.radius;
   const stick = new THREE.Mesh(shadedBox(0.07, hingeY, 0.07), post);
   stick.position.y = hingeY / 2;
   const foot = new THREE.Mesh(shadedBox(0.4, 0.06, 0.4), post);
@@ -45,7 +53,22 @@ export function buildTarget(t: Target): TargetVisual {
   back.rotation.x = Math.PI / 2;
   board.add(back);
   root.rotation.y = -t.yaw;
-  return { root, hinge };
+  return { root, hinge, tip: 1 };
+}
+
+/**
+ * The art set's model: the board scaled to the target's radius about its hinge, the hinge moved to the
+ * sim's height (the post stays as modelled). The model faces +Z, so it is turned to face the target's yaw (-Z).
+ */
+function fromModel(model: ModelInstance, t: Target, hingeY: number): TargetVisual | null {
+  const root = model.object;
+  const hinge = root.getObjectByName('hinge');
+  const board = root.getObjectByName('board');
+  if (!hinge || !board) return null;
+  hinge.position.y = hingeY;
+  board.scale.multiplyScalar(t.radius / TARGET_MODEL_RADIUS);
+  root.rotation.y = Math.PI - t.yaw;
+  return { root, hinge, tip: -1 };
 }
 
 /** Ground rail of a moving target, from end to end. */
@@ -62,5 +85,5 @@ export function buildRail(t: Target): THREE.Object3D | null {
 /** Follows the sim: position on the rail, and tipped back by how far the target has fallen. */
 export function poseTarget(v: TargetVisual, t: Target): void {
   v.root.position.set(t.x, t.baseY, t.z);
-  v.hinge.rotation.x = (1 - t.up) * (Math.PI / 2);
+  v.hinge.rotation.x = v.tip * (1 - t.up) * (Math.PI / 2);
 }
