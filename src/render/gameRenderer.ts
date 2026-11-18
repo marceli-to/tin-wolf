@@ -89,6 +89,11 @@ export class GameRenderer {
   private levelGroup: THREE.Group | null = null;
   private dynamic = new THREE.Group();
   private propMeshes: THREE.Object3D[] = [];
+  /** Per prop: the visible model a scorch mark is placed on (null: the box is what you see). */
+  private propPick: (THREE.Object3D | null)[] = [];
+  /** Per prop: what its marks hang on (a breakable prop, so they go with it), or null for the world. */
+  private propHost: (THREE.Object3D | null)[] = [];
+  private markRay = new THREE.Raycaster();
   /** Set to use glTF models for props and guards (art trial). */
   models: ModelLibrary | null = null;
   /** Which character set to use with models (a key of PROFILES, e.g. 'kenney'). */
@@ -215,7 +220,10 @@ export class GameRenderer {
         if (!p.destructible) {
           // Static: merged with every other static prop below; nothing to update per frame.
           batch.add(o);
+          o.updateMatrixWorld(true);
           this.propMeshes.push(new THREE.Object3D());
+          this.propPick.push(o);
+          this.propHost.push(null);
           continue;
         }
         // Destructible props bob, spin and pop (surprise boxes) about the middle of their box.
@@ -225,12 +233,16 @@ export class GameRenderer {
         holder.add(o);
         this.dynamic.add(holder);
         this.propMeshes.push(holder);
+        this.propPick.push(o);
+        this.propHost.push(holder);
         continue;
       }
       if (!p.solid) {
         // Decoration without a model is simply not drawn.
         const empty = new THREE.Object3D();
         this.propMeshes.push(empty);
+        this.propPick.push(null);
+        this.propHost.push(null);
         continue;
       }
       const w = b.maxX - b.minX;
@@ -248,12 +260,16 @@ export class GameRenderer {
         list.push(geo);
         plain.set(p.mat, list);
         this.propMeshes.push(new THREE.Object3D());
+        this.propPick.push(null);
+        this.propHost.push(null);
         continue;
       }
       const m = new THREE.Mesh(geo, texturedMaterial(p.mat, materialColor(p.mat)));
       m.position.set(cx, (b.minY + b.maxY) / 2, cz);
       this.dynamic.add(m);
       this.propMeshes.push(m);
+      this.propPick.push(null);
+      this.propHost.push(m);
     }
     this.dynamic.add(batch.build());
     for (const [mat, geos] of plain) {
@@ -483,6 +499,8 @@ export class GameRenderer {
     this.snow = null;
     this.guards = [];
     this.propMeshes = [];
+    this.propPick = [];
+    this.propHost = [];
     this.propIndex.clear();
     this.boxIds.clear();
     this.boxBack.clear();
@@ -645,10 +663,50 @@ export class GameRenderer {
     }
   }
 
+  /**
+   * Scorch mark for a shot that hit a wall, floor, door or prop (not people or training targets). On a prop
+   * the mark goes on its visible model, found by a short ray back along the face normal: colliders are
+   * boxes, so a shot can hit the box where the model has a gap (a desk's knee space, between bunk posts),
+   * and then no mark is left in mid-air.
+   */
+  private scorch(e: Extract<SimEvent, { type: 'impact' }>): void {
+    if (e.surface === 'flesh') return;
+    if (e.door !== undefined) {
+      const d = this.doorMeshes[e.door];
+      if (d) this.effects.mark(e.x, e.y, e.z, e.nx, e.ny, e.nz, d);
+      return;
+    }
+    if (e.surface === 'world') {
+      this.effects.mark(e.x, e.y, e.z, e.nx, e.ny, e.nz);
+      return;
+    }
+    if (e.prop === undefined) return; // a training target: it tips over, no mark
+    const host = this.propHost[e.prop] ?? null;
+    const pick = this.propPick[e.prop];
+    if (!pick) {
+      this.effects.mark(e.x, e.y, e.z, e.nx, e.ny, e.nz, host);
+      return;
+    }
+    const from = new THREE.Vector3(e.x + e.nx * 0.4, e.y + e.ny * 0.4, e.z + e.nz * 0.4);
+    this.markRay.set(from, new THREE.Vector3(-e.nx, -e.ny, -e.nz));
+    this.markRay.far = 0.9;
+    pick.updateMatrixWorld(true);
+    const hit = this.markRay.intersectObject(pick, true)[0];
+    if (!hit?.face) return;
+    const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    if (n.dot(this.markRay.ray.direction) > 0) n.negate();
+    this.effects.mark(hit.point.x, hit.point.y, hit.point.z, n.x, n.y, n.z, host);
+  }
+
   onSimEvent(e: SimEvent): void {
     // Blood on a player would burst right in front of their own camera; the hurt overlay covers it.
-    if (e.type === 'impact' && !(e.onPlayer && this.cameras.length === 1)) this.effects.impact(e.x, e.y, e.z, e.nx, e.ny, e.nz, e.surface);
-    else if (e.type === 'propDestroyed') {
+    if (e.type === 'impact') {
+      if (!(e.onPlayer && this.cameras.length === 1)) this.effects.impact(e.x, e.y, e.z, e.nx, e.ny, e.nz, e.surface);
+      this.scorch(e);
+    } else if (e.type === 'propDestroyed') {
+      const i = this.propIndex.get(e.id);
+      const host = i !== undefined ? this.propHost[i] : null;
+      if (host) this.effects.dropMarks(host);
       if (this.isBox(e.id)) this.effects.confetti(e.x, e.y, e.z);
       else this.effects.burst(e.x, e.y, e.z, '#6a6a6a', 24, 5);
     } else if (e.type === 'propRespawned') {

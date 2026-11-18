@@ -116,13 +116,13 @@ export function fireHitscan(
     emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'flesh', onPlayer: t.ref.kind === 'player' });
     applyDamage(world, t.ref, dmg, t.zone, shooter, hit);
   } else if (t.kind === 'prop') {
-    emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'prop' });
+    emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'prop', prop: t.index });
     damageProp(world, t.index, weapon.damage, shooter);
   } else if (t.kind === 'target') {
     emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'prop' });
     hitTarget(world, t.index, shooter.kind === 'player' ? (world.players[shooter.slot] ?? null) : null, t.off);
   } else {
-    emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'world' });
+    emit(world, { type: 'impact', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, surface: 'world', door: t.kind === 'door' ? t.index : undefined });
   }
   return hit;
 }

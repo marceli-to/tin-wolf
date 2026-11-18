@@ -1,7 +1,7 @@
 /** One-shot things the sim reports each tick. Game forwards them to the event bus. */
 export type SimEvent =
   | { type: 'shotFired'; shooter: ActorRef; x: number; y: number; z: number; weapon: string; noise: number }
-  | { type: 'impact'; x: number; y: number; z: number; nx: number; ny: number; nz: number; surface: 'world' | 'flesh' | 'prop'; onPlayer?: boolean }
+  | { type: 'impact'; x: number; y: number; z: number; nx: number; ny: number; nz: number; surface: 'world' | 'flesh' | 'prop'; onPlayer?: boolean; /** Index of the prop or door that was hit (for scorch marks that stay on it). */ prop?: number; door?: number }
   | { type: 'hit'; target: ActorRef; shooter: ActorRef | null; zone: HitZone; damage: number; x: number; y: number; z: number }
   | { type: 'died'; target: ActorRef; killer: ActorRef | null; x?: number; z?: number }
   | { type: 'spawned'; slot: number }

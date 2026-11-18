@@ -11,7 +11,62 @@ interface Particle {
 }
 
 const MAX_PARTICLES = 160;
-const MAX_DECALS = 80;
+/** Scorch marks kept at once; the oldest is reused first. */
+const MAX_MARKS = 150;
+/** Seconds a scorch glows after the hit, stays, and takes to fade out. */
+const MARK_GLOW = 1.0;
+const MARK_STAY = 30;
+const MARK_FADE = 3;
+
+interface Mark {
+  mesh: THREE.Mesh;
+  mat: THREE.MeshBasicMaterial;
+  glow: THREE.Mesh;
+  glowMat: THREE.MeshBasicMaterial;
+  age: number;
+}
+
+/** A round scorch: soot-black core, a warm brown ring, soft edge. Drawn once, shared by every mark. */
+function scorchTexture(): THREE.Texture | null {
+  if (typeof document === 'undefined') return null;
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d')!;
+  const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, 'rgba(14, 12, 10, 1)');
+  r.addColorStop(0.32, 'rgba(22, 18, 15, 0.95)');
+  r.addColorStop(0.5, 'rgba(70, 52, 38, 0.75)');
+  r.addColorStop(0.62, 'rgba(110, 88, 66, 0.45)');
+  r.addColorStop(0.8, 'rgba(60, 50, 42, 0.18)');
+  r.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  g.fillStyle = r;
+  g.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/** The hot rim of a fresh energy hit: bright in the middle, fading out. Tinted per frame as it cools. */
+function glowTexture(): THREE.Texture | null {
+  if (typeof document === 'undefined') return null;
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d')!;
+  const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  r.addColorStop(0.35, 'rgba(255, 255, 255, 0.85)');
+  r.addColorStop(0.6, 'rgba(255, 255, 255, 0.3)');
+  r.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  g.fillStyle = r;
+  g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+const GLOW_HOT = new THREE.Color('#ffe08a');
+const GLOW_COOL = new THREE.Color('#ff4a12');
+const _p = new THREE.Vector3();
+const _n = new THREE.Vector3();
+const _s = new THREE.Vector3();
 
 const SURFACE_COLORS: Record<string, string[]> = {
   world: ['#a8a49a', '#7e7a72', '#c8c4b8'],
@@ -19,24 +74,17 @@ const SURFACE_COLORS: Record<string, string[]> = {
   prop: ['#ffd27a', '#ffb040', '#fff0c0'],
 };
 
-/** Impact puffs and bullet holes. Purely visual; uses Math.random, never the sim RNG. */
+/** Impact puffs and scorch marks. Purely visual; uses Math.random, never the sim RNG. */
 export class Effects {
   readonly group = new THREE.Group();
   private particles: Particle[] = [];
   private free: Particle[] = [];
-  private decals: THREE.Mesh[] = [];
-  private decalIndex = 0;
+  private marks: Mark[] = [];
+  private markIndex = 0;
   private boxGeo = new THREE.BoxGeometry(1, 1, 1);
-  private decalGeo = new THREE.PlaneGeometry(0.12, 0.12);
-  private decalMat = new THREE.MeshBasicMaterial({
-    color: '#141414',
-    polygonOffset: true,
-    polygonOffsetFactor: -2,
-    polygonOffsetUnits: -2,
-    transparent: true,
-    opacity: 0.85,
-    depthWrite: false,
-  });
+  private markGeo = new THREE.PlaneGeometry(1, 1);
+  private scorchTex = scorchTexture();
+  private glowTex = glowTexture();
   private mats = new Map<string, THREE.MeshBasicMaterial>();
   /** Expanding fireballs: one material each so they can fade independently. */
   private balls: { mesh: THREE.Mesh; life: number; max: number; radius: number }[] = [];
@@ -59,7 +107,51 @@ export class Effects {
       const speed = 1 + Math.random() * 2.5;
       this.spawn(x + nx * 0.02, y + ny * 0.02, z + nz * 0.02, nx * speed + (Math.random() - 0.5) * 2, ny * speed + Math.random() * 1.5, nz * speed + (Math.random() - 0.5) * 2, 0.25 + Math.random() * 0.2, 0.04 + Math.random() * 0.04, color);
     }
-    if (surface === 'world') this.decal(x, y, z, nx, ny, nz);
+  }
+
+  /**
+   * A scorch mark at a point on a surface, facing along the normal. With a parent (a door, a breakable
+   * prop) it rides along and disappears with it; otherwise it stays in the world. It glows orange for a
+   * moment, stays MARK_STAY seconds and fades.
+   */
+  mark(x: number, y: number, z: number, nx: number, ny: number, nz: number, parent: THREE.Object3D | null = null): void {
+    let m = this.marks[this.markIndex];
+    if (!m) {
+      const mat = new THREE.MeshBasicMaterial({ map: this.scorchTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      const glowMat = new THREE.MeshBasicMaterial({ map: this.glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+      const mesh = new THREE.Mesh(this.markGeo, mat);
+      const glow = new THREE.Mesh(this.markGeo, glowMat);
+      glow.position.z = 0.003;
+      glow.scale.setScalar(0.6);
+      mesh.add(glow);
+      m = { mesh, mat, glow, glowMat, age: 0 };
+      this.marks[this.markIndex] = m;
+    }
+    this.markIndex = (this.markIndex + 1) % MAX_MARKS;
+    const host = parent ?? this.group;
+    host.add(m.mesh);
+    host.updateMatrixWorld(true);
+    _p.set(x + nx * 0.006, y + ny * 0.006, z + nz * 0.006);
+    m.mesh.position.copy(host.worldToLocal(_p.clone()));
+    _n.set(x + nx, y + ny, z + nz);
+    m.mesh.lookAt(_n);
+    m.mesh.rotateZ(Math.random() * Math.PI * 2);
+    host.getWorldScale(_s);
+    m.mesh.scale.setScalar((0.11 + Math.random() * 0.07) / Math.max(1e-3, _s.x));
+    m.mesh.visible = true;
+    m.age = 0;
+    m.mat.opacity = 1;
+    m.glow.visible = true;
+  }
+
+  /** Takes every mark off a parent (a destroyed prop that may come back clean). */
+  dropMarks(parent: THREE.Object3D): void {
+    for (const m of this.marks) {
+      if (m.mesh.parent !== parent) continue;
+      m.mesh.visible = false;
+      m.age = MARK_STAY + MARK_FADE;
+      this.group.add(m.mesh);
+    }
   }
 
   burst(x: number, y: number, z: number, color: string, count: number, speed: number): void {
@@ -114,20 +206,24 @@ export class Effects {
     this.particles.push(p);
   }
 
-  private decal(x: number, y: number, z: number, nx: number, ny: number, nz: number): void {
-    let d = this.decals[this.decalIndex];
-    if (!d) {
-      d = new THREE.Mesh(this.decalGeo, this.decalMat);
-      this.decals[this.decalIndex] = d;
-      this.group.add(d);
-    }
-    this.decalIndex = (this.decalIndex + 1) % MAX_DECALS;
-    d.position.set(x + nx * 0.005, y + ny * 0.005, z + nz * 0.005);
-    d.lookAt(x + nx, y + ny, z + nz);
-    d.rotation.z = Math.random() * Math.PI;
-  }
-
   update(dt: number): void {
+    for (const m of this.marks) {
+      if (!m.mesh.visible) continue;
+      m.age += dt;
+      if (m.glow.visible) {
+        const t = m.age / MARK_GLOW;
+        if (t >= 1) m.glow.visible = false;
+        else {
+          m.glowMat.color.copy(GLOW_HOT).lerp(GLOW_COOL, Math.min(1, t * 1.4));
+          m.glowMat.opacity = (1 - t) ** 1.5;
+        }
+      }
+      if (m.age > MARK_STAY) {
+        const f = 1 - (m.age - MARK_STAY) / MARK_FADE;
+        if (f <= 0) m.mesh.visible = false;
+        else m.mat.opacity = f;
+      }
+    }
     for (const b of this.balls) {
       if (b.life <= 0) continue;
       b.life -= dt;
@@ -162,9 +258,12 @@ export class Effects {
     for (const p of this.particles) p.mesh.visible = false;
     this.free.push(...this.particles);
     this.particles = [];
-    for (const d of this.decals) d.visible = false;
-    this.decals.forEach((d) => this.group.remove(d));
-    this.decals = [];
-    this.decalIndex = 0;
+    // Keep the pool (and its materials) for the next level; just take the marks off whatever held them.
+    for (const m of this.marks) {
+      m.mesh.visible = false;
+      m.age = MARK_STAY + MARK_FADE;
+      this.group.add(m.mesh);
+    }
+    this.markIndex = 0;
   }
 }
