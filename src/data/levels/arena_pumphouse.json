@@ -1,12 +1,15 @@
 {
  "id": "arena_pumphouse",
- "name": "Space Station",
+ "name": "Pumphouse",
  "mode": "versus",
  "cellSize": 2,
  "fog": {
-  "color": "#26345a",
+  "color": "#4d6266",
   "near": 10,
   "far": 44
+ },
+ "retexture": {
+  "space_wall": "pump_column"
  },
  "legend": {
   "#": {
@@ -15,75 +18,75 @@
   ",": {
    "floor": 0,
    "ceil": 3,
-   "floorMat": "space_strip",
-   "wall": "space_wall",
-   "ceilMat": "space_ceil",
+   "floorMat": "pump_channel",
+   "wall": "pump_wall",
+   "ceilMat": "pump_ceil",
    "light": 0.62
   },
   ".": {
    "floor": 0,
    "ceil": 4.5,
-   "floorMat": "space_floor",
-   "wall": "space_wall",
-   "ceilMat": "space_ceil",
+   "floorMat": "pump_floor",
+   "wall": "pump_wall",
+   "ceilMat": "pump_ceil",
    "light": 0.85
   },
   "+": {
    "floor": 1.2,
    "ceil": 4.5,
-   "floorMat": "space_plate",
-   "wall": "space_wall",
-   "ceilMat": "space_ceil",
+   "floorMat": "pump_plate",
+   "wall": "pump_wall",
+   "ceilMat": "pump_ceil",
    "light": 0.95,
-   "step": "space_hazard"
+   "step": "hazard"
   },
   "a": {
    "ramp": "e",
    "floor": 0,
    "floorTo": 1.2,
    "ceil": 4.5,
-   "floorMat": "space_plate",
-   "wall": "space_wall",
+   "floorMat": "pump_plate",
+   "wall": "pump_wall",
    "light": 0.9,
-   "step": "space_hazard",
-   "ceilMat": "space_ceil"
+   "step": "hazard",
+   "ceilMat": "pump_ceil"
   },
   "b": {
    "ramp": "w",
    "floor": 0,
    "floorTo": 1.2,
    "ceil": 4.5,
-   "floorMat": "space_plate",
-   "wall": "space_wall",
+   "floorMat": "pump_plate",
+   "wall": "pump_wall",
    "light": 0.9,
-   "step": "space_hazard",
-   "ceilMat": "space_ceil"
+   "step": "hazard",
+   "ceilMat": "pump_ceil"
   },
   "c": {
    "ramp": "s",
    "floor": 0,
    "floorTo": 1.2,
    "ceil": 4.5,
-   "floorMat": "space_plate",
-   "wall": "space_wall",
+   "floorMat": "pump_plate",
+   "wall": "pump_wall",
    "light": 0.9,
-   "step": "space_hazard",
-   "ceilMat": "space_ceil"
+   "step": "hazard",
+   "ceilMat": "pump_ceil"
   },
   "d": {
    "ramp": "n",
    "floor": 0,
    "floorTo": 1.2,
    "ceil": 4.5,
-   "floorMat": "space_plate",
-   "wall": "space_wall",
+   "floorMat": "pump_plate",
+   "wall": "pump_wall",
    "light": 0.9,
-   "step": "space_hazard",
-   "ceilMat": "space_ceil"
+   "step": "hazard",
+   "ceilMat": "pump_ceil"
   },
   "W": {
    "solid": true,
-   "wall": "space_window",
+   "wall": "pump_window",
    "wallInside": true
   }
  },

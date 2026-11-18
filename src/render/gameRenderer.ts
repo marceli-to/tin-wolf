@@ -887,7 +887,6 @@ export class GameRenderer {
       if (vm) {
         this.bob[i] = (this.bob[i] ?? 0) + speed * frameTime * 2.2;
         const def = world.data.weapons[p.weapon.id];
-        vm.mixer?.update(Math.min(frameTime, 0.05));
         // Swap models at the bottom of the switch, while the hand is out of view.
         const switching = p.switchTimer > 0 ? 1 - p.switchTimer / SWITCH_TIME : -1;
         if (switching < 0 || switching >= 0.5) vm.setWeapon?.(p.weapon.id);

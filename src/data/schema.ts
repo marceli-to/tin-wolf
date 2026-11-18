@@ -138,7 +138,7 @@ export const LevelSchema = z.object({
   entities: z.array(EntitySchema).default([]),
   objectives: z.array(ObjectiveSchema).default([]),
   roofs: z.array(RoofSchema).default([]),
-  /** Arena theme: material names swapped for plain props in this level (e.g. catwalk 'grate' → 'toy_plank'). */
+  /** Arena theme: material names swapped for plain props in this level (e.g. steel 'metal' → 'ware_yellow'). */
   retexture: z.record(z.string(), z.string()).default({}),
   briefing: z.string().default(''),
   /** Weapons players start (and respawn) with; the first is drawn. */

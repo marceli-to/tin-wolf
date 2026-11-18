@@ -20,7 +20,7 @@ TOP = 3.0  # walking height of the mezzanine, bridge and platform
 OUT = Path(__file__).resolve().parent.parent / 'src/data/levels/arena_warehouse.json'
 
 kit = Kit(W, H, S, mirror=True)
-kit.border('B')  # outer walls: calm pastel; the cover blocks inside keep the toy bricks
+kit.border('B')  # outer walls: pale cladding; the cover blocks inside are concrete-block columns
 put = kit.put
 
 # Loading dock in the north-east corner, 1.2 m up, with a ramp from the west.
@@ -124,24 +124,24 @@ for e in (
     # Wall shelves and lockers face into the room: turned with the mirror. Boxes keep their yaw.
     add(e, yaw_flip=e.get('kind') in ('shelf_wide', 'locker'))
 
-# Toy factory look: toy-brick walls, a checkered floor, a yellow studded dock, candy-striped edges.
-legend_base = {'ceil': 7, 'wall': 'toy_wall', 'ceilMat': 'toy_ceil'}
+# The depot's supply shed: block columns, cladding, sealed concrete, checker-plate decks with hazard edges.
+legend_base = {'ceil': 7, 'wall': 'ware_wall', 'ceilMat': 'ware_roof'}
 level = {
     'id': 'arena_warehouse',
-    'name': 'Toy Factory',
+    'name': 'Warehouse',
     'mode': 'versus',
     'cellSize': S,
-    'fog': {'color': '#f3d9ff', 'near': 22, 'far': 80},
-    # Catwalks, stairs, railings and supports are shared prop kinds; paint them in toy colours here.
-    'retexture': {'grate': 'toy_plank', 'metal': 'toy_yellow', 'hazard': 'toy_candy'},
+    'fog': {'color': '#a49c8c', 'near': 22, 'far': 80},
+    # Catwalks, stairs, railings and supports are shared prop kinds; paint the steel safety yellow here.
+    'retexture': {'metal': 'ware_yellow'},
     'match': {'killLimit': 10, 'timeLimit': 360},
     'legend': {
-        '#': {'solid': True, 'wall': 'toy_bricks', 'wallInside': True},
-        'B': {'solid': True, 'wall': 'toy_wall'},
-        '.': {'floor': 0, 'floorMat': 'toy_floor', 'light': 0.95, **legend_base},
-        'p': {'floor': 1.2, 'floorMat': 'toy_top', 'light': 1.0, 'step': 'toy_candy', **legend_base},
-        '>': {'ramp': 'e', 'floor': 0, 'floorTo': 1.2, 'floorMat': 'toy_top', 'light': 0.95, 'step': 'toy_candy', **legend_base},
-        '<': {'ramp': 'w', 'floor': 0, 'floorTo': 1.2, 'floorMat': 'toy_top', 'light': 0.95, 'step': 'toy_candy', **legend_base},
+        '#': {'solid': True, 'wall': 'ware_block', 'wallInside': True},
+        'B': {'solid': True, 'wall': 'ware_wall'},
+        '.': {'floor': 0, 'floorMat': 'ware_floor', 'light': 0.95, **legend_base},
+        'p': {'floor': 1.2, 'floorMat': 'ware_deck', 'light': 1.0, 'step': 'hazard', **legend_base},
+        '>': {'ramp': 'e', 'floor': 0, 'floorTo': 1.2, 'floorMat': 'ware_deck', 'light': 0.95, 'step': 'hazard', **legend_base},
+        '<': {'ramp': 'w', 'floor': 0, 'floorTo': 1.2, 'floorMat': 'ware_deck', 'light': 0.95, 'step': 'hazard', **legend_base},
     },
     'map': kit.map(),
     'entities': entities,

@@ -1,14 +1,12 @@
 import * as THREE from 'three';
 import { flatMaterial, shadedBox } from './shapes';
 import type { ModelInstance } from './models';
-import { attachHeldGun, findMuzzle, findMuzzleIn, findNode, type GripSpec, type HeldGun } from './modelCharacter';
+import { attachHeldGun, findMuzzle, findMuzzleIn, findNode, GUN_MUZZLE_NODE, type GripSpec, type HeldGun } from './modelCharacter';
 
 export interface ViewModel {
   root: THREE.Group;
   gun: THREE.Group;
   flash: THREE.Object3D;
-  /** Drives the arms' pose when the view model is a skinned character. */
-  mixer?: THREE.AnimationMixer;
   /** Shows the model for a weapon id (view models with several held weapons). */
   setWeapon?: (id: string) => void;
   /** False while a weapon without a muzzle (a grenade) is drawn. */
@@ -44,6 +42,9 @@ export interface ViewArmsSpec {
  * First-person arms from the player's own character model: the whole figure stands at the camera
  * in an aiming pose, with head and other parts that could block the view collapsed to nothing.
  */
+/** Distance in front of the camera where a first-person barrel meets the crosshair (metres). */
+const AIM_DISTANCE = 20;
+
 export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], spec: ViewArmsSpec): ViewModel {
   const root = new THREE.Group();
   const gun = new THREE.Group();
@@ -69,6 +70,8 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
     return clip ? mixer.clipAction(clip) : null;
   };
   const poses = { one: action(spec.clip), two: action(spec.twoClip) ?? action(spec.clip) };
+  // The pose is sampled once at 0.5 s and then held: the aim clips are third-person loops whose hand and
+  // wrist sway (up to 14°) would make the gun wobble constantly right in front of the camera.
   poses.one?.play();
   mixer.update(0.5);
   // Put the head bone at the requested spot relative to the camera.
@@ -102,12 +105,13 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
   f3.rotation.x = Math.PI / 2;
   flash.add(f2, f3);
   flash.visible = false;
-  const guns = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; two: boolean }>();
+  const guns = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; two: boolean; barrel: THREE.Object3D | null; muzzle: THREE.Object3D | null }>();
   for (const h of held) {
     if (!spec.grip) continue;
     const holder = attachHeldGun(hand, h.model.object, spec.grip, h.fit === 'hand' ? 0.45 : undefined);
     holder.visible = false;
-    guns.set(h.id, { holder, tip: h.fit === 'hand' ? null : findMuzzleIn(holder, hand), two: h.hold === 'two' });
+    const muzzle = h.fit === 'hand' ? null : h.model.object.getObjectByName(GUN_MUZZLE_NODE) ?? null;
+    guns.set(h.id, { holder, tip: h.fit === 'hand' ? null : findMuzzleIn(holder, hand), two: h.hold === 'two', barrel: muzzle ? h.model.object : null, muzzle });
   }
   const tip = guns.size ? null : findMuzzle(body, hand);
   flash.scale.setScalar(1 / body.scale.x);
@@ -119,7 +123,28 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
     flash.scale.setScalar(1);
     holder.add(flash);
   }
-  const vm: ViewModel = { root, gun, flash, mixer, muzzle: true };
+  const vm: ViewModel = { root, gun, flash, muzzle: true };
+  const baseTurn = body.quaternion.clone();
+  const v = new THREE.Vector3();
+  const inv = new THREE.Matrix4();
+  /**
+   * Turns the whole figure about the muzzle so the barrel points at the crosshair `AIM_DISTANCE` ahead:
+   * the held pose is a frame of a third-person clip, and its barrel is off by a few degrees.
+   * Generator guns have their barrel along +X and a `muzzle` node; others keep the pose as it is.
+   */
+  const aim = (g: { barrel: THREE.Object3D | null; muzzle: THREE.Object3D | null }, at: THREE.Vector3): void => {
+    body.position.copy(at);
+    body.quaternion.copy(baseTurn);
+    if (!g.barrel || !g.muzzle) return;
+    gun.updateMatrixWorld(true);
+    inv.copy(gun.matrixWorld).invert();
+    const m = g.muzzle.getWorldPosition(new THREE.Vector3()).applyMatrix4(inv);
+    const dir = v.set(1, 0, 0).transformDirection(g.barrel.matrixWorld).transformDirection(inv);
+    const want = new THREE.Vector3(0, 0, -AIM_DISTANCE).sub(m).normalize();
+    const turn = new THREE.Quaternion().setFromUnitVectors(dir, want);
+    body.position.sub(m).applyQuaternion(turn).add(m);
+    body.quaternion.premultiply(turn);
+  };
   let current = '';
   vm.setWeapon = (id: string): void => {
     const g = guns.get(id);
@@ -130,12 +155,12 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
     if (g.tip) flash.position.copy(g.tip);
     // Two-handed guns sit in the both-hands pose; the swap happens out of view, so no blend.
     const want = g.two ? poses.two : poses.one;
-    body.position.copy(g.two ? placed.two : placed.one);
     if (want && !want.isRunning()) {
       mixer.stopAllAction();
       want.reset().play();
       mixer.update(0.5);
     }
+    aim(g, g.two ? placed.two : placed.one);
   };
   const first = held[0];
   if (first) vm.setWeapon(first.id);

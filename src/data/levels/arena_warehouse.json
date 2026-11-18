@@ -1,17 +1,15 @@
 {
  "id": "arena_warehouse",
- "name": "Toy Factory",
+ "name": "Warehouse",
  "mode": "versus",
  "cellSize": 2.0,
  "fog": {
-  "color": "#f3d9ff",
+  "color": "#a49c8c",
   "near": 22,
   "far": 80
  },
  "retexture": {
-  "grate": "toy_plank",
-  "metal": "toy_yellow",
-  "hazard": "toy_candy"
+  "metal": "ware_yellow"
  },
  "match": {
   "killLimit": 10,
@@ -20,51 +18,51 @@
  "legend": {
   "#": {
    "solid": true,
-   "wall": "toy_bricks",
+   "wall": "ware_block",
    "wallInside": true
   },
   "B": {
    "solid": true,
-   "wall": "toy_wall"
+   "wall": "ware_wall"
   },
   ".": {
    "floor": 0,
-   "floorMat": "toy_floor",
+   "floorMat": "ware_floor",
    "light": 0.95,
    "ceil": 7,
-   "wall": "toy_wall",
-   "ceilMat": "toy_ceil"
+   "wall": "ware_wall",
+   "ceilMat": "ware_roof"
   },
   "p": {
    "floor": 1.2,
-   "floorMat": "toy_top",
+   "floorMat": "ware_deck",
    "light": 1.0,
-   "step": "toy_candy",
+   "step": "hazard",
    "ceil": 7,
-   "wall": "toy_wall",
-   "ceilMat": "toy_ceil"
+   "wall": "ware_wall",
+   "ceilMat": "ware_roof"
   },
   ">": {
    "ramp": "e",
    "floor": 0,
    "floorTo": 1.2,
-   "floorMat": "toy_top",
+   "floorMat": "ware_deck",
    "light": 0.95,
-   "step": "toy_candy",
+   "step": "hazard",
    "ceil": 7,
-   "wall": "toy_wall",
-   "ceilMat": "toy_ceil"
+   "wall": "ware_wall",
+   "ceilMat": "ware_roof"
   },
   "<": {
    "ramp": "w",
    "floor": 0,
    "floorTo": 1.2,
-   "floorMat": "toy_top",
+   "floorMat": "ware_deck",
    "light": 0.95,
-   "step": "toy_candy",
+   "step": "hazard",
    "ceil": 7,
-   "wall": "toy_wall",
-   "ceilMat": "toy_ceil"
+   "wall": "ware_wall",
+   "ceilMat": "ware_roof"
   }
  },
  "map": [

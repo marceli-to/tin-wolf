@@ -116,6 +116,37 @@ function rivet(p: Pix, x: number, y: number): void {
 
 type Paint = (p: Pix, n: number, rnd: () => number) => void;
 
+/** Tin Fox's own colours, taken from the generator's props (see `TINFOX_PAINTERS`). */
+const TF = {
+  wall: '#e2dfd5',
+  wallSeam: '#c3c0b6',
+  orange: '#f28a1e',
+  olive: '#66733f',
+  oliveLight: '#7a8750',
+  dark: '#43464c',
+  darker: '#2f3236',
+  steel: '#7d838b',
+  light: '#c9cbc6',
+  screen: '#7cc6ea',
+  red: '#d9402f',
+  blue: '#3b7bd6',
+  yellow: '#f2c443',
+};
+
+/** Dark seam line with a light edge below it, like a joint between two pressed panels. */
+function seamH(p: Pix, y: number, w: number, dark: string, x = 0): void {
+  p.fill(x, y, w, 2, dark);
+  p.shade(x, y + 2, w, 1, 1.06);
+}
+function seamV(p: Pix, x: number, h: number, dark: string, y = 0): void {
+  p.fill(x, y, 2, h, dark);
+  p.shade(x + 2, y, 1, h, 1.06);
+}
+function bolt(p: Pix, x: number, y: number, hex: string): void {
+  p.fill(x, y, 3, 3, hex);
+}
+
+
 /** 5×7 pixel glyphs for toy blocks. */
 const GLYPHS: Record<string, string[]> = {
   A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
@@ -149,12 +180,205 @@ const plain = (color: string, edge = 4): Paint => (p, n) => {
   flatPanel(p, 0, 0, n, n, edge);
 };
 
+/** Steel checker plate: raised diamond bars in alternating directions, plate seams at the edge. */
+function checker(p: Pix, n: number, base: string): void {
+  p.fill(0, 0, n, n, base);
+  for (let y = 5; y < n; y += 16) {
+    for (let x = 5; x < n; x += 16) {
+      const flip = ((x + y) >> 4) % 2 === 0;
+      for (let i = 0; i < 5; i++) {
+        p.shade(x + i, y + (flip ? i : 4 - i), 2, 1, 1.12);
+        p.shade(x + i, y + (flip ? i : 4 - i) + 1, 2, 1, 0.9);
+      }
+    }
+  }
+  seamH(p, 0, n, '#5f646b');
+  seamV(p, 0, n, '#5f646b');
+}
+
+/** Rows of painted concrete blocks, 50 × 25 cm, offset every other row. */
+function blocks(p: Pix, n: number, r: () => number, base: string, mortar: string, y0 = 0, rows = 8): void {
+  const rh = n / 8;
+  for (let row = 0; row < rows; row++) {
+    const y = y0 + row * rh;
+    const off = row % 2 ? n / 8 : 0;
+    p.fill(0, y, n, rh, base);
+    p.fill(0, y, n, 1, mortar);
+    for (let x = off; x < n + off; x += n / 4) {
+      p.fill(x, y, 1, rh, mortar);
+      p.shade(x + 1, y + 1, n / 4 - 1, rh - 1, 0.96 + r() * 0.07);
+    }
+  }
+}
+
 /**
- * Arena themes (both render styles): space station (Pumphouse), toy factory (Warehouse).
- * One texture spans 2 m of wall or floor.
+ * Arena surfaces of Tin Fox's world (2026-11-18): the Pumphouse, the Warehouse and the Snowfort, in the depot's palette.
+ * Shared by every render style, so `?art=none` shows them too.
+ */
+const ARENA: Record<string, Paint> = {
+  // ---- Pumphouse: a water pumping station below the depot. Two-tone painted walls, wet floors, pipes.
+  // Wall: off-white panels above, teal-painted blocks below, a dark line between at 1 m.
+  pump_wall: (p, n, r) => {
+    p.fill(0, 0, n, n, TF.wall);
+    seamV(p, 0, n / 2, TF.wallSeam);
+    seamV(p, n / 2, n / 2, TF.wallSeam);
+    seamH(p, 0, n, TF.wallSeam);
+    blocks(p, n, r, '#3f7a74', '#33625d', n / 2, 4);
+    p.fill(0, n / 2 - 3, n, 4, TF.dark);
+    p.fill(0, n - 4, n, 4, '#2c4c48');
+  },
+  // Window onto the reservoir valley: snowy peaks over dark water, in a dark frame.
+  pump_window: (p, n) => {
+    p.fill(0, 0, n, n, TF.wall);
+    const x0 = 14;
+    const y0 = 16;
+    const w = n - 28;
+    const h = n - 40;
+    p.fill(x0, y0, w, h, '#a9c3d6');
+    for (let x = 0; x < w; x++) {
+      // Two ridgelines: far pale peaks, near darker rock with snow on top.
+      const far = Math.round(h * 0.42 + Math.abs(((x * 3) % 70) - 35) * 0.45);
+      const near = Math.round(h * 0.58 + Math.abs(((x * 5 + 20) % 90) - 45) * 0.3);
+      for (let y = far; y < h; y++) p.set(x0 + x, y0 + y, 236, 242, 246);
+      for (let y = near; y < h; y++) {
+        const snow = y < near + 3;
+        p.set(x0 + x, y0 + y, snow ? 246 : 96, snow ? 248 : 106, snow ? 250 : 116);
+      }
+    }
+    p.fill(x0, y0 + h - 12, w, 12, '#3b6478');
+    p.fill(x0, y0 + h - 12, w, 1, '#8fb6c8');
+    p.fill(0, 0, n, 4, TF.wallSeam);
+    p.fill(x0 - 4, y0 - 4, w + 8, 4, TF.dark);
+    p.fill(x0 - 4, y0 + h, w + 8, 4, TF.dark);
+    p.fill(x0 - 4, y0, 4, h, TF.dark);
+    p.fill(x0 + w, y0, 4, h, TF.dark);
+    p.fill(n / 2 - 2, y0, 4, h, TF.dark);
+    p.shade(x0 + 4, y0 + 4, 10, h - 20, 1.08);
+    blocks(p, n, () => 0.5, '#3f7a74', '#33625d', n - 20, 1);
+    p.fill(0, n - 4, n, 4, '#2c4c48');
+  },
+  // Pump rooms: grey-green epoxy floor, 1 m seams, a drain in one corner.
+  pump_floor: (p, n) => {
+    p.fill(0, 0, n, n, '#8e9a92');
+    seamH(p, 0, n, '#77837b');
+    seamV(p, 0, n, '#77837b');
+    seamH(p, n / 2, n, '#838f87');
+    seamV(p, n / 2, n, '#838f87');
+    p.fill(n - 22, n - 22, 14, 14, TF.darker);
+    for (let i = 0; i < 4; i++) p.fill(n - 20, n - 20 + i * 3 + 1, 10, 1, '#5a5f66');
+  },
+  // Low service corridors: grating over the channel, water showing through the slots.
+  pump_channel: (p, n) => {
+    p.fill(0, 0, n, n, '#5a5f66');
+    for (let y = 4; y < n; y += 8) for (let x = 0; x < n; x += 32) {
+      p.fill(x + 4, y, 24, 4, '#2d566a');
+      p.fill(x + 4 + ((y * 7) % 18), y + 1, 5, 1, '#5f93ab');
+    }
+    seamV(p, 0, n, TF.dark);
+    seamH(p, 0, n, TF.dark);
+  },
+  // Ceiling: grey concrete slab with one blue water main and a smaller orange-banded line.
+  pump_ceil: (p, n) => {
+    p.fill(0, 0, n, n, '#a4a6a1');
+    seamH(p, 0, n, '#8f918c');
+    p.fill(0, n * 0.3, n, 18, '#4e7fa6');
+    p.fill(0, n * 0.3, n, 4, '#76a3c6');
+    p.fill(0, n * 0.3 + 15, n, 3, '#3a6283');
+    p.fill(n / 2 - 3, n * 0.3 - 2, 6, 22, TF.dark);
+    p.fill(0, n * 0.72, n, 8, '#7d838b');
+    p.fill(0, n * 0.72, n, 2, '#9aa0a7');
+    p.fill(n / 4, n * 0.72, 8, 8, TF.orange);
+  },
+  // Pump platforms: grey checker plate.
+  pump_plate: (p, n) => checker(p, n, '#8d949b'),
+  // Pillars: teal-painted steel with bolts.
+  pump_column: (p, n) => {
+    p.fill(0, 0, n, n, '#3f7a74');
+    flatPanel(p, 0, 0, n, n, 4);
+    for (const x of [8, n - 11]) for (let y = 8; y < n; y += 30) bolt(p, x, y, '#2c4c48');
+    p.fill(0, n - 10, n, 10, TF.dark);
+  },
+
+  // ---- Warehouse: the depot's supply shed. Concrete-block columns, pale cladding, sealed concrete.
+  // Columns: light grey painted blocks.
+  ware_block: (p, n, r) => blocks(p, n, r, '#bdbbb3', '#a3a199'),
+  // Outer walls: pale sage corrugated cladding with a sheet seam.
+  ware_wall: (p, n) => {
+    p.fill(0, 0, n, n, '#a9b09a');
+    for (let x = 0; x < n; x += 8) {
+      p.fill(x, 0, 3, n, '#bcc3ad');
+      p.shade(x + 6, 0, 2, n, 0.86);
+    }
+    seamH(p, 0, n, '#858c77');
+    p.shade(0, n - 10, n, 10, 0.86);
+  },
+  // Floor: sealed concrete in 2 m slabs, a few scuffs.
+  ware_floor: (p, n, r) => {
+    p.fill(0, 0, n, n, '#aaa69c');
+    for (let i = 0; i < 18; i++) p.shade(r() * n, r() * n, 6 + r() * 14, 2, 0.94);
+    seamH(p, 0, n, '#8f8b82');
+    seamV(p, 0, n, '#8f8b82');
+  },
+  // Mezzanine decks: checker plate, a shade warmer than the pumphouse's.
+  ware_deck: (p, n) => checker(p, n, '#94938d'),
+  // Roof seen from below: corrugated sheet on purlins, one steel beam across.
+  ware_roof: (p, n) => {
+    p.fill(0, 0, n, n, '#8a9096');
+    for (let x = 0; x < n; x += 8) p.shade(x, 0, 3, n, 1.1);
+    for (const y of [n / 4, (3 * n) / 4]) {
+      p.fill(0, y - 3, n, 6, '#5f646b');
+      p.fill(0, y - 3, n, 1, '#7d838b');
+    }
+    p.fill(0, n / 2 - 7, n, 14, TF.dark);
+    p.fill(0, n / 2 - 7, n, 2, TF.steel);
+  },
+  // Supports, stairs and rail posts: safety-yellow steel.
+  ware_yellow: (p, n) => {
+    p.fill(0, 0, n, n, TF.yellow);
+    flatPanel(p, 0, 0, n, n, 4);
+  },
+
+  // ---- Snowfort: a log fort on the pass. Palisade walls, a snowed-in roof; the ground is plain `snow`.
+  // Upright logs, 25 cm across, with an iron band and snow caught in the bark.
+  fort_logs: (p, n, r) => {
+    const lw = n / 8;
+    for (let i = 0; i < 8; i++) {
+      const x = i * lw;
+      const k = 0.92 + r() * 0.14;
+      for (let dx = 0; dx < lw; dx++) {
+        // Round log: light in the middle, dark at the sides.
+        const t = Math.abs(dx - lw / 2 + 0.5) / (lw / 2);
+        const s = k * (1.12 - t * t * 0.55);
+        for (let y = 0; y < n; y++) p.set(x + dx, y, 0x86 * s, 0x63 * s, 0x42 * s);
+      }
+      for (let j = 0; j < 6; j++) p.fill(x + 3 + r() * (lw - 6), r() * n, 2, 6 + r() * 10, '#5e4430');
+      if (r() > 0.6) p.fill(x + 3 + r() * (lw - 8), r() * n, 2, 1, '#d9e2e8');
+      p.fill(x, 0, 1, n, '#3e2c1e');
+    }
+    p.fill(0, n * 0.3, n, 6, TF.dark);
+    for (let x = lw / 2 - 1; x < n; x += lw) bolt(p, x, n * 0.3 + 1, TF.steel);
+  },
+  // Roof: snow lying on planks, the plank ends showing at each course.
+  fort_roof: (p, n, r) => {
+    p.fill(0, 0, n, n, '#eef3f6');
+    const rh = n / 4;
+    for (let row = 0; row < 4; row++) {
+      const y = row * rh;
+      p.fill(0, y + rh - 7, n, 7, '#6e5038');
+      p.fill(0, y + rh - 7, n, 2, '#8a6a4c');
+      p.shade(0, y + rh - 12, n, 5, 0.88);
+      for (let i = 0; i < 5; i++) p.shade(r() * n, y + 4 + r() * (rh - 16), 10 + r() * 20, 3, 0.95);
+    }
+  },
+};
+
+/**
+ * Old arena themes, still used as fallback materials by plain props (`space_crate`, the toy blocks, the castle
+ * tower parts) and the arena surfaces of Tin Fox's world (`ARENA`). One texture spans 2 m of wall or floor.
  */
 const THEMED: Record<string, Paint> = {
   surprise: (p, n) => paintSurprise(p, n),
+  ...ARENA,
   // ---- space station
   space_wall: (p, n) => {
     p.fill(0, 0, n, n, '#e9eef5');
@@ -163,46 +387,6 @@ const THEMED: Record<string, Paint> = {
     p.fill(0, n * 0.62, n, n * 0.1, '#3b82d6');
     p.fill(0, n * 0.62, n, 2, '#8cc4ff');
     p.fill(0, n * 0.9, n, 3, '#c3ccd8');
-  },
-  space_window: (p, n, r) => {
-    p.fill(0, 0, n, n, '#e9eef5');
-    p.fill(14, 18, n - 28, n - 36, '#0d1530');
-    for (let i = 0; i < 40; i++) {
-      const x = 16 + r() * (n - 32);
-      const y = 20 + r() * (n - 40);
-      p.fill(x, y, r() > 0.8 ? 2 : 1, r() > 0.8 ? 2 : 1, r() > 0.85 ? '#ffe9a0' : '#ffffff');
-    }
-    flatPanel(p, 0, 0, n, n, 4);
-    flatPanel(p, 14, 18, n - 28, n - 36, 3);
-    p.fill(n / 2 - 2, 18, 4, n - 36, '#e9eef5');
-  },
-  space_floor: (p, n) => {
-    p.fill(0, 0, n, n, '#4a5670');
-    for (const x of [0, n / 2]) for (const y of [0, n / 2]) flatPanel(p, x, y, n / 2, n / 2, 3);
-    for (const x of [0, n / 2]) for (const y of [0, n / 2]) p.fill(x + n / 4 - 3, y + n / 4 - 3, 6, 6, '#5fd0f0');
-  },
-  space_strip: (p, n) => {
-    p.fill(0, 0, n, n, '#3c465c');
-    flatPanel(p, 0, 0, n, n, 3);
-    p.fill(n / 2 - 5, 0, 10, n, '#5fd0f0');
-    p.fill(n / 2 - 2, 0, 4, n, '#d8f6ff');
-  },
-  space_ceil: (p, n) => {
-    p.fill(0, 0, n, n, '#cfd8e3');
-    flatPanel(p, 0, 0, n, n, 3);
-    p.fill(n / 4, n / 4, n / 2, n / 2, '#ffffff');
-    flatPanel(p, n / 4, n / 4, n / 2, n / 2, 3);
-  },
-  space_plate: (p, n) => {
-    p.fill(0, 0, n, n, '#9fb3c8');
-    for (let y = 8; y < n; y += 16) for (let x = (y / 16) % 2 ? 0 : 8; x < n; x += 16) p.shade(x, y, 6, 3, 1.15);
-    flatPanel(p, 0, 0, n, n, 4);
-  },
-  space_hazard: (p, n) => {
-    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-      const on = ((x + y) >> 4) % 2 === 0;
-      p.set(x, y, on ? 95 : 233, on ? 208 : 238, on ? 240 : 245);
-    }
   },
   // ---- castle
   castle_stone: (p, n, r) => {
@@ -233,16 +417,6 @@ const THEMED: Record<string, Paint> = {
       p.fill(x, y, 4, 4, r() > 0.5 ? '#ffffff' : '#ffd23a');
     }
   },
-  castle_floor: (p, n, r) => {
-    p.fill(0, 0, n, n, '#8f8778');
-    const c = n / 3;
-    for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
-      const k = 0.92 + r() * 0.14;
-      p.fill(x * c + 2, y * c + 2, c - 4, c - 4, '#cbc3b2');
-      p.shade(x * c + 2, y * c + 2, c - 4, c - 4, k);
-      flatPanel(p, x * c + 2, y * c + 2, c - 4, c - 4, 3);
-    }
-  },
   castle_roof: (p, n) => {
     p.fill(0, 0, n, n, '#c9483c');
     const rh = n / 6;
@@ -252,61 +426,6 @@ const THEMED: Record<string, Paint> = {
     }
   },
   // ---- toy factory
-  toy_bricks: (p, n) => {
-    const colors = ['#e9453a', '#ffc93c', '#3b82d6', '#3fb56b'];
-    const rh = n / 4;
-    for (let row = 0; row < 4; row++) {
-      const off = row % 2 ? n / 4 : 0;
-      for (let i = -1; i < 2; i++) {
-        const x = off + i * (n / 2);
-        const c = colors[(row * 3 + i + 4) % colors.length]!;
-        p.fill(x, row * rh, n / 2, rh, c);
-        flatPanel(p, x, row * rh, n / 2, rh, 4);
-        p.shade(x, row * rh, 2, rh, 0.55);
-      }
-      p.shade(0, row * rh + rh - 2, n, 2, 0.55);
-    }
-  },
-  toy_wall: (p, n) => {
-    p.fill(0, 0, n, n, '#bfe3ff');
-    flatPanel(p, 0, 0, n / 2, n, 4);
-    flatPanel(p, n / 2, 0, n / 2, n, 4);
-    const colors = ['#e9453a', '#ffc93c', '#3fb56b', '#3b82d6'];
-    for (let i = 0; i < 4; i++) {
-      p.fill(i * (n / 4), n * 0.58, n / 4, n * 0.1, colors[i]!);
-      flatPanel(p, i * (n / 4), n * 0.58, n / 4, n * 0.1, 3);
-    }
-  },
-  toy_floor: (p, n) => {
-    for (const x of [0, n / 2]) for (const y of [0, n / 2]) {
-      p.fill(x, y, n / 2, n / 2, (x + y) % n === 0 ? '#fff4dc' : '#bfe9d9');
-      flatPanel(p, x, y, n / 2, n / 2, 3);
-    }
-  },
-  toy_top: (p, n) => {
-    p.fill(0, 0, n, n, '#ffc93c');
-    for (const x of [0, n / 2]) for (const y of [0, n / 2]) {
-      flatPanel(p, x, y, n / 2, n / 2, 4);
-      // Studs, like a toy brick seen from above.
-      p.fill(x + n / 4 - 10, y + n / 4 - 10, 20, 20, '#ffd95e');
-      flatPanel(p, x + n / 4 - 10, y + n / 4 - 10, 20, 20, 3);
-    }
-  },
-  toy_ceil: (p, n) => {
-    p.fill(0, 0, n, n, '#cfe8ff');
-    flatPanel(p, 0, 0, n, n, 4);
-    p.fill(n / 4, n / 4, n / 2, n / 2, '#ffffff');
-  },
-  toy_plank: (p, n) => {
-    p.fill(0, 0, n, n, '#3b82d6');
-    for (let y = 0; y < n; y += n / 4) flatPanel(p, 0, y, n, n / 4, 3);
-  },
-  toy_candy: (p, n) => {
-    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-      const red = ((x + y) >> 4) % 2 === 0;
-      p.set(x, y, red ? 233 : 255, red ? 69 : 248, red ? 58 : 232);
-    }
-  },
   toy_red: plain('#e9453a'),
   toy_yellow: plain('#ffc93c'),
   toy_blue: plain('#3b82d6'),
@@ -676,36 +795,6 @@ const FLAT_PAINTERS: Record<string, Paint> = {
   },
 };
 
-/** Tin Fox's own colours, taken from the generator's props (see `TINFOX_PAINTERS`). */
-const TF = {
-  wall: '#e2dfd5',
-  wallSeam: '#c3c0b6',
-  orange: '#f28a1e',
-  olive: '#66733f',
-  oliveLight: '#7a8750',
-  dark: '#43464c',
-  darker: '#2f3236',
-  steel: '#7d838b',
-  light: '#c9cbc6',
-  screen: '#7cc6ea',
-  red: '#d9402f',
-  blue: '#3b7bd6',
-  yellow: '#f2c443',
-};
-
-/** Dark seam line with a light edge below it, like a joint between two pressed panels. */
-function seamH(p: Pix, y: number, w: number, dark: string, x = 0): void {
-  p.fill(x, y, w, 2, dark);
-  p.shade(x, y + 2, w, 1, 1.06);
-}
-function seamV(p: Pix, x: number, h: number, dark: string, y = 0): void {
-  p.fill(x, y, 2, h, dark);
-  p.shade(x + 2, y, 1, h, 1.06);
-}
-function bolt(p: Pix, x: number, y: number, hex: string): void {
-  p.fill(x, y, 3, 3, hex);
-}
-
 /**
  * Tin Fox's own level surfaces, layered over the flat set: the palette of the generator's props
  * (light grey, olive drab, dark grey, orange accents, light blue screens), big panels with
@@ -793,6 +882,11 @@ const TINFOX_PAINTERS: Record<string, Paint> = {
     flatPanel(p, n / 4, n / 2, n / 2, n / 2, 5);
     flatPanel(p, -n / 4, n / 2, n / 2, n / 2, 5);
     p.shade(n / 2 + 4, 6, n / 2 - 10, n / 2 - 12, 0.95);
+  },
+  // Yard and Snowfort ground: soft blue-white drifts, no grain, a few glints.
+  snow: (p, n, r) => {
+    surface(p, r, '#edf2f5', 0.06, 0, 2);
+    for (let i = 0; i < 24; i++) p.fill(r() * n, r() * n, 1, 1, '#ffffff');
   },
   hazard: (p, n) => {
     for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
