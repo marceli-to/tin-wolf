@@ -18,6 +18,8 @@ export interface ScreenSpec {
   /** Darken the game behind instead of a full backdrop. */
   overlay?: boolean;
   wide?: boolean;
+  /** Extra class on the screen root, for a screen with its own look (e.g. 'home'). */
+  look?: string;
   /** Clicks inside the body (outside the menu items), e.g. on an inline control. */
   onBodyClick?: (target: HTMLElement) => void;
 }
@@ -59,7 +61,7 @@ export class ScreenView {
   show(spec: ScreenSpec): void {
     this.spec = spec;
     this.selected = 0;
-    this.root.className = `screen${spec.overlay ? ' overlay' : ''}`;
+    this.root.className = `screen${spec.overlay ? ' overlay' : ''}${spec.look ? ` ${spec.look}` : ''}`;
     this.root.style.display = '';
     this.render();
   }

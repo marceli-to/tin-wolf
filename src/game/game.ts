@@ -249,6 +249,7 @@ export class Game {
     const depot = this.tryLoad(MISSIONS[0]!);
     this.screen.show({
       title: 'TIN FOX',
+      look: 'home',
       body: '<p class="title-art">a field agent · a snowed-in depot · a blaster</p>',
       items: [
         {
@@ -269,7 +270,7 @@ export class Game {
         { label: 'Settings', action: () => this.screen.show(this.settingsSpec(() => this.enterMenu())) },
         { label: 'Controls', action: () => this.showControls() },
       ],
-      footer: 'Arrows / W S / D-pad to choose · Enter / click / A to select',
+      footer: '<kbd>↑</kbd><kbd>↓</kbd> choose <kbd>Enter</kbd> select · D-pad and <kbd>A</kbd> on a gamepad',
     });
   }
 

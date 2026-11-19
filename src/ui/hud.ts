@@ -16,7 +16,7 @@ export interface HudExtras {
 }
 
 const HEART =
-  '<svg class="heart" viewBox="0 0 32 30" aria-hidden="true"><path d="M16 27.5 4.6 16.4C1 12.9 1.4 7.1 5.6 4.6c3.2-1.9 7.2-1 9.4 1.9l1 1.3 1-1.3c2.2-2.9 6.2-3.8 9.4-1.9 4.2 2.5 4.6 8.3 1 11.8Z" fill="#e9453a" stroke="#1f2a44" stroke-width="3" stroke-linejoin="round"/><path d="M8 9.5c.6-1.6 2-2.5 3.6-2.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".8"/></svg>';
+  '<svg class="heart" viewBox="0 0 32 30" aria-hidden="true"><path d="M16 27.5 4.6 16.4C1 12.9 1.4 7.1 5.6 4.6c3.2-1.9 7.2-1 9.4 1.9l1 1.3 1-1.3c2.2-2.9 6.2-3.8 9.4-1.9 4.2 2.5 4.6 8.3 1 11.8Z" fill="#e9453a" stroke="#2f3236" stroke-width="3" stroke-linejoin="round"/><path d="M8 9.5c.6-1.6 2-2.5 3.6-2.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".8"/></svg>';
 
 /** Item that grants each timed power, for its HUD colour and label. */
 const POWER_ITEMS: Record<string, string> = { speed: 'power_speed', shield: 'power_shield', damage: 'power_damage', jump: 'power_jump', tiny: 'power_shrink' };

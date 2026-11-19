@@ -1,4 +1,5 @@
-/* Toy look to match the Kenney art: cream cards with chunky navy outlines, rounded type, bright accents. */
+/* Toy look in Tin Fox's colours (TF in src/render/textures.ts): off-white cards with chunky gunmetal outlines,
+   rounded type, the depot's orange line as the accent. */
 @font-face {
   font-family: 'Fredoka';
   src: url('/assets/fonts/Fredoka.ttf') format('truetype');
@@ -7,12 +8,12 @@
 }
 
 :root {
-  --line: #1f2a44;
-  --ink: #1f2a44;
-  --dim: #6b7690;
-  --paper: #fff8e8;
+  --line: #2f3236;
+  --ink: #2f3236;
+  --dim: #6c7077;
+  --paper: #f4f3ee;
   --card: #ffffff;
-  --accent: #ff7a2f;
+  --accent: #f28a1e;
   --sun: #ffc93c;
   --good: #3fb56b;
   --bad: #e9453a;
@@ -32,22 +33,41 @@ canvas { display: block; image-rendering: pixelated; }
 .screen {
   position: absolute; inset: 0; z-index: 20;
   display: flex; align-items: center; justify-content: center;
+  /* A depot wall: 1 m panels with seams, the orange line at panel height, gunmetal skirting below. */
   background:
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.9) 0 3px, transparent 4px) 0 0 / 90px 90px,
-    radial-gradient(circle at 70% 70%, rgba(255,255,255,0.7) 0 2px, transparent 3px) 0 0 / 60px 60px,
-    radial-gradient(circle at 40% 60%, rgba(255,255,255,0.8) 0 2.5px, transparent 3.5px) 17px 31px / 137px 113px,
-    linear-gradient(#6fbff0, #cdeeff 70%, #f4fbff);
+    linear-gradient(transparent calc(100% - 92px), #2f3236 calc(100% - 92px), #2f3236 calc(100% - 86px), #5f646b calc(100% - 86px), #43464c),
+    linear-gradient(transparent calc(50% - 5px), #f28a1e calc(50% - 5px), #f28a1e calc(50% + 5px), #c9741a calc(50% + 5px), #c9741a calc(50% + 7px), transparent calc(50% + 7px)),
+    radial-gradient(circle at 16px 16px, #c3c0b6 0 3px, transparent 3.5px) 0 0 / 160px 200px,
+    radial-gradient(circle at 148px 16px, #c3c0b6 0 3px, transparent 3.5px) 0 0 / 160px 200px,
+    radial-gradient(circle at 16px 188px, #c3c0b6 0 3px, transparent 3.5px) 0 0 / 160px 200px,
+    radial-gradient(circle at 148px 188px, #c3c0b6 0 3px, transparent 3.5px) 0 0 / 160px 200px,
+    linear-gradient(90deg, #c3c0b6 0 3px, #f4f3ee 3px 5px, transparent 5px) 0 0 / 160px 100%,
+    linear-gradient(#c3c0b6 0 3px, #f4f3ee 3px 5px, transparent 5px) 0 0 / 100% 200px,
+    radial-gradient(ellipse at 50% 45%, #ecebe5, #d4d1c6 80%);
+  background-color: #e2dfd5;
 }
-.screen.overlay { background: rgba(31, 42, 68, 0.5); }
+.screen.overlay { background: rgba(47, 50, 54, 0.5); }
 .panel {
-  min-width: min(480px, 90vw); max-width: 90vw; max-height: 94vh; box-sizing: border-box; overflow: auto;
-  padding: 28px 36px 24px; background: var(--paper);
-  border: 4px solid var(--line); border-radius: 26px; box-shadow: 0 8px 0 var(--line), 0 18px 40px rgba(31, 42, 68, 0.35);
+  position: relative; min-width: min(480px, 90vw); max-width: 90vw; max-height: 94vh; box-sizing: border-box; overflow: auto;
+  padding: 24px 40px 20px; background: var(--paper);
+  border: 5px solid var(--line); border-radius: 28px; box-shadow: 0 9px 0 var(--line), 0 26px 50px rgba(47, 50, 54, 0.35);
+}
+/* Corner bolts, like the wall panels. */
+.panel::before {
+  content: ''; position: absolute; inset: 12px; pointer-events: none;
+  background:
+    radial-gradient(circle, #9d9b94 0 3.5px, #c3c0b6 4px 5px, transparent 5.5px) 0 0 / 12px 12px no-repeat,
+    radial-gradient(circle, #9d9b94 0 3.5px, #c3c0b6 4px 5px, transparent 5.5px) 100% 0 / 12px 12px no-repeat,
+    radial-gradient(circle, #9d9b94 0 3.5px, #c3c0b6 4px 5px, transparent 5.5px) 0 100% / 12px 12px no-repeat,
+    radial-gradient(circle, #9d9b94 0 3.5px, #c3c0b6 4px 5px, transparent 5.5px) 100% 100% / 12px 12px no-repeat;
 }
 .panel.wide { width: min(760px, 92vw); }
+/* Wide panels (briefing, debrief, controls) put their few buttons side by side, so the text above keeps the room. */
+.panel.wide .menu:not(.dense) { flex-direction: row; }
+.panel.wide .menu:not(.dense) li { flex: 1; }
 .panel h1 {
   margin: 0; font-size: 60px; line-height: 1.05; font-weight: 700; letter-spacing: 0.03em; color: var(--accent);
-  -webkit-text-stroke: 8px var(--line); paint-order: stroke fill; text-shadow: 0 6px 0 var(--line);
+  -webkit-text-stroke: 9px var(--line); paint-order: stroke fill; text-shadow: 0 6px 0 var(--line);
 }
 .panel h2 { margin: 6px 0 18px; font-size: 16px; letter-spacing: 0.14em; color: var(--dim); text-transform: uppercase; font-weight: 600; }
 .panel h1 + .body, .panel h1 + .menu { margin-top: 18px; }
@@ -57,19 +77,25 @@ canvas { display: block; image-rendering: pixelated; }
 .menu { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 12px; }
 .menu li {
   display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: 24px;
-  padding: 10px 18px; font-size: 22px; font-weight: 600; cursor: pointer;
-  background: var(--card); border: 3px solid var(--line); border-radius: 16px; box-shadow: 0 4px 0 var(--line);
+  position: relative; padding: clamp(6px, 1.2vh, 11px) 20px; font-size: 22px; font-weight: 600; cursor: pointer;
+  background: var(--card); border: 4px solid var(--line); border-radius: 18px; box-shadow: 0 5px 0 var(--line);
   transition: transform 80ms, background-color 80ms;
 }
 .menu li small { flex-basis: 100%; font-size: 14px; color: var(--dim); font-weight: 500; }
 .menu li .val { font-size: 18px; color: var(--accent); white-space: nowrap; }
 .menu li .val .arrow { display: inline-block; padding: 2px 8px; margin: -2px 0; border-radius: 8px; font-weight: 700; }
-.menu li .val .arrow:hover { background: rgba(31, 42, 68, 0.12); }
-.menu li.sel { background: var(--accent); color: #fff; transform: translateY(-2px); box-shadow: 0 6px 0 var(--line); }
-.menu li.sel small { color: rgba(255, 255, 255, 0.9); }
-.menu li.sel .val { color: #fff; }
+.menu li .val .arrow:hover { background: rgba(47, 50, 54, 0.12); }
+.menu li.sel { background: var(--accent); color: var(--ink); transform: translateY(-3px); box-shadow: 0 8px 0 var(--line); }
+.menu li.sel small { color: rgba(47, 50, 54, 0.8); }
+.menu li.sel .val { color: var(--ink); }
+/* The selected row points right, except settings rows, which carry their own ◂ ▸. */
+.menu li.sel:not(:has(.val))::after {
+  content: ''; position: absolute; right: 20px; top: 50%; margin-top: -9px;
+  border: 9px solid transparent; border-left: 13px solid var(--line); border-right: 0;
+}
 .menu.dense { gap: 8px; }
-.menu.dense li { padding: 6px 16px; font-size: 18px; border-radius: 12px; }
+.menu.dense li { padding: 6px 16px; font-size: 18px; border-width: 3px; border-radius: 14px; box-shadow: 0 4px 0 var(--line); }
+.menu.dense li.sel { box-shadow: 0 6px 0 var(--line); }
 .menu.dense li .val { font-size: 16px; }
 
 .panel .body { color: var(--ink); font-size: 16px; line-height: 1.55; margin: 0 0 20px; max-height: 60vh; overflow: auto; font-weight: 400; }
@@ -77,7 +103,7 @@ canvas { display: block; image-rendering: pixelated; }
 .panel .body h3 { font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin: 18px 0 8px; }
 .panel .difficulty { margin-top: 0; font-weight: 600; color: var(--dim); }
 .panel .difficulty .pill {
-  display: inline-block; margin-left: 8px; padding: 2px 14px; color: #fff; background: var(--accent);
+  display: inline-block; margin-left: 8px; padding: 2px 14px; color: var(--ink); background: var(--accent);
   border: 3px solid var(--line); border-radius: 999px; box-shadow: 0 3px 0 var(--line);
   font: inherit; font-weight: 700; cursor: pointer; transition: transform 80ms, box-shadow 80ms;
 }
@@ -99,7 +125,7 @@ canvas { display: block; image-rendering: pixelated; }
 .statgrid span:nth-child(odd) { color: var(--dim); font-weight: 500; }
 .stats { width: 100%; border-collapse: collapse; margin: 0 0 20px; font-size: 20px; font-weight: 600; }
 .stats th { text-align: right; color: var(--dim); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; padding-bottom: 6px; }
-.stats td { text-align: right; padding: 6px 0; border-top: 2px dashed rgba(31, 42, 68, 0.2); }
+.stats td { text-align: right; padding: 6px 0; border-top: 2px dashed rgba(47, 50, 54, 0.2); }
 .stats th:first-child, .stats td:first-child { text-align: left; }
 .stats tr.win td { color: var(--accent); }
 .stats tr.win td:first-child::after { content: ' ★'; color: var(--sun); -webkit-text-stroke: 1px var(--line); }
@@ -108,7 +134,7 @@ canvas { display: block; image-rendering: pixelated; }
 .slots { list-style: none; padding: 0; margin: 0 0 20px; display: flex; flex-direction: column; gap: 10px; }
 .slots li {
   display: flex; align-items: center; gap: 14px; padding: 8px 14px; font-size: 20px; font-weight: 600;
-  background: var(--card); border: 3px dashed rgba(31, 42, 68, 0.4); border-radius: 16px;
+  background: var(--card); border: 3px dashed rgba(47, 50, 54, 0.4); border-radius: 16px;
 }
 .slots li.joined { border: 3px solid var(--line); box-shadow: 0 4px 0 var(--line); }
 .slots .slot {
@@ -119,11 +145,23 @@ canvas { display: block; image-rendering: pixelated; }
 .slots li:nth-child(2) .slot { background: var(--p2); }
 .slots li:nth-child(3) .slot { background: var(--p3); }
 .slots li:nth-child(4) .slot { background: var(--p4); }
-.slots li.bot { background: #eef3ff; }
+.slots li.bot { background: #ecebe5; }
 .slots .bot-tag { margin-right: -6px; }
 .lobby .difficulty { margin: -6px 0 16px; }
 .blink { animation: pulse 1.2s ease-in-out infinite; color: var(--dim); font-weight: 500; }
 @keyframes pulse { 50% { opacity: 0.35; } }
+
+/* ---- Main menu: big centred title, the wall's orange line runs through the card under it ---- */
+.screen.home .panel { width: min(520px, 90vw); }
+.screen.home .panel h1 { font-size: clamp(52px, 9vh, 76px); text-align: center; -webkit-text-stroke-width: 10px; text-shadow: 0 7px 0 var(--line); }
+.screen.home .title-art {
+  position: relative; margin: 12px -40px 18px; padding: 6px 0 7px; text-align: center;
+  background: var(--accent); border-block: 4px solid var(--line);
+  color: var(--line); font-size: 15px; font-weight: 600; letter-spacing: 0.08em;
+}
+.screen.home .panel .body { margin-bottom: 0; overflow: visible; }
+.screen.home .menu { gap: 10px; margin-bottom: 14px; }
+.screen.home .hint { text-align: center; }
 
 /* ---- HUD ---------------------------------------------------------------- */
 
@@ -138,12 +176,12 @@ canvas { display: block; image-rendering: pixelated; }
 .crosshair {
   /* A cross with a gap and a centre dot: white with the navy HUD outline, readable on snow and in dark rooms. */
   position: absolute; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; display: none;
-  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><g stroke='%231f2a44' stroke-width='5' stroke-linecap='round'><path d='M14 3v6M14 19v6M3 14h6M19 14h6'/></g><g stroke='%23fff' stroke-width='2.5' stroke-linecap='round'><path d='M14 3v6M14 19v6M3 14h6M19 14h6'/></g><circle cx='14' cy='14' r='2.2' fill='%23fff' stroke='%231f2a44' stroke-width='1.5'/></svg>") no-repeat center / contain;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><g stroke='%232f3236' stroke-width='5' stroke-linecap='round'><path d='M14 3v6M14 19v6M3 14h6M19 14h6'/></g><g stroke='%23fff' stroke-width='2.5' stroke-linecap='round'><path d='M14 3v6M14 19v6M3 14h6M19 14h6'/></g><circle cx='14' cy='14' r='2.2' fill='%23fff' stroke='%232f3236' stroke-width='1.5'/></svg>") no-repeat center / contain;
 }
 /* Sniper scope: a round view with a navy rim, the rest of the view dimmed. */
 .scope {
   position: absolute; inset: 0; display: none;
-  background: radial-gradient(circle closest-side, transparent 86%, var(--line) 86.5%, var(--line) 90%, rgba(31, 42, 68, 0.94) 90.5%);
+  background: radial-gradient(circle closest-side, transparent 86%, var(--line) 86.5%, var(--line) 90%, rgba(47, 50, 54, 0.94) 90.5%);
 }
 .scope.on { display: block; }
 .scope::before, .scope::after { content: ''; position: absolute; left: 50%; top: 50%; background: var(--line); }
@@ -203,6 +241,8 @@ kbd {
   display: inline-block; min-width: 1.3em; margin-right: 8px; padding: 0 6px; text-align: center; font: inherit; font-weight: 700;
   color: #fff; background: var(--line); border-radius: 7px; box-shadow: 0 2px 0 var(--dim);
 }
+.hint kbd { margin: 0 2px; padding: 0 7px; font-size: 13px; box-shadow: 0 2px 0 #9d9b94; }
+.hint kbd + kbd { margin-left: 0; }
 .lock-hint { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); padding: 6px 14px; font-size: 15px; display: none; }
 .hud-objectives { position: absolute; left: 18px; top: 60px; max-width: 60%; padding: 10px 16px 12px; font-size: 15px; display: none; }
 .hud-objectives.show { display: block; }
