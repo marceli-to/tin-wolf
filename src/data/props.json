@@ -690,5 +690,22 @@
     "mat": "wood",
     "model": "kenney/nature/log_stackLarge.glb",
     "modelFit": "stretch"
+  },
+  "watchtower": {
+    "size": [
+      2.4,
+      8.08,
+      2.4
+    ],
+    "mat": "concrete"
+  },
+  "snowy_rocks": {
+    "size": [
+      0.7,
+      0.4,
+      0.6
+    ],
+    "mat": "rock",
+    "solid": false
   }
 }

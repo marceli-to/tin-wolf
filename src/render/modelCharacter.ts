@@ -249,6 +249,8 @@ export interface ArtSet {
   items?: Record<string, { model: string; scale: number }>;
   /** Prop models of this set by prop id, instead of `props.json`'s `model` / `modelFit` / `modelScale`. */
   props?: Record<string, { model: string; fit?: 'scale' | 'footprint' | 'stretch'; scale?: number; size?: [number, number, number]; grow?: number;
+    /** Extra turn about Y in radians, for a model built along the other axis than the data box (the banner). */
+    turn?: number;
     /** Material name → flat colour, replacing that material's texture (a green button on a red-button model). */
     recolor?: Record<string, string>;
   }>;
@@ -380,7 +382,8 @@ PROFILES.tinfox = {
   ...PROFILES.kenney,
   textures: 'tinfox',
   guard: tinfoxChar('guard'),
-  archetypes: { guard_rifle: tinfoxChar('rifle-guard'), guard_officer: tinfoxChar('officer') },
+  // The practice dummy (09): the guard's body, rig and clips in padded sand canvas with a target front and back.
+  archetypes: { guard_rifle: tinfoxChar('rifle-guard'), guard_officer: tinfoxChar('officer'), guard_dummy: tinfoxChar('practice-dummy') },
   // The worker NPC: women's body `hero-f`, drawn at her modelled 1.86 m (about 10 cm under the guards' skulls).
   looks: { worker: tinfoxChar('worker', 'tinfox_f') },
   // The four players (sheets 05-08; red and yellow on the women's body). All four share the `tinfox` body shape,
@@ -485,6 +488,22 @@ PROFILES.tinfox = {
     space_computer: { model: 'tinfox/props/terminal.glb', fit: 'scale', scale: 1, size: [0.9, 1.3, 0.6], grow: FURNITURE_GROW },
     holo_table: { model: 'tinfox/props/console.glb', fit: 'scale', scale: 1, size: [1.4, 1.2, 0.7], grow: FURNITURE_GROW },
     start_panel: { model: 'tinfox/props/alarm-panel.glb', fit: 'scale', scale: 1, recolor: { M_Button: '#3fae4a' } },
+    // Snowfort kit (33-39), built to the data boxes. One pine for the three tree kinds, drawn 0.9-1.05x for
+    // variety (the collider is the 0.5 m trunk; the branches are walk-through). The watchtower is one model for
+    // the old three stacked Kenney parts, the snow tractor stands in for the catapult (blade at +X).
+    tree_castle: { model: 'tinfox/props/pine-tree.glb', fit: 'scale', scale: 1.05 },
+    tree_round: { model: 'tinfox/props/pine-tree.glb', fit: 'scale', scale: 1 },
+    tree_oak: { model: 'tinfox/props/pine-tree.glb', fit: 'scale', scale: 0.9 },
+    bush: { model: 'tinfox/props/snowy-bush.glb', fit: 'scale', scale: 1 },
+    snowy_rocks: { model: 'tinfox/props/snowy-rocks.glb', fit: 'scale', scale: 1 },
+    flowers_red: { model: 'tinfox/props/snowy-rocks.glb', fit: 'scale', scale: 1 },
+    flowers_yellow: { model: 'tinfox/props/snowy-rocks.glb', fit: 'scale', scale: 1 },
+    mushrooms: { model: 'tinfox/props/snowy-rocks.glb', fit: 'scale', scale: 1 },
+    log_pile: { model: 'tinfox/props/log-pile.glb', fit: 'scale', scale: 1 },
+    watchtower: { model: 'tinfox/props/watchtower.glb', fit: 'scale', scale: 1 },
+    catapult: { model: 'tinfox/props/snow-tractor.glb', fit: 'scale', scale: 1 },
+    // Built 0.75 wide along X with the emblem at +Z; the data box (Kenney's) is thin along X, so turn it.
+    banner: { model: 'tinfox/props/banner.glb', fit: 'scale', scale: 1, turn: Math.PI / 2 },
   },
   target: 'tinfox/props/target.glb',
 };

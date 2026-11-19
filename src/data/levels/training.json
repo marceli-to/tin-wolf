@@ -1954,7 +1954,6 @@
    "type": "guard",
    "id": "dummy_1",
    "archetype": "guard_dummy",
-   "look": "worker",
    "cell": [
     3,
     37
@@ -1975,7 +1974,6 @@
    "type": "guard",
    "id": "dummy_2",
    "archetype": "guard_dummy",
-   "look": "worker",
    "cell": [
     22,
     36
@@ -1996,7 +1994,6 @@
    "type": "guard",
    "id": "dummy_3",
    "archetype": "guard_dummy",
-   "look": "worker",
    "cell": [
     7,
     23
@@ -2017,7 +2014,6 @@
    "type": "guard",
    "id": "dummy_4",
    "archetype": "guard_dummy",
-   "look": "worker",
    "cell": [
     5,
     17
@@ -2038,7 +2034,6 @@
    "type": "guard",
    "id": "dummy_5",
    "archetype": "guard_dummy",
-   "look": "worker",
    "cell": [
     17,
     7

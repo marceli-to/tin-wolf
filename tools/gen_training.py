@@ -112,7 +112,7 @@ for i, (a, b) in enumerate((
     ([5, 17], [28, 17]),  # long range, just north of the deck
     ([17, 7], [28, 7]),  # far end
 ), 1):
-    add({'type': 'guard', 'id': f'dummy_{i}', 'archetype': 'guard_dummy', 'look': 'worker', 'cell': a, 'yaw': 90, 'patrol': [b, a]})
+    add({'type': 'guard', 'id': f'dummy_{i}', 'archetype': 'guard_dummy', 'cell': a, 'yaw': 90, 'patrol': [b, a]})
 # Cover and set dressing.
 for e in (
     {'type': 'prop', 'kind': 'barrel', 'cell': [1, 41]},
