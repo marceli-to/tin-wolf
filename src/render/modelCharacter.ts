@@ -565,6 +565,14 @@ export function profileModels(art: string): string[] {
 
 const FADE = 0.18;
 
+/**
+ * Figure shading, closer to the sheets' soft, even light (FIGURE-LIGHTING.md). The scene's model lights leave
+ * faces turned away from the sun near the dark hemisphere ground colour, so figures add a shadow floor:
+ * an emissive copy of their own colour, both scaled by the level light so dark rooms stay dark.
+ * `color` scales the lit part, `floor` the emissive part (the palette texture as emissive map).
+ */
+export const FIGURE_LIGHT = { color: 0.75, floor: 0.22 };
+
 /** Animated glTF character driven by sim state. Faces -z like the box humanoid. */
 export class ModelCharacter {
   readonly root = new THREE.Group();
@@ -578,6 +586,8 @@ export class ModelCharacter {
   private style: HoldStyle = 'one';
   private current: CharacterAnim | null = null;
   private materials: THREE.MeshStandardMaterial[];
+  /** The figure's own materials (not the held guns'), shaded with a floor. */
+  private figure: THREE.MeshStandardMaterial[];
   /** Held weapons by id, with the barrel tip in hand space (null for thrown weapons). */
   private held = new Map<string, { holder: THREE.Object3D; tip: THREE.Vector3 | null; dir: THREE.Vector3 | null; style: HoldStyle }>();
   private weaponId = '';
@@ -607,7 +617,9 @@ export class ModelCharacter {
     // glTF characters face +z; the game's figures face -z.
     inner.rotation.y = Math.PI;
     this.root.add(inner);
-    this.materials = [...model.materials, ...held.flatMap((h) => h.model.materials)];
+    this.figure = model.materials;
+    for (const m of this.figure) m.emissiveMap = m.map;
+    this.materials = held.flatMap((h) => h.model.materials);
     this.mixer = new THREE.AnimationMixer(inner);
     for (const style of profile.armed?.two ? (['one', 'two'] as const) : (['one'] as const)) {
       const set = new Map<CharacterAnim, THREE.AnimationAction>();
@@ -733,5 +745,11 @@ export class ModelCharacter {
 
   light(l: number): void {
     tintModel(this.materials, l);
+    for (const m of this.figure) {
+      const base = m.userData.base as THREE.Color | undefined;
+      if (!base) continue;
+      m.color.copy(base).multiplyScalar(l * FIGURE_LIGHT.color);
+      m.emissive.copy(base).multiplyScalar(l * FIGURE_LIGHT.floor);
+    }
   }
 }

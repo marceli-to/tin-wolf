@@ -3,6 +3,7 @@ import { DEG } from '../core/math';
 import { floorAtWorld } from '../sim/grid';
 import { autopilot, type AutopilotOptions } from './autopilot';
 import type { Game } from './game';
+import { FIGURE_LIGHT } from '../render/modelCharacter';
 
 /** `window.__game` in debug mode: drive the game without real input devices. */
 export function installDebugHooks(game: Game): void {
@@ -57,6 +58,8 @@ export function installDebugHooks(game: Game): void {
         game.simStep();
       }, opts);
     },
+    /** Figure shading (color, floor): tune live. */
+    figureLight: FIGURE_LIGHT,
     events: [] as unknown[],
   };
   (window as unknown as { __game: typeof api }).__game = api;
