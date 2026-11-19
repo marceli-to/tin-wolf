@@ -198,6 +198,27 @@ describe('arsenal: Pelican launcher', () => {
     expect(w.projectiles).toHaveLength(0);
   });
 
+  it('flies through the open sky and bursts where it lands, not under the sky cells\' ceiling', () => {
+    const row = '#' + 's'.repeat(38) + '#';
+    const map = ['#'.repeat(40), row, row, row, '#'.repeat(40)];
+    const legend = { '#': { solid: true }, s: { floor: 0, ceil: 3, sky: true } };
+    const w = makeWorld(map, [], 1, { loadout: ['pelican'], legend });
+    const a = w.players[0]!;
+    place(w, 0, 3, 5, 90);
+    a.pitch = (30 * Math.PI) / 180;
+    run(w, 1, [intent({ fire: true })]);
+    a.pitch = 0;
+    let top = 0;
+    const all: SimEvent[] = [];
+    for (let i = 0; i < secs(5) && !all.some((e) => e.type === 'explosion'); i++) {
+      for (const pr of w.projectiles) top = Math.max(top, pr.y);
+      all.push(...collect(w, 1, [intent()]));
+    }
+    expect(top).toBeGreaterThan(5); // well above the 3 m the cells declare
+    const boom = all.find((e) => e.type === 'explosion');
+    expect(boom?.type === 'explosion' && boom.y).toBeLessThan(0.3);
+  });
+
   it('reloads the drum from the shell pool', () => {
     const w = launcher();
     const a = w.players[0]!;

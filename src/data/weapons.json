@@ -112,7 +112,7 @@
     "sfx": "launcher_shot",
     "throwSpeed": 24,
     "loft": 0.06,
-    "fuse": 4,
+    "fuse": 8,
     "blastRadius": 5.85,
     "blastDamage": 120,
     "model": "kenney/blasters/blaster-d.glb",

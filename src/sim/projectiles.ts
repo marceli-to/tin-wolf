@@ -77,9 +77,9 @@ function shellTouchesActor(world: World, pr: Projectile, ax: number, ay: number,
   return false;
 }
 
-/** Nearest solid surface along a segment: level, solid props or closed doors. */
+/** Nearest solid surface along a segment: level (open sky above sky cells), solid props or closed doors. */
 function sweep(world: World, ray: Ray, len: number): RayHit | null {
-  let best = rayGrid(world.grid, ray, len);
+  let best = rayGrid(world.grid, ray, len, true);
   const limit = (): number => (best ? best.t : len);
   for (const p of world.props) {
     if (!p.alive || !p.solid) continue;

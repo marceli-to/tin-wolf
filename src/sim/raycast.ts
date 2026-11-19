@@ -22,8 +22,10 @@ export interface Ray {
  * Ray against the level grid: walls, step faces, floors (including ramps) and ceilings.
  * Grid traversal (Amanatides & Woo) in xz; within each cell the floor and ceiling are planes,
  * so the vertical test is a linear solve between the cell's entry and exit points.
+ * With `openSky`, open-sky cells have no ceiling: their `ceil` bounds movement and sightlines, but
+ * nothing is drawn there, so things in flight (shells, grenades) must pass it.
  */
-export function rayGrid(grid: Grid, ray: Ray, maxT: number): RayHit | null {
+export function rayGrid(grid: Grid, ray: Ray, maxT: number, openSky = false): RayHit | null {
   const { ox, oy, oz, dx, dy, dz } = ray;
   const s = grid.size;
   let cx = Math.floor(ox / s);
@@ -49,8 +51,9 @@ export function rayGrid(grid: Grid, ray: Ray, maxT: number): RayHit | null {
     const yb = oy + dy * t1;
     const fA = ya - floorAt(grid, cell, cx, cz, ax, az);
     const fB = yb - floorAt(grid, cell, cx, cz, bx, bz);
-    const cA = cell.ceil - ya;
-    const cB = cell.ceil - yb;
+    const ceil = openSky && cell.sky ? Infinity : cell.ceil;
+    const cA = ceil - ya;
+    const cB = ceil - yb;
     if (t0 > 0 && (fA < 0 || cA < 0)) return { t: t0, nx: enx, ny: 0, nz: enz };
     let best: RayHit | null = null;
     if (fA >= 0 && fB < 0) best = { t: t0 + ((t1 - t0) * fA) / (fA - fB), nx: 0, ny: 1, nz: 0 };
