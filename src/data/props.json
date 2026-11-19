@@ -707,5 +707,25 @@
     ],
     "mat": "rock",
     "solid": false
+  },
+  "parapet": {
+    "size": [
+      2,
+      1.1,
+      0.3
+    ],
+    "mat": "dam_face"
+  },
+  "transmitter": {
+    "size": [
+      1.38,
+      4.34,
+      2.08
+    ],
+    "mat": "metal",
+    "hp": 80,
+    "model": "kenney/space/satelliteDish_large.glb",
+    "modelScale": 0.75,
+    "modelFit": "footprint"
   }
 }

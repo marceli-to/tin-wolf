@@ -28,6 +28,8 @@ export function canStep(grid: Grid, ax: number, az: number, bx: number, bz: numb
   const fa = edgeFloor(grid, ax, az, dx, dz);
   const fb = edgeFloor(grid, bx, bz, -dx, -dz);
   if (fb - fa > WORLD.stepHeight) return false;
+  // No planned leaps off ledges: the dam's crest is 4 m above its catwalk, behind a parapet the grid can't see.
+  if (fa - fb > WORLD.maxDrop) return false;
   // The whole of B must also have headroom, not just the edge.
   const minFloorB = Math.max(b.floor, b.floorTo);
   if (Math.min(a.ceil, b.ceil) - Math.max(fa, fb) < opts.height) return false;

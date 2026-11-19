@@ -41,3 +41,33 @@ export function formatTime(s: number): string {
   const rest = s - m * 60;
   return `${m}:${rest.toFixed(1).padStart(4, '0')}`;
 }
+
+/** Missions finished at least once, so the next one unlocks. Kept apart from the course times. */
+const MISSIONS_KEY = 'tin-fox.missions.v1';
+let done: Set<string> | null = null;
+
+function loadDone(): Set<string> {
+  if (done) return done;
+  try {
+    const v = JSON.parse(localStorage.getItem(MISSIONS_KEY) ?? '[]') as unknown;
+    done = new Set(Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+  } catch {
+    done = new Set();
+  }
+  return done;
+}
+
+export function missionDone(levelId: string): boolean {
+  return loadDone().has(levelId);
+}
+
+export function markMissionDone(levelId: string): void {
+  const s = loadDone();
+  if (s.has(levelId)) return;
+  s.add(levelId);
+  try {
+    localStorage.setItem(MISSIONS_KEY, JSON.stringify([...s]));
+  } catch {
+    // Not persisted.
+  }
+}

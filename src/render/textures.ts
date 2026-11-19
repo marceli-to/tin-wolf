@@ -292,6 +292,52 @@ const ARENA: Record<string, Paint> = {
   },
   // Pump platforms: grey checker plate.
   pump_plate: (p, n) => checker(p, n, '#8d949b'),
+  // ---- Kvitvann Dam: poured concrete, the reservoir and the crest road.
+  // Dam faces and parapets: pale concrete in 1 m pours, formwork seams and rows of tie holes.
+  dam_face: (p, n, r) => {
+    p.fill(0, 0, n, n, '#b8b5ad');
+    for (let y = 0; y < n; y += n / 2) {
+      p.fill(0, y, n, 2, '#9c998f');
+      p.shade(0, y + 2, n, 3, 1.05);
+      for (let x = n / 8; x < n; x += n / 4) for (const ty of [y + n / 8, y + (n * 3) / 8]) p.fill(x - 1, ty - 1, 3, 3, '#8a877e');
+    }
+    seamV(p, 0, n, '#a7a49b');
+    for (let i = 0; i < 6; i++) p.shade((r() * n) | 0, (r() * n) | 0, 14, 6, 0.95 + r() * 0.08);
+  },
+  // Mountain rock around the dam: grey-brown slabs in uneven layers, snow lying on the ledges.
+  dam_cliff: (p, n, r) => {
+    p.fill(0, 0, n, n, '#7f7a73');
+    let y = 0;
+    while (y < n) {
+      const h = 10 + ((r() * 18) | 0);
+      let x = -((r() * 20) | 0);
+      while (x < n) {
+        const w = 16 + ((r() * 30) | 0);
+        p.fill(x, y, w, h, r() < 0.5 ? '#857f77' : '#77726b');
+        p.shade(x, y + h - 3, w, 3, 0.82);
+        p.fill(x, y, 1, h, '#6a655f');
+        x += w;
+      }
+      p.fill(0, y, n, 2, '#eef2f4');
+      y += h;
+    }
+  },
+  // The reservoir: deep green-blue with a few pale ripples.
+  dam_water: (p, n, r) => {
+    p.fill(0, 0, n, n, '#3d6674');
+    for (let i = 0; i < 18; i++) {
+      const x = (r() * n) | 0;
+      const y = (r() * n) | 0;
+      p.fill(x, y, 6 + ((r() * 10) | 0), 1, i % 3 ? '#4f7d8b' : '#86aab6');
+    }
+  },
+  // Crest road: grey asphalt, snow swept to the joints.
+  dam_road: (p, n, r) => {
+    p.fill(0, 0, n, n, '#7d8085');
+    for (let i = 0; i < 40; i++) p.shade((r() * n) | 0, (r() * n) | 0, 3, 3, 0.9 + r() * 0.2);
+    p.fill(0, 0, n, 2, '#e8edf0');
+    p.fill(0, 0, 2, n, '#d9dfe3');
+  },
   // Pillars: teal-painted steel with bolts.
   pump_column: (p, n) => {
     p.fill(0, 0, n, n, '#3f7a74');

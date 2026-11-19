@@ -480,6 +480,8 @@ PROFILES.tinfox = {
     // The last two depot props: the chest grows with the furniture; the yard's dish keeps its 4.34 m.
     chest: { model: 'tinfox/props/chest.glb', fit: 'scale', scale: 1, grow: FURNITURE_GROW },
     satellite_dish: { model: 'tinfox/props/satellite-dish.glb', fit: 'scale', scale: 1 },
+    // Kvitvann Dam's transmitter (the mission target) until it has its own model.
+    transmitter: { model: 'tinfox/props/satellite-dish.glb', fit: 'scale', scale: 1 },
     // Wall panels, built to the 0.50 x 0.70 x 0.16 box. The alarm's lamp (M_Lamp) flashes when the alarm
     // is raised; the training start panel is the same model with a green button.
     alarm_panel: { model: 'tinfox/props/alarm-panel.glb', fit: 'scale', scale: 1 },

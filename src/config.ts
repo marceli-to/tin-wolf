@@ -63,6 +63,8 @@ export const BOT_SKILL: Record<string, BotSkill> = {
 
 export const WORLD = {
   stepHeight: 0.4,
+  /** Highest drop guards plan to jump down (pathfinding only; anyone can still fall further). */
+  maxDrop: 1.5,
   gravity: 22,
   /** Movement is sub-stepped so no single step exceeds this fraction of the actor radius. */
   maxStepFraction: 0.5,

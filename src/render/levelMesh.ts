@@ -200,7 +200,8 @@ export function buildLevelMesh(grid: Grid, light: LightField, roofs: RoofDef[] =
         const nfa = floorAt(grid, nb, ncx, ncz, ax, az);
         const nfb = floorAt(grid, nb, ncx, ncz, bx, bz);
         if (nfa > fa + 1e-4 || nfb > fb + 1e-4) wall(stepMat(nb, cell), fa, fb, Math.max(nfa, fa), Math.max(nfb, fb));
-        if (nb.ceil < top - 1e-4) wall(cell.wallMat, nb.ceil, nb.ceil, top, top);
+        // Two open-sky cells: no wall where one's movement ceiling is lower (a valley beside a road).
+        if (nb.ceil < top - 1e-4 && !(cell.sky && nb.sky)) wall(cell.wallMat, nb.ceil, nb.ceil, top, top);
       }
     }
   }

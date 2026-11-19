@@ -11,7 +11,7 @@ import { PAD } from '../input/gamepad';
 import { GameRenderer, type ViewLook } from '../render/gameRenderer';
 import { interactTarget } from '../sim/doors';
 import { zoomFactor } from '../sim/player';
-import { bestTime, formatTime, recordTime } from './records';
+import { bestTime, formatTime, markMissionDone, missionDone, recordTime } from './records';
 import type { SimEvent, SimEventMap } from '../sim/events';
 import { stepWorld } from '../sim/step';
 import { validateLevel } from '../sim/validate';
@@ -41,7 +41,8 @@ const SIREN_SECONDS = 10;
 
 export type GameState = 'menu' | 'lobby' | 'briefing' | 'playing' | 'paused' | 'results' | 'debrief';
 
-const MISSION_LEVEL = 'depot';
+/** Missions in story order; each unlocks when the one before it is finished. */
+const MISSIONS = ['depot', 'dam'];
 const VERSUS_LEVEL = 'arena_pumphouse';
 const TRAINING_LEVEL = 'training';
 /** Seconds between the mission ending and the debrief, so the moment can land. */
@@ -245,18 +246,15 @@ export class Game {
     this.renderer.clear();
     this.lobby.show(false);
     this.input.kbm.exitLock();
-    const depot = this.tryLoad(MISSION_LEVEL);
+    const depot = this.tryLoad(MISSIONS[0]!);
     this.screen.show({
       title: 'TIN FOX',
       body: '<p class="title-art">a field agent · a snowed-in depot · a blaster</p>',
       items: [
         {
           label: 'Mission',
-          hint: depot ? esc(depot.name) : '',
-          action: () => {
-            this.levelId = MISSION_LEVEL;
-            this.enterBriefing();
-          },
+          hint: depot ? esc(this.unlockedMissions().length > 1 ? `${this.unlockedMissions().length} missions` : depot.name) : '',
+          action: () => this.showMissionPicker(),
         },
         {
           label: 'Versus',
@@ -293,6 +291,41 @@ export class Game {
         <span>Pause</span><span>Esc · Start</span>
       </div>`,
       items: [{ label: 'Back', action: () => this.enterMenu() }],
+    });
+  }
+
+  /** Missions open to play: the first, and each one whose predecessor is finished (`?debug=1` opens all). */
+  private unlockedMissions(): string[] {
+    return MISSIONS.filter((id, i) => i === 0 || this.params.debug || missionDone(MISSIONS[i - 1]!));
+  }
+
+  private showMissionPicker(): void {
+    const open = this.unlockedMissions();
+    if (open.length === 1) {
+      this.levelId = open[0]!;
+      this.enterBriefing();
+      return;
+    }
+    this.menuBack = () => this.enterMenu();
+    this.screen.show({
+      title: 'MISSIONS',
+      items: [
+        ...MISSIONS.map((id, i) => {
+          const level = this.tryLoad(id);
+          const name = esc(level?.name ?? id);
+          if (!open.includes(id)) return { label: `${i + 1}. ???`, hint: `Finish ${esc(this.tryLoad(MISSIONS[i - 1]!)?.name ?? '')} first`, action: () => {} };
+          return {
+            label: `${i + 1}. ${name}`,
+            hint: missionDone(id) ? 'Done' : '',
+            action: () => {
+              this.levelId = id;
+              this.enterBriefing();
+            },
+          };
+        }),
+        { label: 'Back', action: () => this.enterMenu() },
+      ],
+      footer: 'Arrows / D-pad to choose · Enter / A to select · Esc / B: back',
     });
   }
 
@@ -810,6 +843,7 @@ export class Game {
         this.nextSiren = this.clock;
         break;
       case 'missionEnded':
+        if (e.success) markMissionDone(w.level.id);
         w.players.forEach((p) => this.notify(p.slot, e.success ? 'MISSION COMPLETE' : '', 3));
         break;
       case 'targetHit':
