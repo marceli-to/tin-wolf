@@ -27,7 +27,8 @@
   "pistol_sd",
   "smg",
   "sniper",
-  "grenade"
+  "grenade",
+  "pelican"
  ],
  "map": [
   "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",

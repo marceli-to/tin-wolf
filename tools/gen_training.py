@@ -142,7 +142,7 @@ level = {
         'R': {'solid': True, 'wall': 'rock'},
         's': {'floor': 0, 'ceil': 7, 'sky': True, 'floorMat': 'snow', 'wall': 'rock', 'light': 1.0},
     },
-    'loadout': ['pistol', 'pistol_sd', 'smg', 'sniper', 'grenade'],
+    'loadout': ['pistol', 'pistol_sd', 'smg', 'sniper', 'grenade', 'pelican'],
     'map': kit.map(),
     'entities': kit.entities,
 }

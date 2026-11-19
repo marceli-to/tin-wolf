@@ -105,7 +105,7 @@ export class InputManager {
       this.wheelGap = wheel !== 0;
       intent.weaponNext = k.down('KeyQ') || wheel > 0;
       intent.weaponPrev = wheel < 0;
-      for (let n = 1; n <= 5; n++) if (k.down(`Digit${n}`)) intent.weaponSlot = n;
+      for (let n = 1; n <= 9; n++) if (k.down(`Digit${n}`)) intent.weaponSlot = n;
       return intent;
     }
     const i = dev.index;
