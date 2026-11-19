@@ -504,6 +504,7 @@ export class GameRenderer {
 
   /** Grenade in flight: the weapon's model, or a small dark ball. */
   private projectileMesh(world: World, weapon: string): THREE.Object3D {
+    if (world.data.weapons[weapon]?.type === 'launcher') return shellMesh();
     const path = PROFILES[this.art]?.weapons?.[weapon] ?? world.data.weapons[weapon]?.model;
     const inst = path && this.models ? this.models.instance(path) : null;
     if (inst) {
@@ -1107,3 +1108,17 @@ function fitToBox(o: THREE.Object3D, mb: THREE.Box3, b: { minX: number; maxX: nu
   const swap = Math.abs(Math.cos(o.rotation.y)) < 0.7;
   o.scale.multiply(new THREE.Vector3(swap ? rz : rx, ry, swap ? rx : rz));
 }
+
+/**
+ * A Pelican orb in flight, drawn in code until the generator's model arrives: olive green with a bright
+ * orange band, about 12 cm across (the refill sheet's orbs).
+ */
+function shellMesh(): THREE.Object3D {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.06, 1), flatMaterial('#6b7a3a')));
+  const band = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.014, 4, 12), flatMaterial('#ff8a1e'));
+  band.rotation.x = Math.PI / 2;
+  g.add(band);
+  return g;
+}
+

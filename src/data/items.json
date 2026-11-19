@@ -130,5 +130,23 @@
     "effect": "shrink",
     "duration": 8,
     "color": "#b77cff"
+  },
+  "weapon_pelican": {
+    "name": "Pelican",
+    "kind": "weapon",
+    "weapon": "pelican",
+    "amount": 9,
+    "color": "#3a3d42",
+    "model": "kenney/blasters/blaster-d.glb",
+    "modelScale": 0.75
+  },
+  "ammo_shell": {
+    "name": "Pelican orbs",
+    "kind": "ammo",
+    "ammo": "shell",
+    "amount": 3,
+    "color": "#6b7a3a",
+    "model": "kenney/blasters/crate-small.glb",
+    "modelScale": 1.2
   }
 }

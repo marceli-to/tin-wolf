@@ -405,6 +405,42 @@
    "respawn": 20
   },
   {
+   "type": "pickup",
+   "item": "weapon_pelican",
+   "cell": [
+    7,
+    10
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_pelican",
+   "cell": [
+    14,
+    11
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_shell",
+   "cell": [
+    3,
+    7
+   ],
+   "respawn": 25
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_shell",
+   "cell": [
+    18,
+    14
+   ],
+   "respawn": 25
+  },
+  {
    "type": "prop",
    "kind": "barrel_red",
    "cell": [

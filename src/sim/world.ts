@@ -218,7 +218,7 @@ export interface Pickup {
   active: boolean;
 }
 
-/** A thrown grenade in flight. */
+/** A thrown grenade or a launcher shell in flight. */
 export interface Projectile {
   id: number;
   weapon: string;
@@ -231,6 +231,10 @@ export interface Projectile {
   vz: number;
   fuse: number;
   prev: { x: number; y: number; z: number };
+  /** Launcher shells go off on the first thing they touch instead of bouncing. */
+  impact?: boolean;
+  /** Seconds in flight (a shell cannot hit its own shooter in the first moment). */
+  age?: number;
 }
 
 export interface Zone {

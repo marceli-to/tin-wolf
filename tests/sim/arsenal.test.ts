@@ -158,3 +158,55 @@ describe('arsenal: grenades', () => {
     expect(w.guards[0]!.state).toBe('attack');
   });
 });
+
+describe('arsenal: Pelican launcher', () => {
+  const pelican = data.weapons.pelican!;
+  function launcher(): World {
+    return makeWorld(OPEN, [], 2, { mode: 'versus', loadout: ['pelican'] });
+  }
+
+  it('fires a shell from the drum that bursts on the first body it meets', () => {
+    const w = launcher();
+    const [a, b] = w.players as [World['players'][0], World['players'][0]];
+    place(w, 0, 3, 5, 90);
+    place(w, 1, 15, 5, 270);
+    a.protect = b.protect = 0;
+    const ev = collect(w, 1, [intent({ fire: true }), intent()]);
+    expect(a.weapon.mag).toBe(pelican.magSize - 1);
+    expect(ev.some((e) => e.type === 'shotFired' && e.weapon === 'pelican')).toBe(true);
+    expect(w.projectiles).toHaveLength(1);
+    const all = collect(w, secs(1), [intent(), intent()]);
+    const boom = all.find((e) => e.type === 'explosion');
+    expect(boom).toBeTruthy();
+    // Long before its fuse, and at the target, not past it.
+    if (boom?.type === 'explosion') expect(Math.abs(boom.x - b.x)).toBeLessThan(0.8);
+    expect(b.hp).toBeLessThan(40);
+    expect(a.hp).toBe(100);
+  });
+
+  it('bursts on a wall instead of bouncing', () => {
+    const w = launcher();
+    const a = w.players[0]!;
+    place(w, 0, 14, 3, 90); // 12 m from the east wall: it gets there before it drops to the floor
+    place(w, 1, 3, 9, 0);
+    a.protect = 0;
+    run(w, 1, [intent({ fire: true }), intent()]);
+    const all = collect(w, secs(2), [intent(), intent()]);
+    expect(all.some((e) => e.type === 'bounce')).toBe(false);
+    const boom = all.find((e) => e.type === 'explosion');
+    expect(boom?.type === 'explosion' && boom.x).toBeGreaterThan(25.5);
+    expect(w.projectiles).toHaveLength(0);
+  });
+
+  it('reloads the drum from the shell pool', () => {
+    const w = launcher();
+    const a = w.players[0]!;
+    place(w, 0, 3, 3, 90);
+    a.weapon.mag = 0;
+    const pool = a.ammo.shell!;
+    run(w, 1, [intent({ reload: true }), intent()]);
+    run(w, secs(pelican.reloadTime) + 2, [intent(), intent()]);
+    expect(a.weapon.mag).toBe(Math.min(pelican.magSize, pool));
+    expect(a.ammo.shell).toBe(pool - a.weapon.mag);
+  });
+});

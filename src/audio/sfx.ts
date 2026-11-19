@@ -4,6 +4,7 @@ export type SfxName =
   | 'silenced_shot'
   | 'smg_shot'
   | 'sniper_shot'
+  | 'launcher_shot'
   | 'throw'
   | 'bounce'
   | 'switch'
@@ -107,6 +108,12 @@ export class Sfx {
         this.noiseBurst(out, t, 0.32, 'lowpass', 2400, 1.0, 1.0);
         this.noiseBurst(out, t, 0.05, 'highpass', 3500, 0.7, 1.0);
         this.tone(out, t, 'sine', 110, 32, 0.3, 1.0);
+        break;
+      case 'launcher_shot':
+        // A hollow thunk: a low drop in pitch with a soft puff, no crack.
+        this.tone(out, t, 'sine', 210, 55, 0.22, 1.0);
+        this.noiseBurst(out, t, 0.14, 'lowpass', 900, 0.6, 1.0);
+        this.click(out, t, 700, 0.35);
         break;
       case 'throw':
         this.noiseBurst(out, t, 0.18, 'bandpass', 900, 0.35, 0.8);

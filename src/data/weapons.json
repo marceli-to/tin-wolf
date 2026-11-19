@@ -98,5 +98,24 @@
     "blastDamage": 150,
     "model": "kenney/blasters/grenade-a.glb",
     "fit": "hand"
+  },
+  "pelican": {
+    "name": "Pelican",
+    "type": "launcher",
+    "ammo": "shell",
+    "fireInterval": 0.9,
+    "magSize": 6,
+    "startReserve": 6,
+    "maxReserve": 18,
+    "reloadTime": 2.6,
+    "noiseRadius": 40,
+    "sfx": "launcher_shot",
+    "throwSpeed": 24,
+    "loft": 0.06,
+    "fuse": 4,
+    "blastRadius": 3.5,
+    "blastDamage": 120,
+    "model": "kenney/blasters/blaster-d.glb",
+    "hold": "two"
   }
 }

@@ -24,6 +24,8 @@ export const MUZZLE_STYLES: Record<string, MuzzleStyle> = {
   pistol_sd: { size: 0.1, length: 0.06, light: 0.12, jitter: 0.2, color: '#8c7f6a' },
   smg: { size: 0.3, length: 0.3, light: 0.75, jitter: 0.45, color: '#ffd090' },
   sniper: { size: 0.55, length: 0.7, light: 1.7, jitter: 0.15, color: '#ffe2b0' },
+  // A wide, soft orange bloom from the nozzle and hardly any tongue: a lob, not a bang.
+  pelican: { size: 0.5, length: 0.12, light: 0.9, jitter: 0.2, color: '#ffb060' },
 };
 const DEFAULT_STYLE = MUZZLE_STYLES.pistol!;
 

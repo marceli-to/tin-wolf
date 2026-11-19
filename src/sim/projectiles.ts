@@ -1,11 +1,11 @@
 import { forwardFromAngles } from '../core/math';
 import type { WeaponDef } from '../data/schema';
-import { actorShapes, applyDamage, damageProp } from './combat';
+import { actorShapes, applyDamage, damageProp, sameActor } from './combat';
 import type { ActorRef } from './events';
 import { clearLine } from './los';
 import { rayBox, rayGrid, type Ray, type RayHit } from './raycast';
 import { hitTarget } from './targets';
-import { doorBox, emit, type Blast, type World } from './world';
+import { doorBox, emit, type Blast, type Projectile, type World } from './world';
 
 const RADIUS = 0.08;
 /** Lighter than body gravity so throws carry across a room. */
@@ -16,9 +16,18 @@ const FRICTION = 0.7;
 /** Rolling drag on the floor, per second. */
 const ROLL_DRAG = 3.5;
 
-/** Launch a thrown weapon from an eye position along a view direction, lofted slightly upward. */
+/** Body radius a launcher shell must come within to burst on someone. */
+const SHELL_BODY_RADIUS = 0.4;
+/** Seconds after firing in which a shell passes through its own shooter. */
+const SHELL_SAFE_TIME = 0.15;
+
+/**
+ * Launch a thrown weapon (or a launcher's shell) from an eye position along a view direction, lofted slightly
+ * upward by the weapon's `loft`. Thrown weapons report `thrown`; launchers report their shot like a gun.
+ */
 export function throwProjectile(world: World, owner: ActorRef, x: number, y: number, z: number, yaw: number, pitch: number, def: WeaponDef, weaponId: string): void {
-  const dir = forwardFromAngles(yaw, pitch + 0.18);
+  const dir = forwardFromAngles(yaw, pitch + def.loft);
+  const shell = def.type === 'launcher';
   // Start just in front of the eye so it never begins inside the thrower's own wall.
   const start = 0.35;
   const sx = x + dir.x * start;
@@ -36,8 +45,36 @@ export function throwProjectile(world: World, owner: ActorRef, x: number, y: num
     vz: dir.z * def.throwSpeed,
     fuse: def.fuse,
     prev: { x: sx, y: sy, z: sz },
+    ...(shell ? { impact: true, age: 0 } : {}),
   });
-  emit(world, { type: 'thrown', shooter: owner, x, y, z, weapon: weaponId });
+  // A launcher's shot is heard and seen like a gun's (guards hear it, the muzzle flashes); no tracer.
+  if (shell) emit(world, { type: 'shotFired', shooter: owner, x, y, z, weapon: weaponId, noise: def.noiseRadius, tx: sx, ty: sy, tz: sz });
+  else emit(world, { type: 'thrown', shooter: owner, x, y, z, weapon: weaponId });
+}
+
+/** Distance from point (px, py, pz) to the segment a→b. */
+function segmentDistance(ax: number, ay: number, az: number, bx: number, by: number, bz: number, px: number, py: number, pz: number): number {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const dz = bz - az;
+  const ll = dx * dx + dy * dy + dz * dz;
+  const t = ll > 1e-9 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy + (pz - az) * dz) / ll)) : 0;
+  return Math.hypot(ax + dx * t - px, ay + dy * t - py, az + dz * t - pz);
+}
+
+/** True when a shell's path this tick (a→b) passes through someone's body (an upright capsule). */
+function shellTouchesActor(world: World, pr: Projectile, ax: number, ay: number, az: number): boolean {
+  for (const a of actorShapes(world)) {
+    if ((pr.age ?? 0) < SHELL_SAFE_TIME && sameActor(a.ref, pr.owner)) continue;
+    const r = SHELL_BODY_RADIUS * a.scale;
+    const h = a.height * a.scale;
+    // Sample the body's axis at a few heights: a capsule test without the algebra.
+    for (let k = 0; k <= 4; k++) {
+      const y = Math.min(a.y + h - r, a.y + r + ((h - 2 * r) * k) / 4);
+      if (segmentDistance(ax, ay, az, pr.x, pr.y, pr.z, a.x, y, a.z) < r + RADIUS) return true;
+    }
+  }
+  return false;
 }
 
 /** Nearest solid surface along a segment: level, solid props or closed doors. */
@@ -61,6 +98,10 @@ export function updateProjectiles(world: World, dt: number): void {
   for (const pr of world.projectiles) {
     pr.prev = { x: pr.x, y: pr.y, z: pr.z };
     pr.vy -= GRAVITY * dt;
+    if (pr.impact) {
+      flyShell(world, pr, dt);
+      continue;
+    }
     let remaining = dt;
     // Up to three bounces per tick; anything left over is dropped.
     for (let i = 0; i < 3 && remaining > 1e-5; i++) {
@@ -111,6 +152,30 @@ export function updateProjectiles(world: World, dt: number): void {
     const def = world.data.weapons[pr.weapon];
     if (def) explode(world, pr.owner, pr.x, pr.y, pr.z, { radius: def.blastRadius, damage: def.blastDamage, noise: def.noiseRadius });
   }
+}
+
+/** A launcher shell flies on its arc and goes off on the first wall, floor, prop, door or body it meets. */
+function flyShell(world: World, pr: Projectile, dt: number): void {
+  const { x: ax, y: ay, z: az } = pr;
+  const speed = Math.hypot(pr.vx, pr.vy, pr.vz);
+  const len = speed * dt;
+  const ray: Ray = { ox: ax, oy: ay, oz: az, dx: pr.vx / speed, dy: pr.vy / speed, dz: pr.vz / speed };
+  const hit = len > 1e-5 ? sweep(world, ray, len + RADIUS) : null;
+  if (hit && hit.t <= len + RADIUS) {
+    // Burst just in front of the surface, so the blast's line-of-sight checks start on the near side.
+    const t = Math.max(0, hit.t - RADIUS);
+    pr.x = ax + ray.dx * t + hit.nx * 0.05;
+    pr.y = ay + ray.dy * t + hit.ny * 0.05;
+    pr.z = az + ray.dz * t + hit.nz * 0.05;
+    pr.fuse = 0;
+  } else {
+    pr.x += pr.vx * dt;
+    pr.y += pr.vy * dt;
+    pr.z += pr.vz * dt;
+    pr.fuse -= dt;
+  }
+  if (pr.fuse > 0 && shellTouchesActor(world, pr, ax, ay, az)) pr.fuse = 0;
+  pr.age = (pr.age ?? 0) + dt;
 }
 
 /** Explosive props that broke a moment ago go off. */

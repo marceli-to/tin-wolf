@@ -101,6 +101,10 @@ export function updatePlayerWeapon(world: World, p: Player, intent: PlayerIntent
   p.sinceShot = 0;
   p.shotsFired++;
   p.protect = 0;
+  if (def.type === 'launcher') {
+    throwProjectile(world, { kind: 'player', slot: p.slot }, p.x, eye, p.z, p.yaw, p.pitch, def, w.id);
+    return;
+  }
   // Crouching steadies aim; moving fast spoils it. A scope takes the weapon's own spread away.
   const moving = (Math.hypot(p.vx, p.vz) / 5) * (1 - 0.7 * p.zoom);
   const extra = Math.max(-def.spreadDeg, moving * 1.5 - p.crouch * def.spreadDeg * 0.5 - def.spreadDeg * p.zoom);

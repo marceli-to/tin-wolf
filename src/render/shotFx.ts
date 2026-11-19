@@ -22,6 +22,7 @@ const SMOKE_STYLES: Record<string, SmokeStyle> = {
   pistol_sd: { puffs: 2, size: 0.3, opacity: 0.55, heat: 0.6 },
   smg: { puffs: 1, size: 0.28, opacity: 0.4, heat: 1 },
   sniper: { puffs: 4, size: 0.55, opacity: 0.55, heat: 3.2 },
+  pelican: { puffs: 5, size: 0.6, opacity: 0.5, heat: 3.2 },
 };
 
 interface TracerStyle {

@@ -149,8 +149,12 @@ export type LevelDef = z.output<typeof LevelSchema>;
 
 export const WeaponSchema = z.object({
   name: z.string(),
-  /** Hitscan fires rays; thrown weapons launch a projectile that explodes after `fuse` seconds. */
-  type: z.enum(['hitscan', 'thrown']).default('hitscan'),
+  /**
+   * Hitscan fires rays; thrown weapons launch a projectile that explodes after `fuse` seconds; a launcher
+   * is loaded and reloaded like a gun but fires a shell on an arc that explodes on the first thing it hits
+   * (or after `fuse` seconds in the air).
+   */
+  type: z.enum(['hitscan', 'thrown', 'launcher']).default('hitscan'),
   /** Ammo pool the weapon draws from; weapons sharing a pool share reserve rounds. */
   ammo: z.string(),
   damage: z.number().default(0),
@@ -167,8 +171,10 @@ export const WeaponSchema = z.object({
   range: z.number().positive().default(60),
   noiseRadius: z.number().min(0),
   sfx: z.string(),
-  /** Thrown: launch speed (m/s), fuse (s), blast radius (m) and damage at the centre. */
+  /** Thrown and launcher: launch speed (m/s), fuse (s), blast radius (m) and damage at the centre. */
   throwSpeed: z.number().default(12),
+  /** Thrown and launcher: radians added to the view pitch at launch, so the arc starts a little upward. */
+  loft: z.number().default(0.18),
   fuse: z.number().default(2.2),
   blastRadius: z.number().default(0),
   blastDamage: z.number().default(0),

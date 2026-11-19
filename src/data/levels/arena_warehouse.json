@@ -2581,6 +2581,42 @@
   },
   {
    "type": "pickup",
+   "item": "weapon_pelican",
+   "cell": [
+    5,
+    5
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "weapon_pelican",
+   "cell": [
+    29,
+    23
+   ],
+   "respawn": 40
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_shell",
+   "cell": [
+    12,
+    5
+   ],
+   "respawn": 25
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_shell",
+   "cell": [
+    22,
+    23
+   ],
+   "respawn": 25
+  },
+  {
+   "type": "pickup",
    "item": "ammo_pistol",
    "cell": [
     8,

@@ -2351,6 +2351,30 @@
   },
   {
    "type": "pickup",
+   "item": "weapon_pelican",
+   "cell": [
+    39,
+    2
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_shell",
+   "cell": [
+    34,
+    13.5
+   ]
+  },
+  {
+   "type": "pickup",
+   "item": "ammo_shell",
+   "cell": [
+    27,
+    7
+   ]
+  },
+  {
+   "type": "pickup",
    "item": "ammo_pistol",
    "cell": [
     30,

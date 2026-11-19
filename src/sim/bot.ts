@@ -204,7 +204,14 @@ function perceive(world: World, p: Player, b: BotBrain, skill: BotSkill): void {
   }
 }
 
-/** Best weapon for the range: the rifle far off, the SMG close, the pistol otherwise. Never grenades. */
+/** Range (m) in which bots fire the Pelican: outside its blast, and near enough for its arc. */
+const LAUNCHER_MIN = 7;
+const LAUNCHER_MAX = 30;
+
+/**
+ * Best weapon for the range: the rifle far off, the SMG close, the pistol otherwise, the Pelican in the
+ * middle distance (never close, where its blast would catch the bot too). Never grenades.
+ */
 function chooseWeapon(world: World, p: Player, b: BotBrain, intent: PlayerIntent): void {
   const target = b.target !== null ? world.players[b.target] : null;
   const d = target ? Math.hypot(target.x - p.x, target.z - p.z) : 15;
@@ -214,7 +221,8 @@ function chooseWeapon(world: World, p: Player, b: BotBrain, intent: PlayerIntent
     const def = world.data.weapons[w.id];
     if (!def || def.type === 'thrown') return;
     if (w.mag + (p.ammo[def.ammo] ?? 0) <= 0) return;
-    const dps = (def.damage / def.fireInterval) * (def.spreadDeg > 2 && d > 15 ? 0.4 : 1);
+    if (def.type === 'launcher' && (d < LAUNCHER_MIN || d > LAUNCHER_MAX)) return;
+    const dps = def.type === 'launcher' ? (def.blastDamage * 0.6) / def.fireInterval : (def.damage / def.fireInterval) * (def.spreadDeg > 2 && d > 15 ? 0.4 : 1);
     const scoped = (def.zoom ?? 1) > 1;
     const score = dps * (scoped ? (d > 14 ? 3 : 0.5) : 1);
     if (score > bestScore) {
@@ -259,6 +267,11 @@ function shoot(world: World, p: Player, b: BotBrain, skill: BotSkill, intent: Pl
     return;
   }
   const d = Math.hypot(aim.x - p.x, aim.z - p.z);
+  // Too close for the Pelican: hold fire (chooseWeapon swaps to a gun soon).
+  if (def.type === 'launcher' && d < LAUNCHER_MIN) {
+    b.firePrev = false;
+    return;
+  }
   if (atPlayer && skill.scope && (def.zoom ?? 1) > 1 && d > 14) intent.aim = true;
   b.reaction -= DT;
   b.burstTimer -= DT;

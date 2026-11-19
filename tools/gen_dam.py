@@ -189,6 +189,10 @@ for item, c, r in (
     ('weapon_sniper', 16, 13.5),
     ('ammo_pistol', 3, 7),
     ('ammo_rifle', 41, 1.5),
+    # The Pelican is the find on the intake tower; orbs for it on the quiet catwalk and by the control house.
+    ('weapon_pelican', 39, 2),
+    ('ammo_shell', 34, 13.5),
+    ('ammo_shell', 27, 7),
     ('ammo_pistol', 30, 9.5),
     ('medkit', 24, 11),
     ('medkit', 46, 13.5),
