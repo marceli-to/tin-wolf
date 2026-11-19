@@ -24,6 +24,7 @@ import { computeViewRects, type SplitMode, type ViewRect } from './views';
 import { Effects } from './effects';
 import { buildRail, buildTarget, poseTarget, type TargetVisual } from './targets';
 import { MuzzleFlash, MuzzleLights } from './muzzle';
+import { Barrel, Casings, hasTracer, ShotFx } from './shotFx';
 import { buildModelArmsViewModel, buildPistolViewModel, poseViewModel, type ViewModel } from './viewModel';
 import { buildPickupMesh, powerupRing } from './pickups';
 import { flatMaterial } from './shapes';
@@ -40,6 +41,8 @@ interface ActorVisual {
   flash: MuzzleFlash;
   /** `sinceShot` seen last frame: when it drops, a new shot was fired. */
   lastSince?: number;
+  /** Smoke state of the figure's gun. */
+  barrel?: Barrel;
   /** Animated glTF figure, when model art is enabled; replaces the box humanoid. */
   model?: ModelCharacter;
   /** Drawn size, eased toward the sim's (a Shrink Ray shrinks the figure). */
@@ -52,6 +55,15 @@ interface ActorVisual {
 
 
 const _flashPos = new THREE.Vector3();
+const _barrelDir = new THREE.Vector3();
+const _port = new THREE.Vector3();
+const _portDir = new THREE.Vector3();
+const _q = new THREE.Quaternion();
+
+/** Barrel direction of a flash in world space (it is turned so its -z runs along the barrel). */
+function flashDir(flash: MuzzleFlash, out: THREE.Vector3): THREE.Vector3 {
+  return out.set(0, 0, -1).applyQuaternion(flash.object.getWorldQuaternion(_q));
+}
 
 /** Flash for a box humanoid's gun, whose barrel points along -z. */
 function boxGunFlash(h: Humanoid): MuzzleFlash {
@@ -61,6 +73,9 @@ function boxGunFlash(h: Humanoid): MuzzleFlash {
   h.gun.add(flash.object);
   return flash;
 }
+
+/** First-person smoke is drawn smaller: the barrel is only half a metre from the eye. */
+const FP_SMOKE_SCALE = 0.5;
 
 const STATE_COLORS: Record<string, string> = {
   patrol: '#40d070',
@@ -146,6 +161,12 @@ export class GameRenderer {
   private muzzleLights = new MuzzleLights();
   private vmFired: (string | null)[] = [];
   private vmFlashLight: THREE.PointLight | null = null;
+  private shotFx = new ShotFx();
+  private casings = new Casings();
+  /** Smoke state of each person's gun in hand. */
+  private vmBarrels: Barrel[] = [];
+  /** Tracer shots heard this tick, drawn once this frame's muzzles are placed. */
+  private pendingTracers: { shooter: Extract<SimEvent, { type: 'shotFired' }>['shooter']; weapon: string; end: THREE.Vector3 }[] = [];
 
   constructor(private container: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -155,6 +176,7 @@ export class GameRenderer {
     this.scene.add(this.dynamic);
     this.scene.add(this.debugGroup);
     this.scene.add(this.muzzleLights.group);
+    this.scene.add(this.shotFx.group);
     this.scene.add(this.effects.group);
     this.resize();
   }
@@ -180,6 +202,9 @@ export class GameRenderer {
     }
     this.muzzleLights.reset();
     this.vmFired = [];
+    this.vmBarrels = [];
+    this.pendingTracers = [];
+    this.shotFx.clear();
     this.levelGroup = buildLevelMesh(world.grid, this.light, world.level.roofs);
     this.scene.add(this.levelGroup);
 
@@ -526,6 +551,7 @@ export class GameRenderer {
     this.dynamic.clear();
     disposeDeep(this.debugGroup);
     this.debugGroup.clear();
+    this.casings.clear();
     disposeDeep(this.vmScene);
     this.vmScene.clear();
     this.viewModels = [];
@@ -736,7 +762,9 @@ export class GameRenderer {
 
   onSimEvent(e: SimEvent): void {
     // Blood on a player would burst right in front of their own camera; the hurt overlay covers it.
-    if (e.type === 'impact') {
+    if (e.type === 'shotFired') {
+      if (hasTracer(e.weapon)) this.pendingTracers.push({ shooter: e.shooter, weapon: e.weapon, end: new THREE.Vector3(e.tx, e.ty, e.tz) });
+    } else if (e.type === 'impact') {
       if (!(e.onPlayer && this.cameras.length === 1)) this.effects.impact(e.x, e.y, e.z, e.nx, e.ny, e.nz, e.surface);
       this.scorch(e);
     } else if (e.type === 'propDestroyed') {
@@ -762,21 +790,67 @@ export class GameRenderer {
    * Shows an actor's muzzle flash; on a new shot (its `sinceShot` dropped) it starts a fresh flash and
    * lights the room around the barrel. Returns whether a new shot was seen.
    */
-  private shotFlash(v: ActorVisual, since: number, weaponId: string, show: boolean): boolean {
+  private shotFlash(v: ActorVisual, since: number, weaponId: string, show: boolean, layer: number, dt: number): boolean {
     const fired = show && since < (v.lastSince ?? Infinity) && since < 0.1;
     v.lastSince = since;
+    v.flash.object.getWorldPosition(_flashPos);
+    const barrel = (v.barrel ??= new Barrel());
     if (fired) {
       const style = v.flash.fire(weaponId);
-      v.flash.object.updateWorldMatrix(true, false);
-      this.muzzleLights.flash(v.flash.object.getWorldPosition(_flashPos), style.light);
+      this.muzzleLights.flash(_flashPos, style.light);
+      this.shotFx.shot(barrel, _flashPos, flashDir(v.flash, _barrelDir), weaponId, layer);
     }
+    this.shotFx.tick(barrel, _flashPos, dt, layer, show);
     v.flash.update(since, show);
     return fired;
+  }
+
+  /**
+   * First person after the view is placed: smoke from the gun in hand and a casing thrown out of it,
+   * both seen only by this player (the figure's own smoke is on its body layer, hidden from them).
+   */
+  private viewModelShot(vm: ViewModel, holder: THREE.Object3D, i: number, slot: number, shot: string | null, show: boolean, dt: number): void {
+    const barrel = (this.vmBarrels[i] ??= new Barrel());
+    const layer = LAYER.VIEWMODEL + slot;
+    vm.flash.object.getWorldPosition(_flashPos);
+    if (shot && show) {
+      flashDir(vm.flash, _barrelDir);
+      this.shotFx.shot(barrel, _flashPos, _barrelDir, shot, layer, FP_SMOKE_SCALE);
+      // The ejection port sits a little behind the muzzle, on top of the slide.
+      _portDir.copy(_barrelDir).transformDirection(holder.matrixWorld.clone().invert());
+      holder.worldToLocal(_port.copy(_flashPos));
+      _port.addScaledVector(_portDir, shot === 'sniper' ? -0.32 : -0.16);
+      _port.y += 0.03;
+      this.casings.eject(holder, _port, _portDir, shot, layer);
+    }
+    this.shotFx.tick(barrel, _flashPos, dt, layer, show, FP_SMOKE_SCALE);
+  }
+
+  /** Tracers for this tick's shots, from where each shooter's barrel is drawn this frame. */
+  private drawTracers(world: World): void {
+    for (const s of this.pendingTracers) {
+      if (s.shooter.kind === 'guard') {
+        const v = this.guards[s.shooter.index];
+        if (v) this.shotFx.tracer(v.flash.object.getWorldPosition(_flashPos), s.end, s.weapon, 0);
+        continue;
+      }
+      const slot = s.shooter.slot;
+      const i = world.players.findIndex((p) => p.slot === slot);
+      const v = this.players[i];
+      if (!v) continue;
+      // Everyone else sees it leave the figure's gun; the shooter sees it leave the gun in hand.
+      this.shotFx.tracer(v.flash.object.getWorldPosition(_flashPos), s.end, s.weapon, LAYER.BODY + slot);
+      const vm = this.viewModels[i];
+      if (vm?.muzzle && vm.root.parent?.visible) this.shotFx.tracer(vm.flash.object.getWorldPosition(_flashPos), s.end, s.weapon, LAYER.VIEWMODEL + slot);
+    }
+    this.pendingTracers = [];
   }
 
   render(world: World, alpha: number, looks: ViewLook[], frameTime: number): void {
     this.effects.update(Math.min(frameTime, 0.05));
     this.muzzleLights.update(Math.min(frameTime, 0.05));
+    this.shotFx.update(Math.min(frameTime, 0.05));
+    this.casings.update(Math.min(frameTime, 0.05));
     this.time += frameTime;
     const p0 = world.players[0];
     if (this.snow && p0) this.snow.update(Math.min(frameTime, 0.05), p0.x, p0.z, this.time);
@@ -851,7 +925,7 @@ export class GameRenderer {
         else m.play(g.state === 'attack' || g.state === 'suspicious' ? 'alert' : 'idle');
         m.update(Math.min(frameTime, 0.05), speed);
         m.light(Math.min(1.1, this.light(x, z) + 0.15));
-        this.shotFlash(v, g.sinceShot, world.data.enemies[g.archetype]?.weapon ?? 'pistol', g.state !== 'dead');
+        this.shotFlash(v, g.sinceShot, world.data.enemies[g.archetype]?.weapon ?? 'pistol', g.state !== 'dead', 0, Math.min(frameTime, 0.05));
         return;
       }
       v.phase += speed * frameTime * 3.4;
@@ -871,7 +945,7 @@ export class GameRenderer {
         pitch: g.aimPitch,
       });
       v.h.body.rotation.x = -g.flinch * 1.2;
-      this.shotFlash(v, g.sinceShot, world.data.enemies[g.archetype]?.weapon ?? 'pistol', !dead);
+      this.shotFlash(v, g.sinceShot, world.data.enemies[g.archetype]?.weapon ?? 'pistol', !dead, 0, Math.min(frameTime, 0.05));
     });
     if (this.debugLines) this.drawDebug(world);
 
@@ -915,10 +989,11 @@ export class GameRenderer {
       lightHumanoid(v.h, Math.min(1.15, this.light(x, z) + 0.1));
       v.h.root.rotation.y = -p.yaw;
       poseHumanoid(v.h, { phase: v.phase, stride: Math.min(1, speed / 4), crouch, aim: 1, pitch: p.pitch });
-      const fired = this.shotFlash(v, p.sinceShot, p.weapon.id, p.alive && (v.model?.hasMuzzle ?? true));
+      const fired = this.shotFlash(v, p.sinceShot, p.weapon.id, p.alive && (v.model?.hasMuzzle ?? true), LAYER.BODY + p.slot, Math.min(frameTime, 0.05));
       if (fired) this.vmFired[i] = p.weapon.id;
 
       const vm = this.viewModels[i];
+      const vmShot = this.vmFired[i] ?? null;
       if (vm) {
         this.bob[i] = (this.bob[i] ?? 0) + speed * frameTime * 2.2;
         const def = world.data.weapons[p.weapon.id];
@@ -964,8 +1039,10 @@ export class GameRenderer {
         cam.updateMatrixWorld();
         holder.position.copy(cam.position);
         holder.quaternion.copy(cam.quaternion);
+        if (vm) this.viewModelShot(vm, holder, i, p.slot, vmShot, holder.visible && vm.muzzle && p.alive, Math.min(frameTime, 0.05));
       }
     });
+    this.drawTracers(world);
 
     const r = this.renderer;
     const fullH = this.logicalH;

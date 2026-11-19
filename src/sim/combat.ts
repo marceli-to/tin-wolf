@@ -107,8 +107,20 @@ export function fireHitscan(
   const sp = (weapon.spreadDeg + extraSpreadDeg) * DEG;
   const dir = forwardFromAngles(yaw + spread(world.rng) * sp, pitch + spread(world.rng) * sp);
   const ray: Ray = { ox, oy, oz, dx: dir.x, dy: dir.y, dz: dir.z };
-  emit(world, { type: 'shotFired', shooter, x: ox, y: oy, z: oz, weapon: weaponId, noise: weapon.noiseRadius });
   const hit = traceShot(world, ray, weapon.range, shooter);
+  const reach = hit ? hit.t : weapon.range;
+  emit(world, {
+    type: 'shotFired',
+    shooter,
+    x: ox,
+    y: oy,
+    z: oz,
+    weapon: weaponId,
+    noise: weapon.noiseRadius,
+    tx: ox + dir.x * reach,
+    ty: oy + dir.y * reach,
+    tz: oz + dir.z * reach,
+  });
   if (!hit) return null;
   const t = hit.target;
   if (t.kind === 'actor') {
