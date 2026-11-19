@@ -27,6 +27,8 @@ export interface ViewArmsSpec {
   headOffset: [number, number, number];
   /** Head placement for two-handed weapons, whose pose holds the gun elsewhere; default: `headOffset`. */
   twoHeadOffset?: [number, number, number];
+  /** Extra shift per weapon id, added to the head offset (metres; x right, y up, z back). */
+  weaponOffset?: Record<string, [number, number, number]>;
   hand: string;
   /** Muzzle in hand-bone space (metres); the model carries its own gun. */
   muzzle: [number, number, number];
@@ -149,7 +151,10 @@ export function buildModelArmsViewModel(arms: ModelInstance, held: HeldGun[], sp
       want.reset().play();
       mixer.update(0.5);
     }
-    aim(g, g.two ? placed.two : placed.one);
+    const shift = spec.weaponOffset?.[id];
+    const at = (g.two ? placed.two : placed.one).clone();
+    if (shift) at.add(new THREE.Vector3(...shift));
+    aim(g, at);
   };
   const first = held[0];
   if (first) vm.setWeapon(first.id);

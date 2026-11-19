@@ -286,6 +286,8 @@ export interface ArtSet {
     headOffset: [number, number, number];
     /** The same for two-handed weapons (default: `headOffset`). */
     twoHeadOffset?: [number, number, number];
+    /** Extra shift per weapon id, added to the head offset (metres; x right, y up, z back). */
+    weaponOffset?: Record<string, [number, number, number]>;
     hand: string;
     muzzle: [number, number, number];
     /** Head bone placed at `headOffset` (default 'Head'). */
@@ -408,6 +410,9 @@ PROFILES.tinfox = {
     // The two-handed pose holds the gun at the body's middle: the body moves left and down so the gun sits
     // lower right like the pistol, and back so the shoulder the pose pushes forward stays out of view.
     twoHeadOffset: [0.16, -0.15, 0.17],
+    // The Pelican's drum and sight stand 30 cm above its grip (a rifle's body is level with it), so it is
+    // held lower and further right, or it fills half the view.
+    weaponOffset: { pelican: [0.1, -0.22, 0.02] },
     grip: T_GRIP,
     // Marcel prefers the gun or grenade alone in first person: the figure only poses it, unseen.
     gunOnly: true,
@@ -419,6 +424,7 @@ PROFILES.tinfox = {
     smg: 'tinfox/weapons/smg.glb',
     sniper: 'tinfox/weapons/sniper.glb',
     grenade: 'tinfox/weapons/grenade.glb',
+    pelican: 'tinfox/weapons/grenade-launcher.glb',
   },
   // Pickups spin and bob above the floor, so they keep about the size the Kenney ones had there.
   items: {
@@ -429,6 +435,8 @@ PROFILES.tinfox = {
     ammo_pistol: { model: 'tinfox/weapons/ammo-pistol.glb', scale: 1.6 },
     ammo_rifle: { model: 'tinfox/weapons/ammo-pistol.glb', scale: 1.6 },
     ammo_smg: { model: 'tinfox/weapons/ammo-smg.glb', scale: 1.6 },
+    weapon_pelican: { model: 'tinfox/weapons/grenade-launcher.glb', scale: 0.75 },
+    ammo_shell: { model: 'tinfox/weapons/ammo-grenade-launcher.glb', scale: 2 },
     // Pickups and keycards built to the sizes of the code-built ones (scale 1); keycards in their colours.
     medkit: { model: 'tinfox/props/medkit.glb', scale: 1 },
     armor: { model: 'tinfox/props/vest.glb', scale: 1 },

@@ -421,6 +421,7 @@ export class GameRenderer {
           collapse: va.collapse,
           headOffset: va.headOffset,
           twoHeadOffset: va.twoHeadOffset,
+          weaponOffset: va.weaponOffset,
           hand: va.hand,
           muzzle: va.muzzle,
           height: p.height,
@@ -1110,13 +1111,14 @@ function fitToBox(o: THREE.Object3D, mb: THREE.Box3, b: { minX: number; maxX: nu
 }
 
 /**
- * A Pelican orb in flight, drawn in code until the generator's model arrives: olive green with a bright
- * orange band, about 12 cm across (the refill sheet's orbs).
+ * A Pelican orb in flight, drawn in code like the launcher's drum orbs (olive ball, orange band), a little
+ * bigger (12 cm instead of 9.4) so it reads in flight. The flat material takes its shade from vertex
+ * colours, which these geometries get from `shadeByNormal` (without them the orb drew black).
  */
 function shellMesh(): THREE.Object3D {
   const g = new THREE.Group();
-  g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.06, 1), flatMaterial('#6b7a3a')));
-  const band = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.014, 4, 12), flatMaterial('#ff8a1e'));
+  g.add(new THREE.Mesh(shadeByNormal(new THREE.IcosahedronGeometry(0.06, 1)), flatMaterial('#6b7a3a')));
+  const band = new THREE.Mesh(shadeByNormal(new THREE.TorusGeometry(0.06, 0.014, 4, 12)), flatMaterial('#ff8a1e'));
   band.rotation.x = Math.PI / 2;
   g.add(band);
   return g;
