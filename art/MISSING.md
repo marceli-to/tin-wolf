@@ -28,6 +28,14 @@ The players (05–08) and the practice dummy (09) are in the game (2026-11-18 / 
 All of 33–39 is in the game (2026-11-19, reply `SNOWFORT-KIT-REPLY.md`). Nothing in the game uses Kenney props or
 figures any more except the code's fallbacks.
 
+## 6. Grenade launcher "Pelican": sheets wanted (Marcel)
+
+A new weapon (2026-11-19). Prompts `weapons/prompts/07-orb-blaster.txt` (the launcher) and `08-orb-refill.txt` (its
+ammo pickup); a copy with the reference sheets to attach is on Marcel's Desktop (`tinfox-grenade-launcher/`, with a
+README). The prompts call it an "orb blaster" firing "orbs": ChatGPT refused the first version that said grenade
+launcher, shells and ammunition. Approved sheets go to `weapons/sheets/07-orb-blaster.png` and `08-orb-refill.png`;
+then the generator builds `grenade-launcher.glb` (with `grip` and `muzzle` nodes, like the other guns) and the pickup.
+
 ## Not needed
 
 `crate_large`, `barrel_small`, `closet`, `shelf_low`, `lab_chair` and `stool` exist in the game's data but are placed

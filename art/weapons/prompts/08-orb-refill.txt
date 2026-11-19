@@ -1,0 +1,21 @@
+Reference sheet of one original sci-fi toy-like game pickup, made to match the art style of
+the attached reference sheets exactly (the character sheet for the style, the round gadget
+sheet for the colours). It belongs to the same cheerful, colourful stylised 3D arena game,
+clearly fictional and cartoony.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches), chunky simple shapes, slightly
+oversized and rounded like the characters, bold readable silhouette.
+
+Item: a refill pickup for the "Pelican" orb blaster, about 16 cm wide: a short chunky dark grey
+tray holding three small orbs standing side by side in round sockets. Each orb is a short fat
+rounded capsule, olive green on top, a bright orange band around the middle and a silver base.
+A small orange stripe on the front of the tray.
+Colour palette limited to about 5 colours: dark grey, olive green, bright orange, silver, black.
+
+Layout: three views side by side in one row, left to right: SIDE view, TOP view (looking down
+on the orbs), FRONT view. Strict orthographic views, no perspective, no three-quarter angles.
+Same item at the same scale in all views, the whole item visible with space around it.
+No hands, no character, no effects.
+
+Plain flat light grey background (#E8E8E8), no shadow, no text, no labels, no frames.

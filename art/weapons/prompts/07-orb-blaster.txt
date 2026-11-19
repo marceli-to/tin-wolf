@@ -1,0 +1,28 @@
+Reference sheet of one original sci-fi toy-like game prop, made to match the art style of the
+attached reference sheets exactly (the character sheet for the style, the two blaster sheets
+for the look of the prop, the round gadget sheet for the orb colours). It belongs to the same
+cheerful, colourful stylised 3D arena game. It is a chunky retro-futuristic sci-fi blaster that
+lobs glowing energy orbs, clearly fictional and cartoony, nothing like a real-world object.
+
+Style: low-poly 3D game asset, clearly faceted flat-shaded surfaces, flat solid saturated
+colours (no textures, no gradients, no grime, no scratches), chunky simple shapes, slightly
+oversized and rounded like the characters, bold readable silhouette.
+
+Item: "Pelican", a chunky two-handed orb blaster, about 75 cm long. At the front a short,
+very wide round nozzle with a thick bright orange ring; behind it a fat round revolving drum
+with six round sockets, each socket showing the top of a small olive green orb with an orange
+band (like the attached round gadget); a boxy rounded dark grey body behind the drum; a vertical
+black handle under the rear of the body with a small orange button; a short black front handle
+under the nozzle; a short padded shoulder rest at the back; a small flip-up sight on top; a
+small light blue glowing window on the side of the body.
+Colour palette limited to about 6 colours: dark grey body, black handles and details, silver
+parts (drum axle, sight), bright orange accents (nozzle ring, small stripes, button), olive
+green orbs, a small light blue window.
+
+Layout: three views side by side in one row, left to right: SIDE view (nozzle pointing to
+the right), TOP view (nozzle pointing to the right), FRONT view (looking straight at the
+nozzle). Strict orthographic views, no perspective, no three-quarter angles. Same item at the
+same scale in all views, the whole item visible with space around it. The rear handle and the
+front nozzle must be clearly visible. No hands, no character, no effects.
+
+Plain flat light grey background (#E8E8E8), no shadow, no text, no labels, no frames.
