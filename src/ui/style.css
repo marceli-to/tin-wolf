@@ -20,7 +20,7 @@
   --p1: #3b82d6;
   --p2: #e2533f;
   --p3: #3fa85a;
-  --p4: #e0a92a;
+  --p4: #f5b20e;
   --font: 'Fredoka', ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif;
   --pop: 0 5px 0 var(--line);
 }
@@ -191,6 +191,44 @@ canvas { display: block; image-rendering: pixelated; }
 /* Bubble Shield: a blue glow round the edge of the view. */
 .shield-tint { position: absolute; inset: 0; opacity: 0; box-shadow: inset 0 0 60px 18px rgba(94, 200, 255, 0.7); transition: opacity 120ms; }
 .shield-tint.on { opacity: 1; }
+/* Hit marker: four ticks round the crosshair. White for a hit, orange for a head shot, red and bigger for a takedown. */
+.hitmark { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px 0 0 -20px; opacity: 0; }
+.hitmark.hit { background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><path d='M7 7l7 7M33 7l-7 7M7 33l7-7M33 33l-7-7' stroke='%232f3236' stroke-width='6' stroke-linecap='round'/><path d='M7 7l7 7M33 7l-7 7M7 33l7-7M33 33l-7-7' stroke='%23fff' stroke-width='3' stroke-linecap='round'/></svg>") no-repeat center / contain; animation: hitmark 220ms ease-out; }
+.hitmark.head { background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><path d='M7 7l7 7M33 7l-7 7M7 33l7-7M33 33l-7-7' stroke='%232f3236' stroke-width='6' stroke-linecap='round'/><path d='M7 7l7 7M33 7l-7 7M7 33l7-7M33 33l-7-7' stroke='%23f28a1e' stroke-width='3' stroke-linecap='round'/></svg>") no-repeat center / contain; animation: hitmark 300ms ease-out; }
+.hitmark.kill { background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><path d='M7 7l7 7M33 7l-7 7M7 33l7-7M33 33l-7-7' stroke='%232f3236' stroke-width='6' stroke-linecap='round'/><path d='M7 7l7 7M33 7l-7 7M7 33l7-7M33 33l-7-7' stroke='%23e9453a' stroke-width='3' stroke-linecap='round'/></svg>") no-repeat center / contain; animation: hitmark-kill 500ms ease-out; }
+@keyframes hitmark { from { opacity: 1; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.05); } }
+@keyframes hitmark-kill { from { opacity: 1; transform: scale(0.9); } 25% { opacity: 1; transform: scale(1.35); } 70% { opacity: 1; } to { opacity: 0; transform: scale(1.35); } }
+
+/* Owned weapons above the ammo card: key cap and name, the one in hand lit orange. */
+.hud-right { position: absolute; right: 18px; bottom: 18px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.hud-weapons { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.hud-weapons .wpn {
+  display: flex; align-items: center; gap: 6px; padding: 2px 10px 2px 3px; font-size: 14px;
+  background: rgba(244, 243, 238, 0.82); color: var(--ink); border: 2.5px solid var(--line); border-radius: 999px;
+}
+.hud-weapons .wpn kbd { margin: 0; min-width: 1.4em; padding: 0 4px; font-size: 13px; border-radius: 999px; box-shadow: none; }
+.hud-weapons .wpn b { font-variant-numeric: tabular-nums; }
+.hud-weapons .wpn.on { background: var(--accent); box-shadow: 0 3px 0 var(--line); }
+.hud-weapons .wpn.out { opacity: 0.45; }
+.hud.small .hud-right { right: 10px; bottom: 10px; gap: 6px; }
+.hud.small .hud-weapons { gap: 3px; }
+.hud.small .hud-weapons .wpn { padding: 1px 3px; }
+.hud.small .hud-weapons .wpn .nm { display: none; }
+.hud.small .hud-weapons .wpn:has(b) .nm { display: inline; font-size: 0; }
+.hud.small .hud-weapons .wpn b { font-size: 12px; padding-right: 4px; }
+
+/* Mission: how hidden you are, top centre. */
+.hud-top .stealth { padding: 3px 14px 3px 32px; position: relative; font-size: 16px; }
+.hud-top .stealth::before { content: ''; position: absolute; left: 11px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; border: 2.5px solid var(--line); box-sizing: border-box; background: #9d9b94; }
+.hud-top .stealth.hidden { color: var(--dim); background: rgba(244, 243, 238, 0.82); }
+.hud-top .stealth.wary::before { background: var(--sun); }
+.hud-top .stealth.spotted { background: var(--accent); }
+.hud-top .stealth.spotted::before { background: #fff; }
+.hud-top .stealth.alarm { background: var(--bad); color: #fff; animation: alarm-blink 0.6s steps(2) infinite; }
+.hud-top .stealth.alarm::before { background: #fff; }
+@keyframes alarm-blink { 50% { background: #b8302a; } }
+.hud-top .cpu { display: inline-block; width: 0.95em; height: 0.95em; margin-left: 4px; vertical-align: -0.1em; background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><g fill='%23fff'><rect x='2' y='5' width='12' height='9' rx='3'/><rect x='7.2' y='1.5' width='1.6' height='4'/><circle cx='8' cy='1.8' r='1.6'/></g><circle cx='5.6' cy='9.4' r='1.4' fill='%232f3236'/><circle cx='10.4' cy='9.4' r='1.4' fill='%232f3236'/></svg>") no-repeat center / contain; }
+
 /* Running power-ups, above the health chip. */
 .hud-powers { position: absolute; left: 18px; bottom: 86px; display: flex; gap: 8px; flex-wrap: wrap; }
 .hud-powers .power {
@@ -203,18 +241,18 @@ canvas { display: block; image-rendering: pixelated; }
 .hud.small .hud-powers .power { font-size: 13px; padding: 2px 9px; }
 .hurt { position: absolute; inset: 0; background: radial-gradient(transparent 40%, rgba(233, 69, 58, 0.85)); opacity: 0; }
 
-.hud-health { position: absolute; left: 18px; bottom: 18px; display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 10px; }
+.hud-health { position: absolute; left: 18px; bottom: 18px; display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 10px; }
 .hud-health .heart { width: 30px; height: 28px; flex: none; }
-.hud-health .num { font-size: 28px; font-weight: 700; min-width: 44px; line-height: 1; }
+.hud-health .num { font-size: 26px; font-weight: 700; min-width: 44px; line-height: 1; }
 .hud-health .bars { display: flex; flex-direction: column; gap: 4px; }
-.hud-health .bar { width: 150px; height: 14px; box-sizing: border-box; border: 3px solid var(--line); border-radius: 999px; background: #d8dbe3; overflow: hidden; }
+.hud-health .bar { width: 130px; height: 14px; box-sizing: border-box; border: 3px solid var(--line); border-radius: 999px; background: #d8dbe3; overflow: hidden; }
 .hud-health .bar.armor { height: 10px; border-width: 2px; }
 .hud-health .fill { height: 100%; border-radius: 999px; transition: width 150ms; }
 .hud-health .fill.hp { background: var(--good); }
 .hud-health .fill.hp.low { background: var(--bad); }
 .hud-health .fill.armor { background: var(--p1); }
 
-.hud-ammo { position: absolute; right: 18px; bottom: 18px; padding: 6px 16px 8px; text-align: right; min-width: 90px; }
+.hud-ammo { padding: 6px 16px 8px; text-align: right; min-width: 90px; }
 .hud-ammo .wname { font-size: 12px; color: var(--dim); letter-spacing: 0.12em; text-transform: uppercase; }
 .hud-ammo .rounds { font-size: 20px; line-height: 1.1; color: var(--dim); }
 .hud-ammo .rounds b { font-size: 34px; font-weight: 700; color: var(--ink); }
@@ -227,7 +265,8 @@ canvas { display: block; image-rendering: pixelated; }
 .hud-top .score.p1 { background: var(--p1); }
 .hud-top .score.p2 { background: var(--p2); }
 .hud-top .score.p3 { background: var(--p3); }
-.hud-top .score.p4 { background: var(--p4); }
+.hud-top .score.p4 { background: var(--p4); color: var(--ink); }
+.hud-top .score.p4 .cpu { filter: brightness(0.2); }
 .hud-top .score.me { transform: scale(1.12); }
 .hud-top .timer { font-variant-numeric: tabular-nums; }
 
@@ -252,7 +291,7 @@ kbd {
 .hud.small .hud-health .heart { width: 22px; height: 20px; }
 .hud.small .hud-health .num { font-size: 20px; min-width: 32px; }
 .hud.small .hud-health .bar { width: 90px; height: 12px; }
-.hud.small .hud-ammo { right: 10px; bottom: 10px; padding: 4px 12px 5px; min-width: 70px; }
+.hud.small .hud-ammo { padding: 4px 12px 5px; min-width: 70px; }
 .hud.small .hud-ammo .rounds { font-size: 16px; }
 .hud.small .hud-ammo .rounds b { font-size: 26px; }
 .hud.small .hud-ammo .wname { font-size: 10px; }

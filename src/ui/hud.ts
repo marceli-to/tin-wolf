@@ -1,5 +1,6 @@
 import type { ViewRect } from '../render/views';
 import type { Player, World } from '../sim/world';
+import { usable } from '../sim/weapons';
 import { el, esc } from './dom';
 
 export interface HudExtras {
@@ -33,10 +34,29 @@ function powerChips(world: World, p: Player): string {
   return out;
 }
 
+/** Owned weapons as key caps (key n draws weapon n): the one in hand lit, ones that cannot be drawn dimmed. */
+function weaponStrip(world: World, p: Player): string {
+  if (p.weapons.length < 2) return '';
+  return p.weapons
+    .map((w, i) => {
+      const def = world.data.weapons[w.id];
+      if (!def) return '';
+      const cls = w === p.weapon ? ' on' : usable(world.data, p, w.id) ? '' : ' out';
+      const count = def.type === 'thrown' ? ` <b>×${p.ammo[def.ammo] ?? 0}</b>` : '';
+      return `<li class="wpn${cls}"><kbd>${i + 1}</kbd><span class="nm">${esc(def.name)}${count}</span></li>`;
+    })
+    .join('');
+}
+
+export type HitKind = 'hit' | 'head' | 'kill';
+
 /** One absolutely positioned DOM layer per player view. */
 export class PlayerHud {
   readonly root = el('div', 'hud');
   private crosshair = el('div', 'crosshair');
+  private hitMark = el('div', 'hitmark');
+  private weapons = el('ul', 'hud-weapons');
+  private right = el('div', 'hud-right');
   private scope = el('div', 'scope');
   private lockHint = el('div', 'lock-hint chip', 'Click to play');
   private center = el('div', 'center-msg outlined');
@@ -52,7 +72,8 @@ export class PlayerHud {
   private last = '';
 
   constructor(parent: HTMLElement) {
-    this.root.append(this.hurt, this.shield, this.powers, this.scope, this.crosshair, this.top, this.objectives, this.notice, this.center, this.prompt, this.health, this.ammo, this.lockHint);
+    this.right.append(this.weapons, this.ammo);
+    this.root.append(this.hurt, this.shield, this.powers, this.scope, this.crosshair, this.hitMark, this.top, this.objectives, this.notice, this.center, this.prompt, this.health, this.right, this.lockHint);
     parent.appendChild(this.root);
   }
 
@@ -76,6 +97,7 @@ export class PlayerHud {
     this.shield.classList.toggle('on', p.alive && left > 0 && (left > 1.5 || Math.floor(left * 8) % 2 === 0));
     const reloading = p.weapon.reloadTimer > 0;
     const powers = p.alive ? powerChips(world, p) : '';
+    const strip = p.alive ? weaponStrip(world, p) : '';
     // Only touch the DOM when something visible changed.
     const key = [
       Math.ceil(p.hp),
@@ -94,6 +116,7 @@ export class PlayerHud {
       x.prompt,
       world.level.mode,
       powers,
+      strip,
     ].join('|');
     if (key === this.last) return;
     this.last = key;
@@ -115,6 +138,7 @@ export class PlayerHud {
       this.center.innerHTML = p.protect > 0 ? '<small>Spawn shield</small>' : '';
     }
     this.powers.innerHTML = powers;
+    this.weapons.innerHTML = strip;
     this.notice.innerHTML = x.notice;
     this.top.innerHTML = x.top;
     this.objectives.innerHTML = x.objectives;
@@ -122,6 +146,14 @@ export class PlayerHud {
     // A leading "[E]" becomes a key cap.
     this.prompt.innerHTML = p.alive ? esc(x.prompt).replace(/^\[(\w+)\]\s*/, '<kbd>$1</kbd>') : '';
     this.prompt.classList.toggle('locked', x.promptLocked);
+  }
+
+  /** Flashes the hit marker round the crosshair: a hit, a head shot, or a takedown. */
+  hit(kind: HitKind): void {
+    const m = this.hitMark;
+    m.className = 'hitmark';
+    void m.offsetWidth; // restart the animation
+    m.className = `hitmark ${kind}`;
   }
 
   dispose(): void {

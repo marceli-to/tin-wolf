@@ -847,7 +847,12 @@ export class Game {
         if (e.success) markMissionDone(w.level.id);
         w.players.forEach((p) => this.notify(p.slot, e.success ? 'MISSION COMPLETE' : '', 3));
         break;
+      case 'hit':
+        if (e.shooter?.kind === 'player' && !(e.target.kind === 'player' && e.target.slot === e.shooter.slot))
+          this.huds[e.shooter.slot]?.hit(e.zone === 'head' ? 'head' : 'hit');
+        break;
       case 'targetHit':
+        if (e.slot !== null) this.huds[e.slot]?.hit(e.bullseye ? 'head' : 'hit');
         if (e.bullseye && e.slot !== null) this.notify(e.slot, 'Bullseye!', 1);
         break;
       case 'courseStarted':
@@ -862,6 +867,7 @@ export class Game {
         break;
       }
       case 'died':
+        if (e.killer?.kind === 'player' && !(e.target.kind === 'player' && e.target.slot === e.killer.slot)) this.huds[e.killer.slot]?.hit('kill');
         if (e.target.kind === 'player') {
           const victim = e.target.slot;
           const k = e.killer;
@@ -954,9 +960,20 @@ export class Game {
     return this.input.slots[slot]?.kind === 'pad' ? '[A]' : '[E]';
   }
 
-  /** Score and timer in versus. */
+  /** Score and timer in versus, course time in training, how hidden you are in a mission. */
   private hudTop(slot: number): string {
     const w = this.world;
+    if (w?.mission && !w.mission.over) {
+      const states = w.guards.map((g) => g.state);
+      const [cls, label] = w.alarm.raised
+        ? ['alarm', 'Alarm!']
+        : states.includes('attack')
+          ? ['spotted', 'Spotted!']
+          : states.includes('suspicious') || states.includes('search')
+            ? ['wary', 'Guards are wary']
+            : ['hidden', 'Unseen'];
+      return `<span class="stealth chip ${cls}">${label}</span>`;
+    }
     if (w?.level.mode === 'training') {
       const c = w.course;
       if (c?.running) return `<span class="score chip p${c.slot + 1}">🎯 ${c.hits} / ${c.total}</span><span class="timer chip">${formatTime(c.time)}</span>`;
@@ -965,7 +982,7 @@ export class Game {
     }
     if (!w?.match) return '';
     const scores = w.players
-      .map((p) => `<span class="score chip p${p.slot + 1}${p.slot === slot ? ' me' : ''}">${p.bot ? '🤖' : `P${p.slot + 1}`} · ${p.kills}</span>`)
+      .map((p) => `<span class="score chip p${p.slot + 1}${p.slot === slot ? ' me' : ''}">P${p.slot + 1}${p.bot ? '<i class="cpu" title="Computer"></i>' : ''} · ${p.kills}</span>`)
       .join('');
     const t = Math.ceil(w.match.timeLeft);
     const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;

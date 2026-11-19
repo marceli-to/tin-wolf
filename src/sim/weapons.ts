@@ -9,7 +9,8 @@ import { emit, type Player, type World } from './world';
 export const SWITCH_TIME = 0.4;
 
 /** A thrown weapon with nothing left to throw cannot be drawn. */
-function usable(data: GameData, p: Player, id: string): boolean {
+/** A weapon can be drawn: thrown ones need at least one in the pool. */
+export function usable(data: GameData, p: Player, id: string): boolean {
   const def = data.weapons[id];
   return !!def && (def.type !== 'thrown' || (p.ammo[def.ammo] ?? 0) > 0);
 }
